@@ -113,23 +113,23 @@ void runSystUnfolding(Bool_t style = kFALSE){
    
    // VARIATIONS requested for the systematic study
    
-   const Int_t variationrec = 4, variationgen = 2;
+   const Int_t variationrec = 5, variationgen = 2;
    
    // bin corresponding to the "central value" or default
    Int_t centralrec = 0, centralgen = 0, centralvar = centralrec*variationgen + centralgen;
    Int_t totalvar = variationrec*variationgen;
-   Int_t skipVariationRec[variationrec] = {0, 0, 0, 0};
+   Int_t skipVariationRec[variationrec] = {0, 0, 0, 0, 0};
    Int_t skipVariationGen[variationgen] = {0, 1};
    //reco
-   Double_t pt_min[variationrec] = {20, 10, 30, 20}; //MB
-   Double_t pt_max[variationrec] = {80, 80, 90, 140}; //MB
-   Double_t pt_mineje[variationrec] = {70, 60, 60, 70};   //EJE
-   Double_t pt_maxeje[variationrec] = {120, 120, 130, 140}; //EJE
+   Double_t pt_min[variationrec] = {20, 10, 30, 20, 20}; //MB
+   Double_t pt_max[variationrec] = {80, 80, 90, 140, 80}; //MB
+   Double_t pt_mineje[variationrec] = {70, 60, 60, 70, 70};   //EJE
+   Double_t pt_maxeje[variationrec] = {120, 120, 130, 140, 120}; //EJE
    
-   Double_t m_min[variationrec] = {0., 0., 0., 0};
-   Double_t m_max[variationrec] = {12., 10., 14., 40};
-   Double_t m_mineje[variationrec] = {0., 0., 0., 0};
-   Double_t m_maxeje[variationrec] = {14., 12., 16., 40};
+   Double_t m_min[variationrec] = {0., 0., 0., 0, 0};
+   Double_t m_max[variationrec] = {12., 10., 14., 40, 12};
+   Double_t m_mineje[variationrec] = {0., 0., 0., 0, 0};
+   Double_t m_maxeje[variationrec] = {14., 12., 16., 40, 16};
    //gen
    Double_t pt_minT[variationgen] = {10., 10.};   //MB ->Changing this??
    Double_t pt_maxT[variationgen] = {150., 150.};  //MB

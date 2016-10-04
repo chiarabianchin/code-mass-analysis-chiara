@@ -867,6 +867,8 @@ void ComparisonDebugMBEJE(){
 	
 }
 
+//______________________________________________________________________________
+
 void CompareFixedVariableBinW(Bool_t logy = kFALSE){
 	const Int_t ninputs = 5;
 	TString files[ninputs] = {"/data/Work/jets/JetMass/pPbJetMassAnalysis/ResultspPbJetMass/Train806-807-810-811/UnfoldVarBinW/MB/UnfoldedDistributionsPrior0VarBinWidth.root",	"/data/Work/jets/JetMass/pPbJetMassAnalysis/ResultspPbJetMass/Train806-807-810-811/UnfoldVarBinW/EJE/UnfoldedDistributionsPrior0VarBinWidth.root",
@@ -890,10 +892,13 @@ void CompareFixedVariableBinW(Bool_t logy = kFALSE){
 
 }
 
+//______________________________________________________________________________
+
 void CompareFixedVariableBinWCentralValueMBEJE(Bool_t logy = kFALSE){
-	const Int_t ninputs = 2;
+	const Int_t ninputs = 3;
 	TString files[ninputs] = {
 		"/data/Work/jets/JetMass/pPbJetMassAnalysis/ResultspPbJetMass/Train806-807-810-811/UnfoldingNoBkgSub/MBEJE/00resp_pt20_80or70_120_ptT10_150or50_150_m0_12or0_14_mT0_40/MassUnfSumMBEJE.root",
+		"/data/Work/jets/JetMass/pPbJetMassAnalysis/ResultspPbJetMass/Train806-807-810-811/UnfoldingNoBkgSub/MBEJE/08resp_pt20_80or70_120_ptT10_150or50_150_m0_12or0_16_mT0_40/MassUnfSumMBEJE.root",
 		"/data/Work/jets/JetMass/pPbJetMassAnalysis/ResultspPbJetMass/Train806-807-810-811/UnfoldVarBinW/MBEJE/MassUnfSumMBEJE.root"	
 
 	};
@@ -901,13 +906,13 @@ void CompareFixedVariableBinWCentralValueMBEJE(Bool_t logy = kFALSE){
 	//"/data/Work/jets/JetMass/pPbJetMassAnalysis/ResultspPbJetMass/Train806-807-810-811/UnfoldVarBinW/EJE/tests/UnfoldedDistributionsPrior010GeVpar.root",
 	//"/data/Work/jets/JetMass/pPbJetMassAnalysis/ResultspPbJetMass/Train806-807-810-811/UnfoldVarBinW/EJE/tests/UnfoldedDistributionsPrior0.root","/data/Work/jets/JetMass/pPbJetMassAnalysis/ResultspPbJetMass/Train806-807-810-811/UnfoldingNoBkgSub/EJE/00resp_pt20_80or70_120_ptT10_150or50_150_m0_12or0_14_mT0_40/UnfoldedDistributionsPrior0DetFlBkgNoSub.root"
 
-	TString hnamebase[ninputs] = {"hMUnf__Iter3", "hMUnf__Iter3"};
-	TString legs[ninputs] = {"MBEJEFix", "MBEJEVar"};
-	Int_t firstMatchingBin[ninputs] = {0, 0};
+	TString hnamebase[ninputs] = {"hMUnf__Iter3", "hMUnf__Iter3", "hMUnf__Iter3"};
+	TString legs[ninputs] = {"MBEJEFixM012_014","MBEJEFixM014_016", "MBEJEVar"};
+	Int_t firstMatchingBin[ninputs] = {0, 0, 0};
 	Bool_t changeColor = kTRUE;
 	Bool_t writeout = kTRUE;
 	Bool_t nouniform = kFALSE;
-	Int_t base = 0;
+	Int_t base = 2;
 	Printf("Base %d is %s", base , legs[base].Data());
 	CompareResults(ninputs, files, hnamebase, legs, firstMatchingBin, changeColor, writeout, nouniform, base, "", logy);
 
