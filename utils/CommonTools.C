@@ -17,7 +17,7 @@
 
 Int_t colorSeriesBlue[] = {kCyan-3, kCyan-7, kCyan-6, kCyan-2, kCyan+4, kBlue, kBlue-7, kBlue-1, kBlue-6, kBlue+3};
 Int_t colorSeriesGreen[] = {kGreen-9, kGreen+4, kGreen+1, kGreen-8, kGreen-6, kGreen+2, kGreen+3, kGreen+4 };
-void SaveCv(TCanvas* c, TString suffix = "", Int_t format = 2);   
+void SaveCv(TCanvas* c, TString suffix = "", Int_t format = 3);   
 TList* ReadFile(TString strIn, TString strLst);
 TList* ReadFile(TString strIn, TString strDir, TString strLst);
 TObject* ReadObjInFile(TString strIn, TString strLst, TString objname);

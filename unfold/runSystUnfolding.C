@@ -1,8 +1,8 @@
 #include <TParameter.h>
-#include "/data/Work/MyCodeJetMass/unfold/CreateRooUnfoldResponse.C"
-#include "/data/Work/MyCodeJetMass/unfold/unfoldData.C"
-#include "/data/Work/MyCodeJetMass/unfold/SystematicComparisonsUnf.C"
-#include "/data/Work/MyCodeJetMass/macros/CalculateKineEff.C"
+#include "/data/Work/code-mass-analysis-chiara/unfold/CreateRooUnfoldResponse.C"
+#include "/data/Work/code-mass-analysis-chiara/unfold/unfoldData.C"
+#include "/data/Work/code-mass-analysis-chiara/unfold/SystematicComparisonsUnf.C"
+#include "/data/Work/code-mass-analysis-chiara/macros/CalculateKineEff.C"
 #include <iostream>
 #include <fstream>
 using std::endl;
@@ -31,8 +31,8 @@ void runSystUnfolding(Bool_t style = kFALSE){
    
    // switches
    Int_t dryrun       = 0;     // explore directories, no actions
-   Int_t domatrix     = 1;    // activate CreateRooUnfoldResponse. A check on the existance of the output file is performed, no action if the file is present
-   Int_t dounfold     = 1;    // activate unfold and CombineTriggersCorrected.  A check on the existance of the output file is performed, no action if the file is present
+   Int_t domatrix     = 0;    // activate CreateRooUnfoldResponse. A check on the existance of the output file is performed, no action if the file is present
+   Int_t dounfold     = 0;    // activate unfold and CombineTriggersCorrected.  A check on the existance of the output file is performed, no action if the file is present
    Int_t forcedounfold     = 0; //redo the unfolding even if the file is alredy present 
    if(forcedounfold)  dounfold = 1;
    Int_t kineeffinrangesyst = 0; // correct the variations of the range with kine eff
@@ -44,7 +44,7 @@ void runSystUnfolding(Bool_t style = kFALSE){
    	   reckineff = 0;
    	   correctforkineeff = 0;
    }
-   Int_t variablebinning = 1; //enable/disable the variation of variable binning
+   Int_t variablebinning = 0; //enable/disable the variation of variable binning
    Int_t docompare = 1;
    Int_t plotResults = 1;
 
@@ -256,7 +256,7 @@ void runSystUnfolding(Bool_t style = kFALSE){
    
    //check that these stay the same, mostly the number (that is the index or the array wdirunf corresponding to the defaultUnfPaths)
    Int_t defaultUnfNumb = 0;
-   TString defaultUnfPaths = wdirunf[defaultUnfNumb]; // it's: "/data/Work/jets/JetMass/pPbJetMassAnalysis/ResultspPbJetMass/Train806-807-810-811/UnfoldEmbDeriv/MBEJE";
+   TString defaultUnfPaths = wdirunf[defaultUnfNumb];
    Int_t binSwitchToEJE = -1; // it's calculated when combining the triggers in the range variation, see if needed to reset it in all.
    
    Int_t arrayiter[ntr] = {iterdef, iterdef};
@@ -273,8 +273,6 @@ void runSystUnfolding(Bool_t style = kFALSE){
    // "hUnfMpj_Itr3_ptb" is the one taken from the projecton of the 2D spectrum sum of MB and EJE, so it's wrong!!
       
    // settings comparisons
-   
-   //"/data/Work/jets/JetMass/pPbJetMassAnalysis/ResultspPbJetMass/testSystematic";
    
    TString wdircmpBkg = "CmpEmbBkgSub"; // compare bkg subtraction, default response ranges
    TString inputcmpBkg[nbkg];
@@ -939,17 +937,23 @@ void runSystUnfolding(Bool_t style = kFALSE){
    TH1D *hSystTotForDrawing[nptbins]; // one per pT bin
    TH1D *hStatUncForDrawing[nptbins]; // one per pT bin
    TH1D **hSystPartForDrawing[ncontribution] = {0x0}; // nptbins x contributions
+   TH1D* hMeanSysTot = 0x0;
    
    if(docompare){
-   	   Printf("\nCalculate the systematics from the variations:");
-   	   for(Int_t iv = 0; iv < ncontribution; iv++){
-   	   	   if(activecmp[iv]) Printf("- Comparison %d enabled", iv);
-   	   	   else Printf("- Comparison %d disabled", iv);
-   	   }
-   	   
    	   // compare different variations, the paths are defined in the previous loop
    	   TH1D *hSystTot[nptbins]; // one per pT bin
    	   TH1D **hSystPart[ncontribution] = {0x0}; // nptbins x contributions
+   	   
+   	   TH1D *hMeanSys[ncontribution]; // 1 x contributions
+   	   TH1D *hMeanSta[ncontribution]; // 1 x contributions
+   	   
+   	   Printf("\nCalculate the systematics from the variations:");
+   	   for(Int_t iv = 0; iv < ncontribution; iv++){
+   	   	   hMeanSys[iv] = 0x0;
+   	   	   hMeanSta[iv] = 0x0;
+   	   	   if(activecmp[iv]) Printf("- Comparison %d enabled", iv);
+   	   	   else Printf("- Comparison %d disabled", iv);
+   	   }
    	   
    	   
    	   
@@ -970,6 +974,15 @@ void runSystUnfolding(Bool_t style = kFALSE){
    	   	   act++;
    	   	   if(!dryrun) {
    	   	   	   TH1D** htmpSysPart = CompareResults(nbkg, inputcmpBkg, inputhnamecmpBkg, legcmpBkg, offsetcmpBkg, kTRUE, kTRUE, kFALSE, 1, "BkgSub");
+   	   	   	   TList *list = GetMeanAndSystFromList(maxRangeMassFinal, nbkg, inputcmpBkg, inputhnamecmpBkg, kFALSE, hnameSysMean[act-1]);
+   	   	   	   Printf("Syst bkg, list %p", list);
+   	   	   	   hMeanSta[0] = 0x0;
+   	   	   	   hMeanSys[0] = 0x0;
+   	   	   	   hMeanSta[0] = (TH1D*)list->At(0);
+   	   	   	   hMeanSys[0] = (TH1D*)list->At(1);
+   	   	   	   
+   	   	   	   //delete list;
+   	   	   	   Printf("Pointer histos %p %p, integral %f, max %f", hMeanSta[0], hMeanSys[0], hMeanSys[0]->Integral(),hMeanSys[0]->GetMaximum() );
    	   	   	   
    	   	   	   //this part below smooths the systematics for this source
    	   	   	   TString namestobereused[nptbins];
@@ -1099,6 +1112,12 @@ void runSystUnfolding(Bool_t style = kFALSE){
       	 	       	 	     	 	 
       	 	 TH1D** htmpSysPart = CompareResults(nranges, inputUnfSystRanges, inputhnameUnfSystRanges, legUnfSystRanges, offsetUnfSystRanges, kTRUE, kTRUE, kFALSE, centralvar, "Ranges");
       	 	 //Printf("isys 1 ---> %p (%s)", htmpSysPart[1][0], htmpSysPart[1][0]->GetName());
+      	 	 TList *list = GetMeanAndSystFromList(maxRangeMassFinal, nranges, inputUnfSystRanges, inputhnameUnfSystRanges, kFALSE, hnameSysMean[act-1]);
+      	 	 hMeanSta[1] = 0x0;
+      	 	 hMeanSys[1] = 0x0;
+      	 	 hMeanSta[1] = (TH1D*)list->At(0);
+      	 	 hMeanSys[1] = (TH1D*)list->At(1);
+      	 	 //delete list;
       	 	 
       	 	 hSystPart[1] = new TH1D*[nptbins];
       	 	 TH1D** hnewSysPart = SmoothUnceraintyByFit(nptbins, htmpSysPart, fittype[1], Form("h%ssmoot", description[1].Data()), hSystPart[1]);
@@ -1126,6 +1145,12 @@ void runSystUnfolding(Bool_t style = kFALSE){
       	  if(!dryrun) {
       	  	  
       	  	  TH1D** htmpSysPart = CompareResults(nitervar, inputUnfSystIter, inputhnameUnfSystIter, legUnfSystIter, offsetUnfSystIter, kTRUE, kTRUE, kFALSE, iterdef-iterminsyst, "Iter");
+      	  	  TList *list = GetMeanAndSystFromList(maxRangeMassFinal, nitervar, inputUnfSystIter, inputhnameUnfSystIter, kFALSE, hnameSysMean[act-1]);
+      	  	  hMeanSta[2] = 0x0;
+      	  	  hMeanSys[2] = 0x0;
+      	  	  hMeanSta[2] = (TH1D*)list->At(0);
+      	  	  hMeanSys[2] = (TH1D*)list->At(1);
+      	  	  //delete list;
       	  	  
       	  	  hSystPart[2]  = new TH1D*[nptbins];
       	  	  
@@ -1157,7 +1182,13 @@ void runSystUnfolding(Bool_t style = kFALSE){
    	   	   act++;
    	   	   if(!dryrun) {
    	   	   	   TH1D** htmpSysPart = CompareResults(novl, inputcmpOvl, inputhnamecmpOvl, legcmpOvl, offsetcmpOvl, kTRUE, kTRUE, kFALSE, 0, "OvlExl");
-   	   	   	   
+   	   	   	   TList *list = GetMeanAndSystFromList(maxRangeMassFinal, novl, inputcmpOvl, inputhnamecmpOvl, kFALSE, hnameSysMean[act-1]);
+   	   	   	   hMeanSta[3] = 0x0;
+   	   	   	   hMeanSys[3] = 0x0;
+   	   	   	   hMeanSta[3] = (TH1D*)list->At(0);
+   	   	   	   hMeanSys[3] = (TH1D*)list->At(1);
+   	   	   	   //delete list;
+
    	   	   	   hSystPart[3] = new TH1D*[nptbins];
    	   	   	   TH1D** hnewSysPart = SmoothUnceraintyByFit(nptbins, htmpSysPart, fittype[3], Form("h%ssmoot", description[3].Data()), hSystPart[3]);
    	   	   	   
@@ -1184,6 +1215,12 @@ void runSystUnfolding(Bool_t style = kFALSE){
    	   	   act++;
    	   	   if(!dryrun) {
    	   	   	   TH1D** htmpSysPart = CompareResults(widthvar, inputcmpBinW, inputhnameBinW, legUnfSystBinW, offsetUnfSystBinW, kTRUE, kTRUE, kFALSE, 0, "BinW");
+   	   	   	   TList *list = GetMeanAndSystFromList(maxRangeMassFinal, widthvar, inputcmpBinW, inputhnameBinW, kFALSE, hnameSysMean[act-1]);
+   	   	   	   hMeanSta[4] = 0x0;
+   	   	   	   hMeanSys[4] = 0x0;
+   	   	   	   hMeanSta[4] = (TH1D*)list->At(0);
+   	   	   	   hMeanSys[4] = (TH1D*)list->At(1);
+   	   	   	   //delete list;
    	   	   	   
    	   	   	   hSystPart[4] = new TH1D*[nptbins];
    	   	   	   TH1D** hnewSysPart = SmoothUnceraintyByFit(nptbins, htmpSysPart, fittype[4], Form("h%ssmoot", description[4].Data()), hSystPart[4]);
@@ -1213,6 +1250,13 @@ void runSystUnfolding(Bool_t style = kFALSE){
    	   	   act++;
    	   	   if(!dryrun) {
    	   	   	   TH1D** htmpSysPart = CompareResults(nTrkE, inputcmpTrkE, inputhnamecmpTrkE, legcmpTrkE, offsetcmpTrkE, kTRUE, kTRUE, kFALSE, 0, "96TrkEff");
+   	   	   	   TList *list = GetMeanAndSystFromList(maxRangeMassFinal, nTrkE, inputcmpTrkE, inputhnamecmpTrkE, kFALSE, hnameSysMean[act-1]);
+   	   	   	   hMeanSta[5] = 0x0;
+   	   	   	   hMeanSys[5] = 0x0;
+   	   	   	   hMeanSta[5] = (TH1D*)list->At(0);
+   	   	   	   hMeanSys[5] = (TH1D*)list->At(1);
+   	   	   	   //delete list;
+   	   	   	   
    	   	   	   hSystPart[5] = new TH1D*[nptbins];
    	   	   	   TH1D** hnewSysPart = SmoothUnceraintyByFit(nptbins, htmpSysPart, fittype[5], Form("h%ssmoot", description[5].Data()), hSystPart[5]);
    	   	   	   for(Int_t ipt = 0 ; ipt< nptbins; ipt++){
@@ -1238,9 +1282,15 @@ void runSystUnfolding(Bool_t style = kFALSE){
       	  act++;
       	  if(!dryrun) {
       	  	  TH1D** htmpSysPart = CompareResults(nTrkE, inputcmpTrkEv2, inputhnamecmpTrkE, legcmpTrkEv2, offsetcmpTrkE, kTRUE, kTRUE, kFALSE, 0, "96TrkEffv2");
+      	  	  TList *list = GetMeanAndSystFromList(maxRangeMassFinal, nTrkE, inputcmpTrkEv2, inputhnamecmpTrkE, kFALSE, hnameSysMean[act-1]);
+      	  	  hMeanSta[6] = 0x0;
+      	  	  hMeanSys[6] = 0x0;
+      	  	  hMeanSta[6] = (TH1D*)list->At(0);
+      	  	  hMeanSys[6] = (TH1D*)list->At(1);
+      	  	  //delete list;
       	  	  
       	  	  hSystPart[6] = new TH1D*[nptbins];
-   	   	   	   TH1D** hnewSysPart = SmoothUnceraintyByFit(nptbins, htmpSysPart, fittype[6], Form("h%ssmoot", description[6].Data()), hSystPart[6]);
+      	  	  TH1D** hnewSysPart = SmoothUnceraintyByFit(nptbins, htmpSysPart, fittype[6], Form("h%ssmoot", description[6].Data()), hSystPart[6]);
    	   	   	   
       	  	  for(Int_t ipt = 0 ; ipt< nptbins; ipt++){
       	  	  	  hSystPartForDrawing[6][ipt] = (TH1D*)hSystPart[6][ipt]->Clone(Form("%sdraw", hSystPart[6][ipt]->GetName()));
@@ -1266,9 +1316,15 @@ void runSystUnfolding(Bool_t style = kFALSE){
       	  act++;
       	  if(!dryrun) {
       	  	  TH1D** htmpSysPart = CompareResults(nvarprior, inputcmpPrior, inputhnamecmpPrior, legcmpPrior, offsetcmpPrior, kTRUE, kTRUE, kFALSE, 0, "Prior");
+      	  	  TList *list = GetMeanAndSystFromList(maxRangeMassFinal, nvarprior, inputcmpPrior, inputhnamecmpPrior, kFALSE, hnameSysMean[act-1]);
+      	  	  hMeanSta[7] = 0x0;
+      	  	  hMeanSys[7] = 0x0;
+      	  	  hMeanSta[7] = (TH1D*)list->At(0);
+      	  	  hMeanSys[7] = (TH1D*)list->At(1);
+      	  	  //delete list;
       	  	  
       	  	  hSystPart[7] = new TH1D*[nptbins];
-   	   	   	   
+      	  	  
       	  	  //TH1D** hnewSysPart = SmoothUnceraintyByFit(nptbins, htmpSysPart, fittype[7], Form("h%ssmoot", description[7].Data()), hSystPart[7]);
    	   	   	   
       	  	  for(Int_t ipt = 0 ; ipt< nptbins; ipt++){
@@ -1281,25 +1337,46 @@ void runSystUnfolding(Bool_t style = kFALSE){
       
       gSystem->ChangeDirectory(basewdircmp);
 
-      TH1D** hMeanSys = GetMeanSyst(nactivecontributions, fileSysOutput, hnameSysMean);
-      TH1D* hMeanSysTot = SumMeanSyst(nactivecontributions, hMeanSys);
-      //SetMassValueInSystematic(hMeanSysTot, );
+      //TH1D** hMeanSys = GetMeanSyst(nactivecontributions, fileSysOutput, hnameSysMean);
+      
+      hMeanSysTot = SumMeanSyst(ncontribution, hMeanSys);
+      hMeanSysTot->SetFillStyle(0);
+      hMeanSysTot->SetLineWidth(2);
       TCanvas *cMeanSystTot = new TCanvas("cMeanSystTot", "Tot Systematics on the mean");
       cMeanSystTot->cd();
-      hMeanSysTot->Draw();
+     
+      hMeanSysTot->Draw("E2");
+      
+      TFile *foutSysTot = new TFile(filetotsystname, "recreate");
+      hMeanSysTot->Write();
+      
       TCanvas *cMeanSyst = new TCanvas("cMeanSyst", "Systematics on the mean");
-      cMeanSyst->cd();
+      
       act = 0;
       for(Int_t isys = 0; isys < ncontribution ; isys++){
       	  if(!activecmp[isys]) continue;
-      	  if(!hMeanSys[act]) continue;
-      	  Printf("Print %d, %d, %p", isys, act, hMeanSys[act]);
-      	  hMeanSys[act]->SetLineColor(hSystPart[isys][0]->GetLineColor());
-      	  if (act == 0) hMeanSys[act]->Draw();
-      	  else hMeanSys[act]->Draw("sames");
+      	  //if(!hMeanSys[act]) continue;
+      	  if(!hMeanSys[isys]) continue;
+      	  Printf("Active systematic %d, %d, %p", isys, act, hMeanSys[isys]); //hMeanSys[act]
+      	  //hMeanSys[act]->SetLineColor(hSystPart[isys][0]->GetLineColor());
+      	  hMeanSys[isys]->SetLineColor(colors[isys]);
+      	  hMeanSys[isys]->SetMarkerStyle(markers[isys]);
+      	  hMeanSys[isys]->SetMarkerColor(hMeanSys[isys]->GetLineColor());
+      	  hMeanSys[isys]->SetLineWidth(2);
+      	  hMeanSys[isys]->SetFillStyle(0);
+      	  cMeanSyst->cd();
+      	  if (act == 0) {
+      	  	  hMeanSys[isys]->GetYaxis()->SetRangeUser(0.9, 1.1);
+      	  	  hMeanSys[isys]->Draw("E2"); // hMeanSys[act]->Draw();
+      	  	  
+      	  }
+      	  else hMeanSys[isys]->Draw("E2sames"); //hMeanSys[act]->Draw("sames");
+      	  foutSysTot->cd();
+      	  hMeanSys[isys]->Write(); //hMeanSys[act]->Write();
       	  act++;
       }
-      
+      cMeanSyst->cd();
+      hMeanSysTot->Draw("E2sames");
       
       TLegend *legSysTot = new TLegend(0.3, 0.15, 0.7, 0.45);
       legSysTot->SetBorderSize(0);
@@ -1310,9 +1387,7 @@ void runSystUnfolding(Bool_t style = kFALSE){
       //gStyle->SetEndErrorSize(3.);
       //gStyle->SetErrorX(1.);
       
-      TFile *foutSysTot = new TFile(filetotsystname, "recreate");
       
-      hMeanSysTot->Write();
       
       for(Int_t ipt = 0 ; ipt< nptbins; ipt++){
       	 hSystTot[ipt] = 0x0;
@@ -1325,28 +1400,28 @@ void runSystUnfolding(Bool_t style = kFALSE){
       	 	 
       	 	 // fill the content of the systematic histogram used for drawing in the paper
       	 	 for(Int_t ib = 0; ib < hSystPartForDrawing[isys][ipt]->GetNbinsX(); ib++){
-      	 	 
+      	 	 	 
       	 	 	 hSystPartForDrawing[isys][ipt]->SetBinContent(ib+1, hSystPart[isys][ipt]->GetBinError(ib+1));
       	 	 	 hSystPartForDrawing[isys][ipt]->SetBinError(ib+1, 0);
       	 	 	 
       	 	 }
       	 	 hSystPart[isys][ipt]->SetMarkerSize(1);
-      	    if(ipt == 0){
-      	    	legSysTot->AddEntry(hSystPart[isys][ipt], description[isys], "l");
-      	    }
-      	    Printf("%p, isys = %d, ipt = %d", hSystPart[isys][ipt], isys, ipt );
-      	    
-      	    hSystPart[isys][ipt]->SetLineColor(colors[isys]);
-      	    hSystPartForDrawing[isys][ipt]->SetLineColor(colors[isys]);
-      	    hSystPartForDrawing[isys][ipt]->SetMarkerStyle(markers[isys]);
-      	    hSystPartForDrawing[isys][ipt]->SetMarkerColor(colors[isys]);
-      	    cSyst->cd(ipt+1);
-      	    if(isys == 0) hSystPart[isys][ipt]->Draw("E2");
-      	    else hSystPart[isys][ipt]->Draw("E2sames");
-      	    
-      	    
-      	    hSyst[isys] = hSystPart[isys][ipt];
-      	    
+      	 	 if(ipt == 0){
+      	 	 	 legSysTot->AddEntry(hSystPart[isys][ipt], description[isys], "l");
+      	 	 }
+      	 	 Printf("%p, isys = %d, ipt = %d", hSystPart[isys][ipt], isys, ipt );
+      	 	 
+      	 	 hSystPart[isys][ipt]->SetLineColor(colors[isys]);
+      	 	 hSystPartForDrawing[isys][ipt]->SetLineColor(colors[isys]);
+      	 	 hSystPartForDrawing[isys][ipt]->SetMarkerStyle(markers[isys]);
+      	 	 hSystPartForDrawing[isys][ipt]->SetMarkerColor(colors[isys]);
+      	 	 cSyst->cd(ipt+1);
+      	 	 if(isys == 0) hSystPart[isys][ipt]->Draw("E2");
+      	 	 else hSystPart[isys][ipt]->Draw("E2sames");
+      	 	 
+      	 	 
+      	 	 hSyst[isys] = hSystPart[isys][ipt];
+      	 	 
       	 }
       	 
       	 hSystTot[ipt] = AddInQuadrature(hSyst, ncontribution, ipt, basenamehsystot);
@@ -1381,6 +1456,9 @@ void runSystUnfolding(Bool_t style = kFALSE){
       
       massbinW = hSystTot[0]->GetBinWidth(1);
       SaveCv(cSyst);
+      SaveCv(cMeanSystTot);
+      SaveCv(cMeanSyst);
+      
       foutSysTot->Close();
    }
    
@@ -1460,6 +1538,8 @@ void runSystUnfolding(Bool_t style = kFALSE){
    	   //TCanvas *cRelUnc = new TCanvas("cRelUnc", "Relative uncertainties", nx, ny);
    	   //cRelUnc->Divide(nx, ny);
    	   
+   	   TCanvas *cMeanMassResults = new TCanvas("cMeanMassResults", "Mean mass results");
+   	   
    	   // PYTHIA 
    	   TString listnamePythia = "JetMassResponseDet_Jet_AKTChargedR040_PicoTracks_pT0150_E_scheme";
    	   TString pathPythia = "/data/Work/jets/JetMass/DetectorCorrections/LHC13b4_plus/Train1134/outputpTHardBins/mergeRuns/AnalysisResults.root";
@@ -1487,6 +1567,15 @@ void runSystUnfolding(Bool_t style = kFALSE){
    	   TLegend *legRes = new TLegend(0.4, 0.2, 0.9, 0.8);
    	   legRes->SetFillStyle(0);
    	   TPaveText **pvpt = new TPaveText*[nptbins];
+   	   
+   	   // mean mass
+   	   
+   	   TH1D *hMeanCentral = new TH1D("hMeanCentral", "Mean jet mass; #it{p}_{T, ch jet} (GeV/#it{c}; #LT#it{M}_{ch jet}#GT (GeV/#it{c}^{2})", nptbins, ptlims);
+   	   hMeanCentral->SetMarkerStyle(21);
+   	   hMeanCentral->SetMarkerColor(kOrange+8);
+   	   hMeanCentral->SetLineWidth(2);
+   	   hMeanCentral->SetLineColor(hMeanCentral->GetMarkerColor());
+   	   
    	   for(Int_t ipt = 0; ipt < nptbins; ipt++){
    	   	   
    	   	   pvpt[ipt] = new TPaveText(0.33, 0.8, 0.83, 0.9, "NDC");
@@ -1502,6 +1591,14 @@ void runSystUnfolding(Bool_t style = kFALSE){
    	   	   hMass->SetMarkerStyle(21);
    	   	   hMass->SetMarkerColor(kOrange+8);
    	   	   hMass->SetLineColor(hMass->GetMarkerColor());
+   	   	   
+   	   	   
+   	   	   // get the mean mass in a given range
+   	   	   Double_t meanptbin, errmeanptbin;
+   	   	   Double_t rangeM[2] = {0., maxRangeMassFinal[ipt]};
+   	   	   meanptbin = GetMeanMass(hMass, rangeM, errmeanptbin);
+   	   	   hMeanCentral->SetBinContent(ipt+1, meanptbin);
+   	   	   hMeanCentral->SetBinError(ipt+1, errmeanptbin);
    	   	   
    	   	   //copy the histogram of the mass for its stat unc to be drawn in the systematics
    	   	   
@@ -1657,6 +1754,19 @@ void runSystUnfolding(Bool_t style = kFALSE){
    	   	   // end manual
    	   }
    	   
+   	   SetMassValueInSystematic(hMeanSysTot, hMeanCentral);
+   	   hMeanSysTot->SetLineWidth(2);
+   	   hMeanSysTot->SetLineColor(hMeanCentral->GetLineColor());
+   	   hMeanSysTot->SetFillColor(hMeanCentral->GetLineColor());
+   	   hMeanSysTot->SetFillStyle(0); //important!! to draw the line
+   	   cMeanMassResults->cd();
+   	   hMeanCentral->Draw();
+   	   hMeanSysTot->Draw("E2sames");
+   	   
+   	   fMassResults->cd();
+   	   hMeanSysTot->Write();
+   	   hMeanCentral->Write();
+   	   
    	   cSystPaper->cd(nptbins+1);
    	   DrawLogo(1, 0.45, 0.7, 0.85, 0.8, "", 42, "");
    	   
@@ -1732,6 +1842,7 @@ void runSystUnfolding(Bool_t style = kFALSE){
    	   
    	   SaveCv(cResults);
    	   SaveCv(cSystPaper);
+   	   SaveCv(cMeanMassResults);
    }
    
    gSystem->ChangeDirectory(basewdircmp);

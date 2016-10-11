@@ -7,7 +7,7 @@
 #include <TClass.h>
 #include <TMath.h>
 #include </data/macros/LoadALICEFigures.C>
-#include </data/Work/MyCodeJetMass/utils/CommonTools.C>
+#include </data/Work/code-mass-analysis-chiara/utils/CommonTools.C>
 
 //global
 //binning
@@ -23,11 +23,14 @@ TList* ReadHistogramsInFile(TString infilename, TString basehname, Bool_t usebin
 TList* AddSystematicstoMassFromFile(TString inMfilename, TString hbasenamemass, Bool_t usebinlimsForM,  TString inSysfilename, TString hbasenamesys, Bool_t usebinlimsForSys);
 TH1D* AddInQuadrature(TH1D** haddq, Int_t nh, Int_t index = -1, TString name = "");
 TH1D* MaxSpread(TH1D** hsystratio, Int_t nh, Int_t index, TString name);
-void MaxSpread(const Int_t nval, Double_t values[], Int_t idbase, Double_t& up, Double_t& down);
+void  MaxSpread(const Int_t nval, Double_t values[], Int_t idbase, Double_t& up, Double_t& down);
 TH1D* SmoothUncertaintyByAverage(const Int_t nh, TH1D** hinputUnc, const char* newname);
 TH1D** SmoothUnceraintyByFit(const Int_t nh, TH1D** hinputUnc, Int_t fittype, const char* newname, TH1D** hSysOnError, Double_t minx= -1, Double_t maxx = -1);
 TH1D** GetMeanSyst(const Int_t ninputs, TString filenames[], TString hnameinput[]);
 TH1D* SumMeanSyst(const Int_t ninputs, TH1D** hsysPart);
+TList* GetMeanAndSystFromList(Double_t *rangeup, const Int_t ninputs, TString inSysfilename[], TString hbasenamesys[], Bool_t usebinlimsForSys, TString namehmeanout = "hMeanSys", Int_t idbase = 0, Double_t epsilon = 0.0001);
+Double_t GetMeanMass(TH1D* hdist, Double_t range[], Double_t& err);
+
 
 //_________________________________________________________________________________________________
 //method implementations
@@ -297,12 +300,12 @@ void MaxSpread(const Int_t nval, Double_t values[], Int_t idbase, Double_t& up, 
 	up = 0; down = 0;
 	for(Int_t i = 0; i< nval; i++){
 		if(i == idbase) continue;
-		Double_t signeddiff = values[i]-values[idbase];
+		Double_t signeddiff = (values[i]-values[idbase])/values[idbase];
 		if(signeddiff > 0 && signeddiff>up) up = signeddiff;
 		if(signeddiff < 0 && signeddiff<down) down = signeddiff;
 	}
 
-	Printf("%f + %f - %f", values[idbase], up, down);
+	//Printf("%f + %f - %f", values[idbase], up, down);
 	
 }
 
@@ -310,9 +313,12 @@ void MaxSpread(const Int_t nval, Double_t values[], Int_t idbase, Double_t& up, 
 TH1D* AddInQuadrature(TH1D** haddq, Int_t nh, Int_t index, TString name){
    
 	TH1D* hsyst = 0x0;
+	Printf("Running AddInQuadrature for %d %s", nh, name.Data());
 	for(Int_t ihs = 0; ihs<nh; ihs++){
+		//Printf("Debug ihs = %d, %p", ihs, haddq[ihs]);
 		if(!haddq[ihs]) continue;
 		if(!hsyst) {
+			Printf("Using index %d, h %p entries %.0f", ihs, haddq[ihs], haddq[ihs]->GetEntries());
 			TString namesystot = name;
 			if(index > -1) namesystot = Form("%s_Pt%.0f_%.0f", name.Data(), ptlims[index], ptlims[index+1]);
 			hsyst = (TH1D*)haddq[ihs]->Clone(namesystot);
@@ -320,6 +326,8 @@ TH1D* AddInQuadrature(TH1D** haddq, Int_t nh, Int_t index, TString name){
 			break;
 		}
 	}
+	if(!hsyst) Printf("Problem, all the input histograms are null");
+	
 	for(Int_t ib = 0 ; ib < hsyst->GetNbinsX(); ib++){
 		Double_t addq = 0;
 		//Printf("------------Start Bin %d", ib);
@@ -364,19 +372,18 @@ TH1D* SetMassValueInSystematic(TH1D* hSyst, TH1D* hMass){
    hMass->SetMarkerSize(1);
    TH1D* hRelSystUnc = (TH1D*) hSyst->Clone(hrelsysname);
    for(Int_t ib = 0; ib < hRelSystUnc->GetNbinsX(); ib++){
-      Double_t absEr = hSyst->GetBinError(ib+1);
+      Double_t relEr = hSyst->GetBinError(ib+1);
       Double_t mass = hMass->GetBinContent(ib+1);
-      Double_t relEr = 0;
-      if(TMath::Abs(mass) > 1e-5) relEr = absEr/mass;
+      Double_t absEr = relEr*mass;
       
       hRelSystUnc->SetBinError(ib+1, relEr);
       hRelSystUnc->SetBinContent(ib+1, 0);
       
       hSyst->SetBinContent(ib+1, mass);
-      hSyst->SetBinError(ib+1, mass*absEr);
+      hSyst->SetBinError(ib+1, absEr);
       
       //For debug
-      //Printf("M  = %.3f +- %.2f ", mass, mass*absEr);
+      Printf("M  = %.3f +- %.2f ", mass, absEr);
    }
    
    return hRelSystUnc;
@@ -628,6 +635,81 @@ TH1D** SmoothUnceraintyByFit(const Int_t nh, TH1D** hinputUnc, Int_t fittype, co
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+TList* GetMeanAndSystFromList(Double_t *rangeup, const Int_t ninputs, TString inSysfilename[], TString hbasenamesys[], Bool_t usebinlimsForSys, TString namehmeanout, Int_t idbase, Double_t epsilon){
+	
+	/// Read a list of histogram for a given variation
+	/// Define the range of the histograms and calculate the mean of each variation as a function of pT
+	
+	Printf("Running GetMeanAndSystFromList %s", namehmeanout.Data());
+	Double_t xmean[nptbins][ninputs];
+	TH1D *hMeanSta = new TH1D(Form("%sSt", namehmeanout.Data()), Form("Mean with statistical %s", namehmeanout.Data()), nptbins, ptlims);
+	TH1D *hMeanSys = new TH1D(Form("%sSy", namehmeanout.Data()), Form("Mean with 	systematic %s", namehmeanout.Data()), nptbins, ptlims);
+	TList* listRes = new TList();
+	listRes->SetOwner(kTRUE);
+	listRes->Add(hMeanSta);
+	listRes->Add(hMeanSys);
+	
+	for(Int_t ifi = 0 ;  ifi < ninputs; ifi++){
+		TList *listSys = ReadHistogramsInFile(inSysfilename[ifi], hbasenamesys[ifi], usebinlimsForSys, nptbins);
+		if(!listSys) {
+				Printf("List of histogram systematics file %d not found", ifi);
+				continue;	
+		}
+		for(Int_t i = 0; i<nptbins; i++){
+			
+			TH1D* hsys = (TH1D*) listSys->At(i);
+			if(!hsys) {
+				Printf("Histogram systematics pT %d, file %d not found", i, ifi);
+				continue;	
+			}
+			Int_t bin[2] = {hsys->GetXaxis()->FindBin(0.),hsys->GetXaxis()->FindBin(rangeup[i] - epsilon)};
+			
+			hsys->GetXaxis()->SetRange(bin[0], bin[1]);
+			
+			xmean[i][ifi] = hsys->GetMean();
+			if(ifi == idbase){
+				hMeanSta->SetBinContent(i+1, xmean[i][idbase]);
+				hMeanSta->SetBinError(i+1, hsys->GetMeanError());
+			
+			}
+		}
+		delete listSys;
+	}
+	
+	for(Int_t i = 0; i<nptbins; i++){
+		
+		Double_t up, down;
+		MaxSpread(ninputs, xmean[i], idbase, up, down);
+		
+		//remember that down is negative!!!
+		Double_t downp = TMath::Abs(down);
+		if((up - downp) < 1e-4) up = (up + downp)*.5;
+		else if(downp > up) up = downp;
+		
+		hMeanSys->SetBinContent(i+1, 1); //xmean[i][idbase]
+		hMeanSys->SetBinError(i+1, up);
+		
+		Printf("Debug fill %d with %f +- %e", i+1, xmean[i][idbase], up);
+	}
+	
+	return listRes;
+}
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Double_t GetMeanMass(TH1D* hdist, Double_t range[], Double_t& err){
+	
+	TH1D* hClonerange = (TH1D*)hdist->Clone("hClonerange");
+	Int_t bin[2] = {hClonerange->GetXaxis()->FindBin(range[0]), hClonerange->GetXaxis()->FindBin(range[1])};
+	hClonerange->GetXaxis()->SetRange(bin[0], bin[1]);
+	
+	Double_t mean = hClonerange->GetMean();
+	err = hClonerange->GetMeanError();
+	delete hClonerange;
+	return mean;
+}
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 void CompareThreeResultFixedInput(){
    
@@ -769,13 +851,13 @@ void ComparisonUnfNoBkgSubVsNoFluc(){
 	TString files[ninputs] = {
 		"/data/Work/jets/JetMass/pPbJetMassAnalysis/ResultspPbJetMass/Train806-807-810-811/UnfoldingNoBkgSub/MB/00resp_pt20_80or70_120_ptT10_150or50_150_m0_12or0_14_mT0_40/UnfoldedDistributionsPrior0DetFlBkgNoSub.root",
 		"/data/Work/jets/JetMass/pPbJetMassAnalysis/ResultspPbJetMass/MartapPb/TranformedIntoTH1.root",
-		"/data/Work/jets/JetMass/pPbJetMassAnalysis/ResultspPbJetMass/Train806-807-810-811/UnfoldingNoBkgSub/UnfoldedDistributionsPrior0Miss2D.root",
+		"/data/Work/jets/JetMass/pPbJetMassAnalysis/ResultspPbJetMass/Train806-807-810-811/UnfoldDet1134/MB/ConstSub/test/UnfoldedDistributionsPrior0DetOnly.root",
 		"/data/Work/jets/JetMass/DetectorCorrections/LHC13b4_plus/Train1134/outputpTHardBins/mergeRuns/analysis/BinByBinCorrDetPtParPt/BinbyBinCorrection_111BinT0.root"
 	};
 	TString hnamebase[ninputs] = {
 		"hMUnf__Iter3", "hUnfMass_PtBin", "hMUnf__Iter3", "hMPar_pt"
 	};
-	TString legs[ninputs] = {"UnfEmbNoBkgSubDef", "pPbMarta", "UnfEmbNoBkgSubrunalone", "PYTHIAMatched"
+	TString legs[ninputs] = {"UnfEmbNoBkgSubDef", "pPbMarta", "VarbinWDetOnly", "PYTHIAMatched"
 	};
 	
 	Int_t firstMatchingBin[ninputs] = {0, 2, 1, 1};
@@ -887,6 +969,31 @@ void CompareFixedVariableBinW(Bool_t logy = kFALSE){
 	Bool_t writeout = kTRUE;
 	Bool_t nouniform = kFALSE;
 	Int_t base = 2;
+	Printf("Base %d is %s", base , legs[base].Data());
+	CompareResults(ninputs, files, hnamebase, legs, firstMatchingBin, changeColor, writeout, nouniform, base, "", logy);
+
+}
+
+//______________________________________________________________________________
+
+void CompareSysRangeVarBinW(Bool_t logy = kFALSE){
+	const Int_t ninputs = 5;
+	TString files[ninputs] = {"/data/Work/jets/JetMass/pPbJetMassAnalysis/ResultspPbJetMass/Train806-807-810-811/UnfoldVarBinW/MB/Def/UnfoldedDistributionsPrior0DetFlBkgNoSub.root",	"/data/Work/jets/JetMass/pPbJetMassAnalysis/ResultspPbJetMass/Train806-807-810-811/UnfoldVarBinW/MB/SyD/UnfoldedDistributionsPrior0DetFlBkgNoSub.root",
+	"/data/Work/jets/JetMass/pPbJetMassAnalysis/ResultspPbJetMass/Train806-807-810-811/UnfoldVarBinW/MB/SyU/UnfoldedDistributionsPrior0DetFlBkgNoSub.root",
+	"/data/Work/jets/JetMass/pPbJetMassAnalysis/ResultspPbJetMass/Train806-807-810-811/UnfoldingNoBkgSub/MB/00resp_pt20_80or70_120_ptT10_150or50_150_m0_12or0_14_mT0_40/UnfoldedDistributionsPrior0DetFlBkgNoSub.root",
+	"/data/Work/jets/JetMass/pPbJetMassAnalysis/ResultspPbJetMass/Train806-807-810-811/UnfoldingNoBkgSub/MBEJE/00resp_pt20_80or70_120_ptT10_150or50_150_m0_12or0_14_mT0_40/MassUnfSumMBEJE.root"
+	};
+	//these below are the test that match best
+	//"/data/Work/jets/JetMass/pPbJetMassAnalysis/ResultspPbJetMass/Train806-807-810-811/UnfoldVarBinW/EJE/tests/UnfoldedDistributionsPrior010GeVpar.root",
+	//"/data/Work/jets/JetMass/pPbJetMassAnalysis/ResultspPbJetMass/Train806-807-810-811/UnfoldVarBinW/EJE/tests/UnfoldedDistributionsPrior0.root","/data/Work/jets/JetMass/pPbJetMassAnalysis/ResultspPbJetMass/Train806-807-810-811/UnfoldingNoBkgSub/EJE/00resp_pt20_80or70_120_ptT10_150or50_150_m0_12or0_14_mT0_40/UnfoldedDistributionsPrior0DetFlBkgNoSub.root"
+
+	TString hnamebase[ninputs] = {"hMUnf__Iter3", "hMUnf__Iter3", "hMUnf__Iter3", "hMUnf__Iter3", "hMUnf__Iter3"};
+	TString legs[ninputs] = {"Def","Down", "Up","FixDefMB", "FixDefMBEJE"};
+	Int_t firstMatchingBin[ninputs] = {0, 0, 0, 0, 0};
+	Bool_t changeColor = kTRUE;
+	Bool_t writeout = kTRUE;
+	Bool_t nouniform = kFALSE;
+	Int_t base = 0;
 	Printf("Base %d is %s", base , legs[base].Data());
 	CompareResults(ninputs, files, hnamebase, legs, firstMatchingBin, changeColor, writeout, nouniform, base, "", logy);
 

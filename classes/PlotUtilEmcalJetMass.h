@@ -61,6 +61,7 @@ class PlotUtilEmcalJetMass {
   Bool_t LoadFile();
   Bool_t LoadList();
 
+  TFile* GetFileIn() const {return fFileIn;}
   TH1D *GetJetMassDistribution(JetSelection jSel, Int_t iList);
   TH1D *GetJetPtDistribution(JetSelection jSel, Int_t iList);
   

@@ -1,6 +1,6 @@
-#include "/data/Work/MyCodeJetMass/utils/CommonTools.C"
+#include "/data/Work/code-mass-analysis-chiara/utils/CommonTools.C"
 #include "/data/macros/LoadALICEFigures.C"
-#include "/data/Work/MyCodeJetMass/classes/PlotUtilEmcalJetMass.h"
+#include "/data/Work/code-mass-analysis-chiara/classes/PlotUtilEmcalJetMass.h"
 #include <TLine.h>
 #include <TParameter.h>
 
@@ -12,11 +12,11 @@ void DrawSquare(TVirtualPad *pad, Double_t xl, Double_t yd, Double_t xr, Double_
 
 //main
 
-void DefineRangeUnfolding(TString inputData = "/data/Work/jets/JetMass/pPbJetMassAnalysis/ResultspPbJetMass/Train806-807-810-811/AnalysisResultsMB.root", Int_t bkgType = 2, Int_t triggerType = 1, Double_t binWPt = 10., Double_t binWMa = 2., Double_t minCounts = 10, Double_t nwidth = 1){
+void DefineRangeUnfolding(TString inputData = "/data/Work/jets/JetMass/pPbJetMassAnalysis/ResultspPbJetMass/Train806-807-810-811/AnalysisResultsMB.root", Int_t bkgType = 2, Int_t triggerType = 1, Double_t binWPt = 10., Double_t binWMa = 2., Double_t minCounts = 10, Double_t nwidth = 1, Bool_t notagname = kFALSE){
 	
 	// bkgType:  0 = Deriv; 1 = Const sub; 2 = Raw;
 	// triggerType: 1 = MB, 2 = J1
-	
+	// notagname: if true no suffix added in the list name
 	
 	TString trkStr = "PicoTracks_pT0150"; //"tracks_pT0150" // "MCParticlesSelected_pT0000"
 	TString cltStr = ""; //"CaloClustersCorr"
@@ -33,26 +33,34 @@ void DefineRangeUnfolding(TString inputData = "/data/Work/jets/JetMass/pPbJetMas
 	util->SetCentBin(0);
 	util->LoadFile();
 	
-	//Deriv
-	if(triggerType==1)      util->SetTag("_TCDeriv");
-	else if(triggerType==2) util->SetTag("_TCDerivJ1");
-	else                util->SetTag("Raw");
-	util->SetConstTag("");
-	util->LoadList();
-	//Const
-	if(triggerType==1)      util->SetTag("");
-	else if(triggerType==2) util->SetTag("ConstJ1");
-	else                util->SetTag("Raw");
-	util->SetConstTag("ConstSub_TC");
-	util->LoadList();
-	
-	//Raw
-	if(triggerType==1)      util->SetTag("_TCRaw");
-	if(triggerType==2)      util->SetTag("_TCRawJ1");
-	util->SetConstTag("");
-	
-	util->LoadList();
-	
+	if(notagname) {
+		util->SetTag("_TC");
+		util->LoadList();
+	}
+	else {
+		//Deriv
+		
+		if(triggerType==1)      util->SetTag("_TCDeriv");
+		else if(triggerType==2) util->SetTag("_TCDerivJ1");
+		else                    util->SetTag("Raw");
+		
+		util->SetConstTag("");
+		
+		util->LoadList();
+		//Const
+		if(triggerType==1)      util->SetTag("");
+		else if(triggerType==2) util->SetTag("ConstJ1");
+		else                    util->SetTag("Raw");
+		util->SetConstTag("ConstSub_TC");
+		util->LoadList();
+		
+		//Raw
+		if(triggerType==1)      util->SetTag("_TCRaw");
+		if(triggerType==2)      util->SetTag("_TCRawJ1");
+		util->SetConstTag("");
+		
+		util->LoadList();
+	}
 	TH2D *hMeasured = util->GetJetMassVsPt(PlotUtilEmcalJetMass::kJetTagged, bkgType);
 	
 	DefineRangeUnfolding(hMeasured, bkgType, triggerType, binWPt, binWMa, minCounts, nwidth);
@@ -153,8 +161,8 @@ void DefineRangeUnfolding(TH2D* hMeasured, Int_t bkgType, Int_t triggerType, Dou
 	// - MB
 	const Int_t nbinsXmb = 16;
 	Double_t binlimsXmb[nbinsXmb+1] = {0., 5, 10., 15., 20., 25., 30., 35., 40., 45., 50., 60., 70., 80., 100., 120., 140.};
-	const Int_t nbinsYmb = 9;
-	Double_t binlimsYmb[nbinsYmb+1] = {0, 1., 2., 4., 6., 8., 10., 12., 14., 20.};
+	const Int_t nbinsYmb = 11;
+	Double_t binlimsYmb[nbinsYmb+1] = {0, 1., 2., 4., 6., 8., 9., 10., 11., 12., 14., 20.};
 	
 	// -EJE
 	const Int_t nbinsXje = 12;

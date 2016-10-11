@@ -11,10 +11,12 @@
 
 #include "RooUnfoldBayes.h"
 
-#include "/data/Work/MyCodeJetMass/utils/CommonTools.C"
+#include "/data/Work/code-mass-analysis-chiara/utils/CommonTools.C"
 #include "/data/macros/LoadALICEFigures.C"
 
-void CreateRooUnfoldResponseVarWidth(const Int_t nbinsPt, Double_t ptlims[], const Int_t nbinsM, Double_t mlims[], Double_t mTwidth, Double_t minMT, Double_t maxMT, Double_t ptTwidth, Double_t minPtT, Double_t maxPtT, TString strIn = "/data/Work/jets/JetMass/pPbJetMassAnalysis/ResultspPbJetMass/Train806-807-810-811/UnfoldingNoBkgSub/ResponseWJetShapeConst_JetRhosub_AKTChargedR040_PicoTracks.root", TString suff = "", Bool_t fillmiss = kTRUE);
+void CreateRooUnfoldResponseVarWidth(const Int_t nbinsPt, Double_t ptlims[], const Int_t nbinsM, Double_t mlims[], Double_t mTwidth, Double_t minMT, Double_t maxMT, Double_t ptTwidth, Double_t minPtT, Double_t maxPtT, TString strIn = "/data/Work/jets/JetMass/pPbJetMassAnalysis/ResultspPbJetMass/Train806-807-810-811/UnfoldingNoBkgSub/ResponseWJetShapeConst_JetRhosub_AKTChargedR040_PicoTracks.root",  TString hname = "fhResponseFinal", TString suff = "", Bool_t fillmiss = kTRUE);
+
+void CreateRooUnfoldResponseVarWidthFromFile(TString fileData = "/data/Work/jets/JetMass/pPbJetMassAnalysis/ResultspPbJetMass/Train806-807-810-811/DefineUnfRange/VarBin/MassVsPtVarWBkgNoSubTrMB.root", Double_t massbw = 2, Double_t massminT = 0, Double_t massmaxT = 20, Double_t ptbw = 20, Double_t ptminT = 20., Double_t ptmaxT = 100., TString strIn = "/data/Work/jets/JetMass/pPbJetMassAnalysis/ResultspPbJetMass/Train806-807-810-811/UnfoldVarBinW/ResponseWJetShapeConst_JetRhosub_AKTChargedR040_PicoTracks.root", TString hname = "fhResponseFinal", TString suff = "", Int_t idx = 1, Bool_t fillmiss = kTRUE);
 
 void CreateRooUnfoldResponse(TString strIn = "AnalysisResults.root", TString strL = "JetShapeDeriv_Jet_AKTChargedR040_PicoTracks_pT0150_E_scheme_TC", TString tag = "DerivPart", Int_t binWidthPt = 5., Int_t skipBins = 0, Double_t pt_min = -40., Double_t m_min = -20., Double_t pt_minT = 0., Double_t m_minT = 0., Double_t pt_max = 150., Double_t m_max = 40., Double_t pt_maxT = 150., Double_t m_maxT = 40., Int_t colType = -1, Bool_t fillmiss = kTRUE);
 
@@ -121,7 +123,7 @@ pT Systematic up
 // the fileData has to be created with DefineRangeUnfolding for MB or EJE sample (MassVsPtVarWBkgNoSubTrMB.root or MassVsPtVarWBkgNoSubTrJ1.root)
 // Give the bin width and range for the generated level mass and pT, which will be with fixed binning
 
-void CreateRooUnfoldResponseVarWidthFromFile(TString fileData = "/data/Work/jets/JetMass/pPbJetMassAnalysis/ResultspPbJetMass/Train806-807-810-811/DefineUnfRange/VarBin/MassVsPtVarWBkgNoSubTrMB.root", Double_t massbw = 2, Double_t massminT = 0, Double_t massmaxT = 20, Double_t ptbw = 20, Double_t ptminT = 20., Double_t ptmaxT = 100., TString strIn = "/data/Work/jets/JetMass/pPbJetMassAnalysis/ResultspPbJetMass/Train806-807-810-811/UnfoldVarBinW/ResponseWJetShapeConst_JetRhosub_AKTChargedR040_PicoTracks.root", TString suff = "", Int_t idx = 1, Bool_t fillmiss = kTRUE){
+void CreateRooUnfoldResponseVarWidthFromFile(TString fileData, Double_t massbw, Double_t massminT, Double_t massmaxT, Double_t ptbw, Double_t ptminT, Double_t ptmaxT, TString strIn, TString hname, TString suff, Int_t idx, Bool_t fillmiss){
 	
 	//idx: 1 = default, 2 = SysDown; 3 = SysUp; 4 = default range fixed bins
 	
@@ -177,7 +179,7 @@ void CreateRooUnfoldResponseVarWidthFromFile(TString fileData = "/data/Work/jets
 	}
 	Printf("}");
 	
-	CreateRooUnfoldResponseVarWidth(nbinsXmb, binlimsXmb, nbinsYmb, binlimsYmb, massbw, massminT, massmaxT, ptbw, ptminT, ptmaxT, strIn, suff, fillmiss);
+	CreateRooUnfoldResponseVarWidth(nbinsXmb, binlimsXmb, nbinsYmb, binlimsYmb, massbw, massminT, massmaxT, ptbw, ptminT, ptmaxT, strIn, hname, suff, fillmiss);
 	
 }
 /*
@@ -238,16 +240,36 @@ TString namenptbins = "nbinsPt";
 */
 //_________________________________________________________________
 
-void CreateRooUnfoldResponseVarWidth(const Int_t nbinsPt, Double_t ptlims[], const Int_t nbinsM, Double_t mlims[], Double_t mTwidth, Double_t minMT, Double_t maxMT, Double_t ptTwidth, Double_t minPtT, Double_t maxPtT, TString strIn, TString suff, Bool_t fillmiss){
+void CreateRooUnfoldResponseVarWidth(const Int_t nbinsPt, Double_t ptlims[], const Int_t nbinsM, Double_t mlims[], Double_t mTwidth, Double_t minMT, Double_t maxMT, Double_t ptTwidth, Double_t minPtT, Double_t maxPtT, TString strIn, TString hname, TString suff, Bool_t fillmiss){
 	// Int_t triggerType = 1 MB, 2 = EJE
 	TStopwatch watch;
 	watch.Start();
 	
 	THnSparseF *hn = 0x0;
-	TString hname = "fhResponseFinal";
+	
 	
 	TFile *f = new TFile(strIn.Data());
-	hn = static_cast<THnSparseF*>(f->Get(hname.Data()));
+	if(!strIn.Contains("AnalysisResults")){
+		Printf("Get response weighted");
+		hn = static_cast<THnSparseF*>(f->Get(hname.Data()));
+		
+	} else {
+		TString nameResponse = "fhnMassResponse";
+		Int_t   ic           = 0; //centrality bin
+		TList *lst = static_cast<TList*>(f->Get(hname.Data()));
+		if(!lst){
+			Printf("List not found");
+		}
+		lst->Print();
+		//Get response
+		hn = static_cast<THnSparseF*>(lst->FindObject(Form("%s%s_%d",nameResponse.Data(),"",ic)));
+		if(!hn) hn = static_cast<THnSparseF*>(lst->FindObject(nameResponse.Data()));
+		if(!hn) {
+			Printf("Could not find fhnMassResponse_%d",ic);
+			return;
+		}
+	}
+	
 	if(!hn) {
      	Printf("Could not find %s", hname.Data());
      	return;
@@ -261,6 +283,7 @@ void CreateRooUnfoldResponseVarWidth(const Int_t nbinsPt, Double_t ptlims[], con
     TCanvas *cMis = new TCanvas("cMis", "Non reconstructed", 400, 400);
     
     Int_t axMDet = 0, axMPar = 1, axPtDet = 2, axPtPar = 3;
+    Printf("Number of dimensions = %d, proj det level %d, %d", hn->GetNdimensions(), axMDet, axPtDet);
     TH2D* hDetLev = (TH2D*)hn->Projection(axMDet, axPtDet, "E");
     hDetLev->SetName("fh2Smear");
     TH2D* hDetRbVarW = RebinVariableWidth2D(nbinsPt, ptlims, nbinsM, mlims, hDetLev);

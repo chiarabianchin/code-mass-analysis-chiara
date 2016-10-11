@@ -1,8 +1,8 @@
 #ifndef DrawComparisonsForPaper_C
 #define DrawComparisonsForPaper_C
 #include "/data/macros/LoadALICEFigures.C"
-#include "/data/Work/MyCodeJetMass/utils/CommonTools.C"
-#include "/data/Work/MyCodeJetMass/unfold/SystematicComparisonsUnf.C"
+#include "/data/Work/code-mass-analysis-chiara/utils/CommonTools.C"
+#include "/data/Work/code-mass-analysis-chiara/unfold/SystematicComparisonsUnf.C"
 #include <TLegend.h>
 //#include <TGaxis.h>
 
@@ -539,7 +539,7 @@ void CalculateSysRatio(TH1D* hRatioPbPbOpPbSysC, TH1D* hRDivpPbC){
 //________________________________________________________________________
 
 // mains
-void RatiopPbPbPb(Bool_t stylezero = kFALSE, Bool_t pPbpaperprop = kFALSE, Bool_t corrkine = kFALSE, Bool_t show1134 = kFALSE){
+void RatiopPbPbPb(Bool_t stylezero = kFALSE, Bool_t drawRaghav = kFALSE, Bool_t pPbpaperprop = kFALSE, Bool_t corrkine = kFALSE, Bool_t show1134 = kFALSE){
 	TString suff = "";
 	if(!corrkine) suff = "NoKineCor";
 	//TGaxis::SetMaxDigits(2);
@@ -886,7 +886,8 @@ void RatiopPbPbPb(Bool_t stylezero = kFALSE, Bool_t pPbpaperprop = kFALSE, Bool_
 		hSyPbPb  ->Draw("E2");
 		hMPbPb   ->Draw("sames");
 		hMPy276  ->Draw("sames");
-		hMJewPbPb->Draw("sames");
+		//temporary don't draw this because wrong curve from Raghav
+		if(drawRaghav) hMJewPbPb->Draw("sames");
 		hMJewPbPbMRoff->Draw("sames");
 		hMQPy    ->Draw("sames");
 		pvpt[ih] ->Draw();
@@ -895,7 +896,7 @@ void RatiopPbPbPb(Bool_t stylezero = kFALSE, Bool_t pPbpaperprop = kFALSE, Bool_
 		hMPy276  ->GetYaxis()->SetNdivisions(1004, "Y");
 		hMPy276  ->GetYaxis()->SetRangeUser(0, 0.25);
 		hMPy276  ->Draw("sames");
-		hMJewPbPb->Draw("sames");
+		if(drawRaghav) hMJewPbPb->Draw("sames");
 		hMJewPbPbMRoff->Draw("sames");
 		hMQPy    ->Draw("sames");
 		pvpt[ih] ->Draw();
@@ -907,7 +908,7 @@ void RatiopPbPbPb(Bool_t stylezero = kFALSE, Bool_t pPbpaperprop = kFALSE, Bool_
 			
 			
 			legMassPbPbModels->AddEntry(hMPy276,   "PYTHIA  Perugia 2011 #sqrt{s_{NN}} = 2.76 TeV", "LP");
-			legMassPbPbModels->AddEntry(hMJewPbPb, "JEWEL+PYTHIA Recoil on 0-10% PbPb", "LP");
+			if(drawRaghav) legMassPbPbModels->AddEntry(hMJewPbPb, "JEWEL+PYTHIA Recoil on 0-10% PbPb", "LP");
 			legMassPbPbModels->AddEntry(hMJewPbPbMRoff, "JEWEL+PYTHIA Recoil off 0-10% PbPb", "LP");
 			legMassPbPbModels->AddEntry(hMQPy,      "Q-PYTHIA", "LP");
 			cMassPbPbModels->cd(ih+1); legMassPbPbModels->Draw();
@@ -920,7 +921,7 @@ void RatiopPbPbPb(Bool_t stylezero = kFALSE, Bool_t pPbpaperprop = kFALSE, Bool_
 			legMassPbPb->AddEntry(hMPbPb,    "Pb-Pb 0-10% #sqrt{s_{NN}} = 2.76 TeV", "LP");
 			legMassPbPb->AddEntry(hSyPbPb,   "Systematic Pb-Pb" , "F");
 			legMassPbPb->AddEntry(hMPy276,   "PYTHIA  Perugia 2011 #sqrt{s_{NN}} = 2.76 TeV", "LP");
-			legMassPbPb->AddEntry(hMJewPbPb, "JEWEL+PYTHIA Recoil on 0-10% PbPb", "LP");
+			if(drawRaghav) legMassPbPb->AddEntry(hMJewPbPb, "JEWEL+PYTHIA Recoil on 0-10% PbPb", "LP");
 			legMassPbPb->AddEntry(hMJewPbPbMRoff, "JEWEL+PYTHIA Recoil off 0-10% PbPb", "LP");
 			legMassPbPb->AddEntry(hMQPy,      "Q-PYTHIA", "LP");
 			cMassPbPb->cd(ih+1); legMassPbPb->Draw();
@@ -1294,7 +1295,7 @@ TH1D* CalculateMean(Double_t **xrange, Int_t nbins, Double_t lims[], TH1D** hdis
 	Double_t rer[nbins];
 	Double_t deltalims[nbins];
 	
-	TH1D* hmean = new TH1D(namehmean, "Mean;#it{p}_{T}(GeV/#it{c}); <M_{ch jet}>(GeV/#it{c}^{2})", nbins, lims);
+	TH1D* hmean = new TH1D(namehmean, "Mean;#it{p}_{T}(GeV/#it{c}); #LT M_{ch jet}#GT (GeV/#it{c}^{2})", nbins, lims);
 	hmean->Sumw2();
 	
 	hrms = new TH1D(Form("%sStdDev", namehmean), "StdDev;#it{p}_{T}(GeV/#it{c}); Std Dev(GeV/#it{c}^{2})", nbins, lims);
@@ -1383,6 +1384,68 @@ TH1D* CalculateSysMean(Double_t **xrange, Int_t nbins, Double_t lims[], TH1D** h
 
 //_____________________________________________________________________________
 
+TH1D* GetMeanAndSystFromFile(TString filename, TH1D*& hSyst){
+	
+	TFile *fin = new TFile(filename);
+	if(!fin->IsOpen()){
+		Printf("File %s not found", filename.Data());
+		return 0;
+	}
+	
+	hSyst = GetSystFromFile(fin);
+
+	return GetMeanFromFile(fin);
+}
+
+//_____________________________________________________________________________
+
+TH1D* GetMeanFromFile(TString filename){
+	TFile *fin = new TFile(filename);
+	if(!fin->IsOpen()){
+		Printf("File %s not found", filename.Data());
+		return 0;
+	}
+	return GetMeanFromFile(fin);
+}
+
+//_____________________________________________________________________________
+
+TH1D* GetMeanSystFromFile(TString filename){
+	TFile *fin = new TFile(filename);
+	if(!fin->IsOpen()){
+		Printf("File %s not found", filename.Data());
+		return 0;
+	}
+	return GetSystFromFile(fin);
+}
+
+//_____________________________________________________________________________
+
+TH1D* GetMeanFromFile(TFile *fin){
+	if(!fin->IsOpen()){
+		Printf("File %s not found", filename.Data());
+		return 0;
+	}
+	TString hnameMas = "hMeanCentral";
+	TH1D* hMass = (TH1D*)fin->Get(hnameMas);
+	
+	return hMass;
+}
+
+//_____________________________________________________________________________
+
+TH1D* GetSystFromFile(TFile *fin){
+	if(!fin->IsOpen()){
+		Printf("File %s not found", filename.Data());
+		return 0;
+	}
+	TString hnameSys = "hMeanSystTot";
+	TH1D* hSyst = (TH1D*)fin->Get(hnameSys);
+	
+	return hSyst;
+}
+//_____________________________________________________________________________
+
 void DrawMeanComparison(Bool_t stylezero = kTRUE){
 	
 	if(stylezero) {
@@ -1394,7 +1457,7 @@ void DrawMeanComparison(Bool_t stylezero = kTRUE){
 	const Int_t ninputs = 4;
 	TString inputDistr[ninputs] = {
 		"/data/Work/jets/JetMass/PbPbResults/TranformedIntoTH1.root",
-		"/data/Work/jets/JetMass/pPbJetMassAnalysis/ResultspPbJetMass/Syst20160911/MasspPbResults.root",
+		"/data/Work/jets/JetMass/pPbJetMassAnalysis/ResultspPbJetMass/Syst20160916/MasspPbResults.root",
 		"/data/Work/jets/JetMass/PbPbResults/JetMassPerugia2011_ecms2760.root",
 		"/data/Work/jets/JetMass/PbPbJEWEL/alice_jetmass_histograms.root"
 	}; 
@@ -1409,7 +1472,7 @@ void DrawMeanComparison(Bool_t stylezero = kTRUE){
 	TString inputSyst[ninputsSy] = {
 		"/data/Work/jets/JetMass/PbPbResults/TranformedIntoTH1.root",
 		//"/data/Work/jets/JetMass/pPbJetMassAnalysis/ResultspPbJetMass/Syst20160911/MasspPbResults.root",
-		"/data/Work/jets/JetMass/pPbJetMassAnalysis/ResultspPbJetMass/Syst20160915/TotalSystematicUnc.root"
+		"/data/Work/jets/JetMass/pPbJetMassAnalysis/ResultspPbJetMass/Syst20160916/TotalSystematicUnc.root"
 	};
 	TString hsysnames[ninputsSy] = {
 		"hUnfMassSyst_PtBin",
