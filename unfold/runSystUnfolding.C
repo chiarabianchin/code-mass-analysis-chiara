@@ -160,8 +160,8 @@ void runSystUnfolding(Bool_t style = kFALSE){
       	  if(skipVariationGen[ig]) continue;
       	 Int_t indexOfAll = ir*variationgen + ig;
       	 
-      	 subdir[index] = Form("%02dresp_pt%.0f_%.0for%.0f_%.0f_ptT%.0f_%.0for%.0f_%.0f_m%.0f_%.0for%.0f_%.0f_mT%.0f_%.0f", indexOfAll, pt_min[ir], pt_max[ir], pt_mineje[ir], pt_maxeje[ir], pt_minT[ig], pt_maxT[ig], pt_minTeje[ig], pt_maxTeje[ig], m_min[ir], m_max[ir], m_mineje[ir], m_maxeje[ir], m_minT[ig], m_maxT[ig]);
-      	 //subdireje[index] = Form("%02dresp_pt%.0f_ptT%.0f", index, pt_mineje[ir], pt_minTeje[ig]);
+      	 subdir[index] = TString::Format("%02dresp_pt%.0f_%.0for%.0f_%.0f_ptT%.0f_%.0for%.0f_%.0f_m%.0f_%.0for%.0f_%.0f_mT%.0f_%.0f", indexOfAll, pt_min[ir], pt_max[ir], pt_mineje[ir], pt_maxeje[ir], pt_minT[ig], pt_maxT[ig], pt_minTeje[ig], pt_maxTeje[ig], m_min[ir], m_max[ir], m_mineje[ir], m_maxeje[ir], m_minT[ig], m_maxT[ig]);
+      	 //subdireje[index] = TString::Format("%02dresp_pt%.0f_ptT%.0f", index, pt_mineje[ir], pt_minTeje[ig]);
       	 if(dryrun) Printf("ir = %d, ig = %d (index = %d) -> %s", ir, ig, index, subdir[index].Data());
       	 
       	 index++;
@@ -179,7 +179,7 @@ void runSystUnfolding(Bool_t style = kFALSE){
    Double_t binWidthPtvar[widthvar] = {5., 10.};
    TString subdirWidth[widthvar];
    for(Int_t iw = 0; iw < widthvar; iw++){
-   	   subdirWidth[iw] = Form("PtBinW%.0f", binWidthPtvar[iw]);
+   	   subdirWidth[iw] = TString::Format("PtBinW%.0f", binWidthPtvar[iw]);
    
    }
    
@@ -260,15 +260,15 @@ void runSystUnfolding(Bool_t style = kFALSE){
    Int_t binSwitchToEJE = -1; // it's calculated when combining the triggers in the range variation, see if needed to reset it in all.
    
    Int_t arrayiter[ntr] = {iterdef, iterdef};
-   TString namescombo[ntr] = {Form("MB%s", suff.Data()), Form("EJE%s", suff.Data())};
+   TString namescombo[ntr] = {TString::Format("MB%s", suff.Data()), TString::Format("EJE%s", suff.Data())};
    TString fileunfsumbase = "MassUnfSum";  // the base name of output file containing the sum of the unfolded mass vs pT for the two triggers. Appended the identifying of the summed files, given in namescombo[]
    //filename output
-   TString outfileunfmergename = Form("%s", fileunfsumbase.Data());
+   TString outfileunfmergename = TString::Format("%s", fileunfsumbase.Data());
    for(Int_t i = 0; i<ntr; i++) outfileunfmergename+=namescombo[i];
    outfileunfmergename+=".root";
    TString basehnname = "hMUnf__Iter3";
    // CompareResults can handle the name in this format by adding the iteration number in between the __ .
-   // the name will be Form("%s%d%s%d", basehnnamebeforePt.Data(), ipt, basehnnameafterPt.Data(), arrayiter[itr]);
+   // the name will be TString::Format("%s%d%s%d", basehnnamebeforePt.Data(), ipt, basehnnameafterPt.Data(), arrayiter[itr]);
    
    // "hUnfMpj_Itr3_ptb" is the one taken from the projecton of the 2D spectrum sum of MB and EJE, so it's wrong!!
       
@@ -333,17 +333,17 @@ void runSystUnfolding(Bool_t style = kFALSE){
    	  	   Printf("Variation rec %d, gen %d, index %d", ir, ig, indexg);
    	  	   inputhnameUnfSystRanges[indexg] = basehnname;
    	  	  
-   	  	   const char *longtext = Form("MBrec_%.0f_%.0f_%.0f_%.0f_gen_%.0f_%.0f_%.0f_%.0fEJErec_%.0f_%.0f_%.0f_%.0f_gen_%.0f_%.0f_%.0f_%.0f", pt_min[ir], pt_max[ir], m_min[ir], m_max[ir], pt_minT[ig], pt_maxT[ig], m_minT[ig], m_maxT[ig], pt_mineje[ir], pt_maxeje[ir], m_mineje[ir], m_maxeje[ir], pt_minTeje[ig], pt_maxTeje[ig], m_minT[ig], m_maxT[ig]);
+   	  	   const char *longtext = TString::Format("MBrec_%.0f_%.0f_%.0f_%.0f_gen_%.0f_%.0f_%.0f_%.0fEJErec_%.0f_%.0f_%.0f_%.0f_gen_%.0f_%.0f_%.0f_%.0f", pt_min[ir], pt_max[ir], m_min[ir], m_max[ir], pt_minT[ig], pt_maxT[ig], m_minT[ig], m_maxT[ig], pt_mineje[ir], pt_maxeje[ir], m_mineje[ir], m_maxeje[ir], pt_minTeje[ig], pt_maxTeje[ig], m_minT[ig], m_maxT[ig]);
    	  	   longLegendSysRange<<"Rec "<< ir << " Gen "<< ig << " " << longtext << endl;
    	  	   
-   	  	   legUnfSystRanges[indexg] = Form("Rec%dGen%d", ir, ig);
+   	  	   legUnfSystRanges[indexg] = TString::Format("Rec%dGen%d", ir, ig);
    	  	   
    	  	   offsetUnfSystRanges[indexg] = 0;
    	  	   
    	  	   //preparation for kine eff
-   	  	   kineeffMBFilenameSystRanges[indexg] = Form("KineEffPtR%.0f_%0.fMR%.0f_%0.f.root", pt_min[ir], pt_max[ir], m_min[ir], m_max[ir]);
+   	  	   kineeffMBFilenameSystRanges[indexg] = TString::Format("KineEffPtR%.0f_%0.fMR%.0f_%0.f.root", pt_min[ir], pt_max[ir], m_min[ir], m_max[ir]);
    	  	   
-   	  	   kineeffJEFilenameSystRanges[indexg] = Form("KineEffPtR%.0f_%0.fMR%.0f_%0.f.root", pt_mineje[ir], pt_maxeje[ir], m_mineje[ir], m_maxeje[ir]);
+   	  	   kineeffJEFilenameSystRanges[indexg] = TString::Format("KineEffPtR%.0f_%0.fMR%.0f_%0.f.root", pt_mineje[ir], pt_maxeje[ir], m_mineje[ir], m_maxeje[ir]);
    	  	   indexg++;
    	   }
 
@@ -370,9 +370,9 @@ void runSystUnfolding(Bool_t style = kFALSE){
    Int_t offsetUnfSystIter[nitervar];
    TString dirunfIterSyst = defaultUnfPaths; //wdirunf[2];//
    for(Int_t index = 0; index < nitervar; index++){
-      iterdir[index] = Form("Iter%d", iterminsyst+index);
-      inputhnameUnfSystIter[index] = Form("hMUnf__Iter%d", iterminsyst+index);
-      legUnfSystIter[index] = Form("Iter_%.d", iterminsyst+index);
+      iterdir[index] = TString::Format("Iter%d", iterminsyst+index);
+      inputhnameUnfSystIter[index] = TString::Format("hMUnf__Iter%d", iterminsyst+index);
+      legUnfSystIter[index] = TString::Format("Iter_%.d", iterminsyst+index);
       offsetUnfSystIter[index] = 0;
       //it's always the same path
       inputUnfSystIter[index] = dirunfIterSyst; 
@@ -390,7 +390,7 @@ void runSystUnfolding(Bool_t style = kFALSE){
    // save the path for later
    for(Int_t iw = 0; iw<widthvar; iw++){
    	   inputhnameBinW[iw] = basehnname;
-   	   legUnfSystBinW[iw] = Form("BinW%.0f", binWidthPtvar[iw]);
+   	   legUnfSystBinW[iw] = TString::Format("BinW%.0f", binWidthPtvar[iw]);
    	   offsetUnfSystBinW[iw] = 0;
    	   inputcmpBinW[iw] = defaultUnfPaths;
    	   inputcmpBinW[iw] += "/";
@@ -492,7 +492,7 @@ void runSystUnfolding(Bool_t style = kFALSE){
       	  	  Printf("Response will be saved in directory %s", gSystem->pwd());
       	  	  
       	  	  if(!dryrun) {
-      	  	  	  TString outfilerespname = Form("%s%s.root", respFileNameBase.Data(), tag[idvarbinw].Data());
+      	  	  	  TString outfilerespname = TString::Format("%s%s.root", respFileNameBase.Data(), tag[idvarbinw].Data());
       	  	  	  Printf("Outfilename = %s, here %s", outfilerespname.Data(), gSystem->pwd());
       	  	  	  if(domatrix){
       	  	  	  	  TFile testfile(outfilerespname);
@@ -501,7 +501,7 @@ void runSystUnfolding(Bool_t style = kFALSE){
       	  	  	  	  	  
       	  	  	  	  } else {
       	  	  	  	  	  Printf("file with ranges = %s, input %s", fileWithUnfRanges[jtrig].Data(), strIn[jinput].Data());
-      	  	  	  	  	  CreateRooUnfoldResponseVarWidthFromFile(fileWithUnfRanges[jtrig], massbw, massminT, massmaxT, ptbw, ptminT, ptmaxT, strIn[jinput], Form("%s%s", fillmiss ? "" : "noMiss", tag[idvarbinw].Data()), idhistoRangeVarW, fillmiss);
+      	  	  	  	  	  CreateRooUnfoldResponseVarWidthFromFile(fileWithUnfRanges[jtrig], massbw, massminT, massmaxT, ptbw, ptminT, ptmaxT, strIn[jinput], TString::Format("%s%s", fillmiss ? "" : "noMiss", tag[idvarbinw].Data()), idhistoRangeVarW, fillmiss);
       	  	  	  	  }
       	  	  	  }
       	  	  	  // implement this...
@@ -520,7 +520,7 @@ void runSystUnfolding(Bool_t style = kFALSE){
       	  	  	  //} //calculate kine eff if requested
       	  	  	  
       	  	  	  if (dounfold) {
-      	  	  	  	  TString outfileunfname = Form("%s%d%s.root", fileunfoutbase.Data(), varyPrior, tag[idvarbinw].Data());
+      	  	  	  	  TString outfileunfname = TString::Format("%s%d%s.root", fileunfoutbase.Data(), varyPrior, tag[idvarbinw].Data());
       	  	  	  	  TFile testfile(outfileunfname);
       	  	  	  	  if(!forcedounfold && testfile.IsOpen()){
       	  	  	  	  	  Printf("Unfolded output %s already present, don't run again", outfileunfname.Data() );
@@ -549,7 +549,7 @@ void runSystUnfolding(Bool_t style = kFALSE){
       	  	  Printf("Response will be saved in directory %s", gSystem->pwd());
       	  	  
       	  	  if(!dryrun) {
-      	  	  	  TString outfilerespname = Form("%s%s.root", respFileNameBase.Data(), tag[idPrior].Data());
+      	  	  	  TString outfilerespname = TString::Format("%s%s.root", respFileNameBase.Data(), tag[idPrior].Data());
       	  	  	  if(domatrix){
       	  	  	  	  TFile testfile(outfilerespname);
       	  	  	  	  if(testfile.IsOpen()){
@@ -557,14 +557,14 @@ void runSystUnfolding(Bool_t style = kFALSE){
       	  	  	  	  	  
       	  	  	  	  } else {
       	  	  	  	  	  Printf("file with ranges = %s, input %s", fileWithUnfRanges[jtrig].Data(), strIn[jinput].Data());
-      	  	  	  	  	  SmearedResp(fileWithUnfRanges[jtrig], massbw, massminT, massmaxT, ptbw, ptminT, ptmaxT, strIn[defaultUnfNumb], Form("%s%s", fillmiss ? "" : "noMiss", tag[idPrior].Data()), idhistoRangePrior, fillmiss, smearingfactor, strIn[jinput]);
+      	  	  	  	  	  SmearedResp(fileWithUnfRanges[jtrig], massbw, massminT, massmaxT, ptbw, ptminT, ptmaxT, strIn[defaultUnfNumb], TString::Format("%s%s", fillmiss ? "" : "noMiss", tag[idPrior].Data()), idhistoRangePrior, fillmiss, smearingfactor, strIn[jinput]);
       	  	  	  	  }
       	  	  	  }
       	  	  	  // implement this...
       	  	  	  
       	  	  	  
       	  	  	  if (dounfold) {
-      	  	  	  	  TString outfileunfname = Form("%s%d%s.root", fileunfoutbase.Data(), varyPrior, tag[idPrior].Data());
+      	  	  	  	  TString outfileunfname = TString::Format("%s%d%s.root", fileunfoutbase.Data(), varyPrior, tag[idPrior].Data());
       	  	  	  	  TFile testfile(outfileunfname);
       	  	  	  	  if(!forcedounfold && testfile.IsOpen()){
       	  	  	  	  	  Printf("Unfolded output %s already present, don't run again", outfileunfname.Data() );
@@ -612,7 +612,7 @@ void runSystUnfolding(Bool_t style = kFALSE){
       	    Printf("%d (ir %d, ig %d) ) Running create response pT min = %.0f, pT max = %.0f, M min = %.0f, M max = %.0f, pTtrue min = %.0f, pTtrue max = %.0f, Mtrue min = %.0f, Mtrue max = %.0f in directory %s", indexg, ir, ig, pt_min[ir], pt_max[ir], m_min[ir], m_max[ir],  pt_minT[ig],  pt_maxT[ig], m_minT[ig], m_maxT[ig], gSystem->pwd());
       	    
       	    if(!dryrun) {
-      	       TString outfilerespname = Form("%s%s.root", respFileNameBase.Data(), tag[jinput].Data());
+      	       TString outfilerespname = TString::Format("%s%s.root", respFileNameBase.Data(), tag[jinput].Data());
       	       if(domatrix){
       	       	  TFile testfile(outfilerespname);
       	       	  if(testfile.IsOpen()){
@@ -620,14 +620,14 @@ void runSystUnfolding(Bool_t style = kFALSE){
       	       	     
       	       	  } else {
       	       	  	  if(wdirresp[imatr].Contains("EJE")){
-      	       	  	  	  CreateRooUnfoldResponse(strIn[jinput], strL[jinput], Form("%s%s", fillmiss ? "" : "noMiss", tag[jinput].Data()), binWidthPt, skipBins, pt_mineje[ir], m_mineje[ir],  pt_minTeje[ig], m_minT[ig], pt_maxeje[ir], m_maxeje[ir],  pt_maxTeje[ig], m_maxT[ig], colTypefixed, fillmiss);
+      	       	  	  	  CreateRooUnfoldResponse(strIn[jinput], strL[jinput], TString::Format("%s%s", fillmiss ? "" : "noMiss", tag[jinput].Data()), binWidthPt, skipBins, pt_mineje[ir], m_mineje[ir],  pt_minTeje[ig], m_minT[ig], pt_maxeje[ir], m_maxeje[ir],  pt_maxTeje[ig], m_maxT[ig], colTypefixed, fillmiss);
       	       	  	  } else {
-      	       	  	  	  CreateRooUnfoldResponse(strIn[jinput], strL[jinput], Form("%s%s", fillmiss ? "" : "noMiss", tag[jinput].Data()), binWidthPt, skipBins, pt_min[ir], m_min[ir],  pt_minT[ig], m_minT[ig], pt_max[ir], m_max[ir],  pt_maxT[ig], m_maxT[ig], colTypefixed, fillmiss);
+      	       	  	  	  CreateRooUnfoldResponse(strIn[jinput], strL[jinput], TString::Format("%s%s", fillmiss ? "" : "noMiss", tag[jinput].Data()), binWidthPt, skipBins, pt_min[ir], m_min[ir],  pt_minT[ig], m_minT[ig], pt_max[ir], m_max[ir],  pt_maxT[ig], m_maxT[ig], colTypefixed, fillmiss);
       	       	      }
       	       	  }
       	       }
       	       if (dounfold) {
-      	       	  TString outfileunfname = Form("%s%d%s.root", fileunfoutbase.Data(), varyPrior, tag[jinput].Data());
+      	       	  TString outfileunfname = TString::Format("%s%d%s.root", fileunfoutbase.Data(), varyPrior, tag[jinput].Data());
       	       	  TFile testfile(outfileunfname);
       	       	  if(!forcedounfold && testfile.IsOpen()){
       	       	     Printf("Unfolded output %s already present, don't run again", outfileunfname.Data() );
@@ -669,7 +669,7 @@ void runSystUnfolding(Bool_t style = kFALSE){
    	   	   //Printf("%d Running create response with pT bin W = %.0f (pT min = %.0f, M min = %.0f, pTtrue min = %.0f, Mtrue min = %.0f) in directory %s", index, binWidthPtvar[iw], pt_min[centralrec], m_min[centralrec],  pt_minT[centralgen], m_minT[centralgen], gSystem->pwd());
    	   	   
    	   	   if(!dryrun) {
-   	   	   	   TString outfilerespname = Form("%s%s.root", respFileNameBase.Data(), tag[0].Data());
+   	   	   	   TString outfilerespname = TString::Format("%s%s.root", respFileNameBase.Data(), tag[0].Data());
    	   	   	   if(domatrix){
    	   	   	   	   TFile testfile(outfilerespname);
    	   	   	   	   if(testfile.IsOpen()){
@@ -677,14 +677,14 @@ void runSystUnfolding(Bool_t style = kFALSE){
    	   	   	   	   	   
    	   	   	   	   } else {
    	   	   	   	   	   if(wdirresp[itr].Contains("EJE")){
-   	   	   	   	   	   	   CreateRooUnfoldResponse(strIn[0], strL[0], Form("%s%s", fillmiss ? "" : "noMiss", tag[0].Data()), binWidthPtvar[iw], skipBins, pt_mineje[centralrec], m_min[centralrec],  pt_minTeje[centralgen], m_minT[centralgen], pt_maxeje[centralrec], m_max[centralrec],  pt_maxTeje[centralgen], m_maxT[centralgen], colTypefixed, fillmiss);
+   	   	   	   	   	   	   CreateRooUnfoldResponse(strIn[0], strL[0], TString::Format("%s%s", fillmiss ? "" : "noMiss", tag[0].Data()), binWidthPtvar[iw], skipBins, pt_mineje[centralrec], m_min[centralrec],  pt_minTeje[centralgen], m_minT[centralgen], pt_maxeje[centralrec], m_max[centralrec],  pt_maxTeje[centralgen], m_maxT[centralgen], colTypefixed, fillmiss);
    	   	   	   	   	   } else {
-   	   	   	   	   	   	   CreateRooUnfoldResponse(strIn[0], strL[0], Form("%s%s", fillmiss ? "" : "noMiss", tag[0].Data()), binWidthPtvar[iw], skipBins, pt_min[centralrec], m_min[centralrec],  pt_minT[centralgen], m_minT[centralgen], pt_max[centralrec], m_max[centralrec],  pt_maxT[centralgen], m_maxT[centralgen], colTypefixed, fillmiss);
+   	   	   	   	   	   	   CreateRooUnfoldResponse(strIn[0], strL[0], TString::Format("%s%s", fillmiss ? "" : "noMiss", tag[0].Data()), binWidthPtvar[iw], skipBins, pt_min[centralrec], m_min[centralrec],  pt_minT[centralgen], m_minT[centralgen], pt_max[centralrec], m_max[centralrec],  pt_maxT[centralgen], m_maxT[centralgen], colTypefixed, fillmiss);
    	   	   	   	   	   }
    	   	   	   	   }
    	   	   	   }
    	   	   	   if (dounfold) {
-   	   	   	   	   TString outfileunfname = Form("%s%d%s.root", fileunfoutbase.Data(), varyPrior, tag[0].Data());
+   	   	   	   	   TString outfileunfname = TString::Format("%s%d%s.root", fileunfoutbase.Data(), varyPrior, tag[0].Data());
    	   	   	   	   TFile testfile(outfileunfname);
    	   	   	   	   if(!forcedounfold && testfile.IsOpen()){
    	   	   	   	   	   Printf("Unfolded output %s already present, don't run again", outfileunfname.Data() );
@@ -705,9 +705,9 @@ void runSystUnfolding(Bool_t style = kFALSE){
        Printf("\nunfolding data with lower tracking efficiency in %s with input resp %s/%s%s.root and input data %s", gSystem->pwd(), wdirresp[(itr+1)*idTrE].Data(), respFileNameBase.Data(), tag[idTrE].Data(), dataLowEffIn[itr].Data());
        
        if(!dryrun){
-       	   TString outfilerespname = Form("%s/%s%s.root", wdirresp[(itr+1)*idTrE].Data(), respFileNameBase.Data(), tag[idTrE].Data());
+       	   TString outfilerespname = TString::Format("%s/%s%s.root", wdirresp[(itr+1)*idTrE].Data(), respFileNameBase.Data(), tag[idTrE].Data());
        	   if (dounfold) {
-       	   	   TString outfileunfname = Form("%s%d%s.root", fileunfoutbase.Data(), varyPrior, tag[idTrE].Data());
+       	   	   TString outfileunfname = TString::Format("%s%d%s.root", fileunfoutbase.Data(), varyPrior, tag[idTrE].Data());
        	   	   TFile testfile(outfileunfname);
        	   	   if(!forcedounfold && testfile.IsOpen()){
        	   	   	   Printf("Unfolded output %s already present, don't run again", outfileunfname.Data() );
@@ -731,7 +731,7 @@ void runSystUnfolding(Bool_t style = kFALSE){
       	  
       	  gSystem->ChangeDirectory(wdirunf[idvarbinw]); // go to the base directory for this (idata) data sample
       	  
-      	  TString filesvarbinw[ntr] = {Form("%s/%s%d%s.root", wdirresp[idvarbinw].Data(), fileunfoutbase.Data(), varyPrior, tag[idvarbinw].Data()),  Form("%s/%s%d%s.root", wdirresp[idvarbinw+nresp].Data(),  fileunfoutbase.Data(), varyPrior, tag[idvarbinw].Data()) };
+      	  TString filesvarbinw[ntr] = {TString::Format("%s/%s%d%s.root", wdirresp[idvarbinw].Data(), fileunfoutbase.Data(), varyPrior, tag[idvarbinw].Data()),  TString::Format("%s/%s%d%s.root", wdirresp[idvarbinw+nresp].Data(),  fileunfoutbase.Data(), varyPrior, tag[idvarbinw].Data()) };
       	  Printf("Combining files: %s and %s", filesvarbinw[0].Data(), filesvarbinw[1].Data());
       	  
       	  
@@ -784,7 +784,7 @@ void runSystUnfolding(Bool_t style = kFALSE){
       	  	  	  
       	  	  	  gSystem->ChangeDirectory(wdirunf[idata]); // go to the base directory for this (idata) data sample
       	  	  	  
-      	  	  	  TString files[ntr] = {Form("%s/%s/%s%d%s.root", wdirresp[idata].Data(), subdir[indexg].Data(), fileunfoutbase.Data(), varyPrior, tag[idata].Data()),  Form("%s/%s/%s%d%s.root", wdirresp[idata+nresp].Data(), subdir[indexg].Data(), fileunfoutbase.Data(), varyPrior, tag[idata].Data()) };
+      	  	  	  TString files[ntr] = {TString::Format("%s/%s/%s%d%s.root", wdirresp[idata].Data(), subdir[indexg].Data(), fileunfoutbase.Data(), varyPrior, tag[idata].Data()),  TString::Format("%s/%s/%s%d%s.root", wdirresp[idata+nresp].Data(), subdir[indexg].Data(), fileunfoutbase.Data(), varyPrior, tag[idata].Data()) };
       	  	  	  Printf("Combining files: %s and %s", files[0].Data(), files[1].Data());
       	  	  	  
       	  	  	  
@@ -841,7 +841,7 @@ void runSystUnfolding(Bool_t style = kFALSE){
       	  gSystem->ChangeDirectory(wdirunf[idata]);
       	  
       	  
-      	  TString files[ntr] = {Form("%s/%s/%s%d%s.root", wdirresp[idata].Data(), subdir[centralvar].Data(), fileunfoutbase.Data(), varyPrior, tag[idata].Data()),  Form("%s/%s/%s%d%s.root", wdirresp[idata+nresp].Data(), subdir[centralvar].Data(), fileunfoutbase.Data(), varyPrior, tag[idata].Data()) };
+      	  TString files[ntr] = {TString::Format("%s/%s/%s%d%s.root", wdirresp[idata].Data(), subdir[centralvar].Data(), fileunfoutbase.Data(), varyPrior, tag[idata].Data()),  TString::Format("%s/%s/%s%d%s.root", wdirresp[idata+nresp].Data(), subdir[centralvar].Data(), fileunfoutbase.Data(), varyPrior, tag[idata].Data()) };
       	  Printf("Combining files: %s and %s", files[0].Data(), files[1].Data());
       	  
       	  
@@ -883,7 +883,7 @@ void runSystUnfolding(Bool_t style = kFALSE){
       	  gSystem->mkdir(subdirWidth[iw]);
       	  gSystem->ChangeDirectory(subdirWidth[iw]);
       	  	  
-      	  TString files[ntr] = {Form("%s/%s/%s%d%s.root", wdirresp[idata].Data(), subdirWidth[iw].Data(), fileunfoutbase.Data(), varyPrior, tag[0].Data()),  Form("%s/%s/%s%d%s.root", wdirresp[idata+nresp].Data(), subdirWidth[iw].Data(), fileunfoutbase.Data(), varyPrior, tag[0].Data()) };
+      	  TString files[ntr] = {TString::Format("%s/%s/%s%d%s.root", wdirresp[idata].Data(), subdirWidth[iw].Data(), fileunfoutbase.Data(), varyPrior, tag[0].Data()),  TString::Format("%s/%s/%s%d%s.root", wdirresp[idata+nresp].Data(), subdirWidth[iw].Data(), fileunfoutbase.Data(), varyPrior, tag[0].Data()) };
       	  Printf("Combining files: %s and %s", files[0].Data(), files[1].Data());
       	  
       	  
@@ -910,7 +910,7 @@ void runSystUnfolding(Bool_t style = kFALSE){
    gSystem->mkdir(subdir[centralvar]);
    gSystem->ChangeDirectory(subdir[centralvar]);
       	  	  
-   TString files[ntr] = {Form("%s/%s/%s%d%s.root", wdirrespLowTrEff[0].Data(), subdir[centralvar].Data(), fileunfoutbase.Data(), varyPrior, tag[idTrE].Data()),  Form("%s/%s/%s%d%s.root", wdirrespLowTrEff[1].Data(), subdir[centralvar].Data(), fileunfoutbase.Data(), varyPrior, tag[idTrE].Data()) };
+   TString files[ntr] = {TString::Format("%s/%s/%s%d%s.root", wdirrespLowTrEff[0].Data(), subdir[centralvar].Data(), fileunfoutbase.Data(), varyPrior, tag[idTrE].Data()),  TString::Format("%s/%s/%s%d%s.root", wdirrespLowTrEff[1].Data(), subdir[centralvar].Data(), fileunfoutbase.Data(), varyPrior, tag[idTrE].Data()) };
    Printf("Combining files: %s and %s", files[0].Data(), files[1].Data());
       	  
    if (dounfold) {
@@ -969,7 +969,7 @@ void runSystUnfolding(Bool_t style = kFALSE){
    	   	   gSystem->ChangeDirectory(wdircmpBkg);
    	   	   Printf("in directory  %s", gSystem->pwd());
    	   	   fileSysOutput[act] = gSystem->pwd();
-   	   	   fileSysOutput[act] += Form("/Ratio%sOver%s.root", legcmpBkg[0].Data(), legcmpBkg[1].Data());
+   	   	   fileSysOutput[act] += TString::Format("/Ratio%sOver%s.root", legcmpBkg[0].Data(), legcmpBkg[1].Data());
    	   	   hnameSysMean[act] = "hSysMeanBkgSub";
    	   	   act++;
    	   	   if(!dryrun) {
@@ -992,7 +992,7 @@ void runSystUnfolding(Bool_t style = kFALSE){
    	   	   	   	   namestobereused[ipt] = htmpSysPart[ipt]->GetName();
    	   	   	   	   if(!arrayusedptbins[ipt]) htmpSysPart[ipt] = 0x0;
    	   	   	   }
-   	   	   	   TH1D* hnewSysPart = SmoothUncertaintyByAverage(nptbins, htmpSysPart, Form("nametobeassigned"));
+   	   	   	   TH1D* hnewSysPart = SmoothUncertaintyByAverage(nptbins, htmpSysPart, TString::Format("h%ssmooth", description[0].Data()));
    	   	   	   
    	   	   	   TCanvas *cSysBkgFinal = new TCanvas("cSysBkgFinal", "Final systematics background", dx, dy); 
    	   	   	   cSysBkgFinal->Divide(nx, ny);
@@ -1005,7 +1005,7 @@ void runSystUnfolding(Bool_t style = kFALSE){
    	   	   	   	   cSysBkgFinal->cd(ipt+1);
    	   	   	   	   hSystPart[0][ipt]->Draw("E2");
    	   	   	   	   //delete htmpSysPart[ipt];
-   	   	   	   	   hSystPartForDrawing[0][ipt] = (TH1D*)hSystPart[0][ipt]->Clone(Form("%sdraw", hSystPart[0][ipt]->GetName()));
+   	   	   	   	   hSystPartForDrawing[0][ipt] = (TH1D*)hSystPart[0][ipt]->Clone(TString::Format("%sdraw", hSystPart[0][ipt]->GetName()));
    	   	   	   	   hSystPartForDrawing[0][ipt]->Reset();
    	   	   	   	   
    	   	   	   }
@@ -1026,8 +1026,8 @@ void runSystUnfolding(Bool_t style = kFALSE){
       	 	 	 TH1D *hKineNum[nptbins];
       	 	 	 TH1D *hKineDen[nptbins];
       	 	 	 TH1D *hKineEff[nptbins];
-      	 	 	 TFile *feffMB = new TFile(Form("%s/%s/%s", defaultRespPaths[0].Data(), subdir[index].Data(),  kineeffMBFilenameSystRanges[index].Data()));
-      	 	 	 TFile *feffJE = new TFile(Form("%s/%s/%s", defaultRespPaths[1].Data(), subdir[index].Data(), kineeffJEFilenameSystRanges[index].Data()));
+      	 	 	 TFile *feffMB = new TFile(TString::Format("%s/%s/%s", defaultRespPaths[0].Data(), subdir[index].Data(),  kineeffMBFilenameSystRanges[index].Data()));
+      	 	 	 TFile *feffJE = new TFile(TString::Format("%s/%s/%s", defaultRespPaths[1].Data(), subdir[index].Data(), kineeffJEFilenameSystRanges[index].Data()));
       	 	 	 if(!feffJE->IsOpen() || !feffMB->IsOpen()){
       	 	 	 	 Printf("******************************************************No Kine eff found, will be skipped");
       	 	 	 	 for(Int_t ipt = 0; ipt<nptbins; ipt++){
@@ -1039,25 +1039,25 @@ void runSystUnfolding(Bool_t style = kFALSE){
       	 	 	 	 TString basenameDen = "hDenMPtPar";
       	 	 	 	 
       	 	 	 	 TFile *fMassSysRanges = new TFile(inputUnfSystRanges[index], "update");
-      	 	 	 	 inputhnameUnfSystRanges[index] = Form("%sEfKCor_Ranges_id%db_Pt", inputhnameUnfSystRanges[index].Data(), index);
+      	 	 	 	 inputhnameUnfSystRanges[index] = TString::Format("%sEfKCor_Ranges_id%db_Pt", inputhnameUnfSystRanges[index].Data(), index);
       	 	 	 	 
       	 	 	 	 for(Int_t ipt = 0; ipt<nptbins; ipt++){
       	 	 	 	 	 if(ipt < binSwitchToEJE) {
-      	 	 	 	 	 	 hKineNum[ipt] = (TH1D*)feffMB->Get(Form("%s%.0f%0.f", basenameNum.Data(), ptlims[ipt], ptlims[ipt+1]));
-      	 	 	 	 	 	 hKineNum[ipt]->SetName(Form("%s_Idx%d_%.0f%0.f", basenameNum.Data(), index, ptlims[ipt], ptlims[ipt+1]));
-      	 	 	 	 	 	 hKineDen[ipt] = (TH1D*)feffMB->Get(Form("%s%.0f%0.f", basenameDen.Data(), ptlims[ipt], ptlims[ipt+1]));
-      	 	 	 	 	 	 hKineDen[ipt]->SetName(Form("%s_Idx%d_%.0f%0.f", basenameDen.Data(), index, ptlims[ipt], ptlims[ipt+1]));
+      	 	 	 	 	 	 hKineNum[ipt] = (TH1D*)feffMB->Get(TString::Format("%s%.0f%0.f", basenameNum.Data(), ptlims[ipt], ptlims[ipt+1]));
+      	 	 	 	 	 	 hKineNum[ipt]->SetName(TString::Format("%s_Idx%d_%.0f%0.f", basenameNum.Data(), index, ptlims[ipt], ptlims[ipt+1]));
+      	 	 	 	 	 	 hKineDen[ipt] = (TH1D*)feffMB->Get(TString::Format("%s%.0f%0.f", basenameDen.Data(), ptlims[ipt], ptlims[ipt+1]));
+      	 	 	 	 	 	 hKineDen[ipt]->SetName(TString::Format("%s_Idx%d_%.0f%0.f", basenameDen.Data(), index, ptlims[ipt], ptlims[ipt+1]));
       	 	 	 	 	 	 
       	 	 	 	 	 } else {
-      	 	 	 	 	 	 hKineNum[ipt] = (TH1D*)feffJE->Get(Form("%s%.0f%0.f", basenameNum.Data(), ptlims[ipt], ptlims[ipt+1]));
-      	 	 	 	 	 	 hKineNum[ipt]->SetName(Form("%s_Idx%d_%.0f%0.f", basenameNum.Data(), index, ptlims[ipt], ptlims[ipt+1]));
-      	 	 	 	 	 	 hKineDen[ipt] = (TH1D*)feffJE->Get(Form("%s%.0f%0.f", basenameDen.Data(), ptlims[ipt], ptlims[ipt+1]));
-      	 	 	 	 	 	 hKineDen[ipt]->SetName(Form("%s_Idx%d_%.0f%0.f", basenameDen.Data(), index, ptlims[ipt], ptlims[ipt+1]));
+      	 	 	 	 	 	 hKineNum[ipt] = (TH1D*)feffJE->Get(TString::Format("%s%.0f%0.f", basenameNum.Data(), ptlims[ipt], ptlims[ipt+1]));
+      	 	 	 	 	 	 hKineNum[ipt]->SetName(TString::Format("%s_Idx%d_%.0f%0.f", basenameNum.Data(), index, ptlims[ipt], ptlims[ipt+1]));
+      	 	 	 	 	 	 hKineDen[ipt] = (TH1D*)feffJE->Get(TString::Format("%s%.0f%0.f", basenameDen.Data(), ptlims[ipt], ptlims[ipt+1]));
+      	 	 	 	 	 	 hKineDen[ipt]->SetName(TString::Format("%s_Idx%d_%.0f%0.f", basenameDen.Data(), index, ptlims[ipt], ptlims[ipt+1]));
       	 	 	 	 	 	 
       	 	 	 	 	 }
       	 	 	 	 	 
       	 	 	 	 	 TH1D* hMass = 0x0;
-      	 	 	 	 	 hMass = (TH1D*)fMassSysRanges->Get(Form("%s%d", basehnname.Data(), ipt));
+      	 	 	 	 	 hMass = (TH1D*)fMassSysRanges->Get(TString::Format("%s%d", basehnname.Data(), ipt));
       	 	 	 	 	 if(!hMass) {
       	 	 	 	 	 	 Printf("%s%d not found", basehnname.Data(), ipt);
       	 	 	 	 	 	 fMassSysRanges->ls();
@@ -1072,18 +1072,18 @@ void runSystUnfolding(Bool_t style = kFALSE){
       	 	 	 	 	 	 	 Printf("00000000000 Problem");
       	 	 	 	 	 	 	 continue;
       	 	 	 	 	 	 }
-      	 	 	 	 	 	 hMassK->SetName(Form("%s%d",  inputhnameUnfSystRanges[index].Data(), ipt));
+      	 	 	 	 	 	 hMassK->SetName(TString::Format("%s%d",  inputhnameUnfSystRanges[index].Data(), ipt));
       	 	 	 	 	 	 hMassK->SetMarkerColor(kRed+2);
       	 	 	 	 	 	 hMassK->SetLineColor(kRed+2);
       	 	 	 	 	 	 hMassK->GetYaxis()->SetRangeUser(0, 0.25);
       	 	 	 	 	 	 // 2nd mass corrected for kine eff (rescaled to integral 1)
       	 	 	 	 	 	 
-      	 	 	 	 	 	 hKineEff[ipt] = (TH1D*) hKineNum[ipt]->Clone(Form("hKineEff_Idx%d_%.0f%0.f", index, ptlims[ipt], ptlims[ipt+1]));
+      	 	 	 	 	 	 hKineEff[ipt] = (TH1D*) hKineNum[ipt]->Clone(TString::Format("hKineEff_Idx%d_%.0f%0.f", index, ptlims[ipt], ptlims[ipt+1]));
       	 	 	 	 	 	 hKineEff[ipt]->Divide(hKineDen[ipt]);
       	 	 	 	 	 	 
       	 	 	 	 	 	 Int_t lastBabove = hKineEff[ipt]->FindLastBinAbove(0.7);
       	 	 	 	 	 	 if(lastBabove < 1) lastBabove = 1;
-      	 	 	 	 	 	 TParameter<Double_t> *param = new TParameter<Double_t>(Form("lastXAbove_Idx%d_%.0f%0.f", index, ptlims[ipt], ptlims[ipt+1]), hKineEff[ipt]->GetBinCenter(lastBabove));
+      	 	 	 	 	 	 TParameter<Double_t> *param = new TParameter<Double_t>(TString::Format("lastXAbove_Idx%d_%.0f%0.f", index, ptlims[ipt], ptlims[ipt+1]), hKineEff[ipt]->GetBinCenter(lastBabove));
       	 	 	 	 	 	 
       	 	 	 	 	 	 
       	 	 	 	 	 	 fMassSysRanges->cd();
@@ -1105,7 +1105,7 @@ void runSystUnfolding(Bool_t style = kFALSE){
       	 gSystem->ChangeDirectory(wdirUnfSystRanges);
       	 Printf("in directory  %s", gSystem->pwd());
       	 fileSysOutput[act] = gSystem->pwd();
-      	 fileSysOutput[act] += Form("/Ratio%sOver%s.root", legUnfSystRanges[0].Data(), legUnfSystRanges[1].Data());
+      	 fileSysOutput[act] += TString::Format("/Ratio%sOver%s.root", legUnfSystRanges[0].Data(), legUnfSystRanges[1].Data());
       	 hnameSysMean[act] = "hSysMeanRanges";
       	 act++;
       	 if(!dryrun) {
@@ -1120,10 +1120,10 @@ void runSystUnfolding(Bool_t style = kFALSE){
       	 	 //delete list;
       	 	 
       	 	 hSystPart[1] = new TH1D*[nptbins];
-      	 	 TH1D** hnewSysPart = SmoothUnceraintyByFit(nptbins, htmpSysPart, fittype[1], Form("h%ssmoot", description[1].Data()), hSystPart[1]);
+      	 	 TH1D** hnewSysPart = SmoothUnceraintyByFit(nptbins, htmpSysPart, fittype[1], TString::Format("h%ssmooth", description[1].Data()), hSystPart[1]);
       	 	 
       	 	 for(Int_t ipt = 0 ; ipt< nptbins; ipt++){
-      	 	 	 hSystPartForDrawing[1][ipt] = (TH1D*)hSystPart[1][ipt]->Clone(Form("%sdraw", hSystPart[1][ipt]->GetName()));
+      	 	 	 hSystPartForDrawing[1][ipt] = (TH1D*)hSystPart[1][ipt]->Clone(TString::Format("%sdraw", hSystPart[1][ipt]->GetName()));
       	 	 }
       	 }
       }
@@ -1139,7 +1139,7 @@ void runSystUnfolding(Bool_t style = kFALSE){
       	  gSystem->ChangeDirectory(wdirUnfSystIter);
       	  Printf("in directory  %s", gSystem->pwd());
       	  fileSysOutput[act] = gSystem->pwd();
-      	  fileSysOutput[act] += Form("/Ratio%sOver%s.root", legUnfSystIter[0].Data(), legUnfSystIter[1].Data());
+      	  fileSysOutput[act] += TString::Format("/Ratio%sOver%s.root", legUnfSystIter[0].Data(), legUnfSystIter[1].Data());
       	  hnameSysMean[act] = "hSysMeanIter";
       	  act++;
       	  if(!dryrun) {
@@ -1155,12 +1155,12 @@ void runSystUnfolding(Bool_t style = kFALSE){
       	  	  hSystPart[2]  = new TH1D*[nptbins];
       	  	  
       	  	  
-      	  	  //TH1D** hnewSysPart = SmoothUnceraintyByFit(nptbins, htmpSysPart, fittype[2], Form("h%ssmoot", description[2].Data()), hSystPart[2], 2);
+      	  	  //TH1D** hnewSysPart = SmoothUnceraintyByFit(nptbins, htmpSysPart, fittype[2], TString::Format("h%ssmooth", description[2].Data()), hSystPart[2], 2);
       	  	  
       	  	  for(Int_t ipt = 0 ; ipt< nptbins; ipt++){
       	  	  	  hSystPart[2][ipt] = htmpSysPart[ipt];
       	  	  	  
-      	  	  	  hSystPartForDrawing[2][ipt] = (TH1D*)hSystPart[2][ipt]->Clone(Form("%sdraw", hSystPart[2][ipt]->GetName()));
+      	  	  	  hSystPartForDrawing[2][ipt] = (TH1D*)hSystPart[2][ipt]->Clone(TString::Format("%sdraw", hSystPart[2][ipt]->GetName()));
       	  	  }
       	  }
       }
@@ -1177,7 +1177,7 @@ void runSystUnfolding(Bool_t style = kFALSE){
    	   	   gSystem->ChangeDirectory(wdircmpOvl);
    	   	   Printf("in directory  %s", gSystem->pwd());
    	   	   fileSysOutput[act] = gSystem->pwd();
-   	   	   fileSysOutput[act] += Form("/Ratio%sOver%s.root", legcmpOvl[0].Data(), legcmpOvl[1].Data());
+   	   	   fileSysOutput[act] += TString::Format("/Ratio%sOver%s.root", legcmpOvl[0].Data(), legcmpOvl[1].Data());
    	   	   hnameSysMean[act] = "hSysMeanOvlExl";
    	   	   act++;
    	   	   if(!dryrun) {
@@ -1190,10 +1190,10 @@ void runSystUnfolding(Bool_t style = kFALSE){
    	   	   	   //delete list;
 
    	   	   	   hSystPart[3] = new TH1D*[nptbins];
-   	   	   	   TH1D** hnewSysPart = SmoothUnceraintyByFit(nptbins, htmpSysPart, fittype[3], Form("h%ssmoot", description[3].Data()), hSystPart[3]);
+   	   	   	   TH1D** hnewSysPart = SmoothUnceraintyByFit(nptbins, htmpSysPart, fittype[3], TString::Format("h%ssmooth", description[3].Data()), hSystPart[3]);
    	   	   	   
    	   	   	   for(Int_t ipt = 0 ; ipt< nptbins; ipt++){
-      	 	 	 hSystPartForDrawing[3][ipt] = (TH1D*)hSystPart[3][ipt]->Clone(Form("%sdraw", hSystPart[3][ipt]->GetName()));
+      	 	 	 hSystPartForDrawing[3][ipt] = (TH1D*)hSystPart[3][ipt]->Clone(TString::Format("%sdraw", hSystPart[3][ipt]->GetName()));
       	 	 }
       	 }
       }
@@ -1210,7 +1210,7 @@ void runSystUnfolding(Bool_t style = kFALSE){
    	   	   gSystem->ChangeDirectory(wdirUnfSystBinW);
    	   	   Printf("in directory  %s", gSystem->pwd());
    	   	   fileSysOutput[act] = gSystem->pwd();
-   	   	   fileSysOutput[act] += Form("/Ratio%sOver%s.root", legUnfSystBinW[0].Data(), legUnfSystBinW[1].Data());
+   	   	   fileSysOutput[act] += TString::Format("/Ratio%sOver%s.root", legUnfSystBinW[0].Data(), legUnfSystBinW[1].Data());
    	   	   hnameSysMean[act] = "hSysMeanBinW";
    	   	   act++;
    	   	   if(!dryrun) {
@@ -1223,11 +1223,11 @@ void runSystUnfolding(Bool_t style = kFALSE){
    	   	   	   //delete list;
    	   	   	   
    	   	   	   hSystPart[4] = new TH1D*[nptbins];
-   	   	   	   TH1D** hnewSysPart = SmoothUnceraintyByFit(nptbins, htmpSysPart, fittype[4], Form("h%ssmoot", description[4].Data()), hSystPart[4]);
+   	   	   	   TH1D** hnewSysPart = SmoothUnceraintyByFit(nptbins, htmpSysPart, fittype[4], TString::Format("h%ssmooth", description[4].Data()), hSystPart[4]);
    	   	   	   Printf("isys 0 ---> %p (%s)", hSystPart[4][0], hSystPart[4][0]->GetName());
    	   	   	  
    	   	   	   for(Int_t ipt = 0 ; ipt< nptbins; ipt++){
-      	 	 	 hSystPartForDrawing[4][ipt] = (TH1D*)hSystPart[4][ipt]->Clone(Form("%sdraw", hSystPart[4][ipt]->GetName()));
+      	 	 	 hSystPartForDrawing[4][ipt] = (TH1D*)hSystPart[4][ipt]->Clone(TString::Format("%sdraw", hSystPart[4][ipt]->GetName()));
       	 	 }
       	 }
       }
@@ -1245,7 +1245,7 @@ void runSystUnfolding(Bool_t style = kFALSE){
    	   	   gSystem->ChangeDirectory(wdircmpTrkE);
    	   	   Printf("in directory  %s", gSystem->pwd());
    	   	   fileSysOutput[act] = gSystem->pwd();
-   	   	   fileSysOutput[act] += Form("/Ratio%sOver%s.root", legcmpTrkE[0].Data(), legcmpTrkE[1].Data());
+   	   	   fileSysOutput[act] += TString::Format("/Ratio%sOver%s.root", legcmpTrkE[0].Data(), legcmpTrkE[1].Data());
    	   	   hnameSysMean[act] = "hSysMean96TrkEff";
    	   	   act++;
    	   	   if(!dryrun) {
@@ -1258,9 +1258,9 @@ void runSystUnfolding(Bool_t style = kFALSE){
    	   	   	   //delete list;
    	   	   	   
    	   	   	   hSystPart[5] = new TH1D*[nptbins];
-   	   	   	   TH1D** hnewSysPart = SmoothUnceraintyByFit(nptbins, htmpSysPart, fittype[5], Form("h%ssmoot", description[5].Data()), hSystPart[5]);
+   	   	   	   TH1D** hnewSysPart = SmoothUnceraintyByFit(nptbins, htmpSysPart, fittype[5], TString::Format("h%ssmooth", description[5].Data()), hSystPart[5]);
    	   	   	   for(Int_t ipt = 0 ; ipt< nptbins; ipt++){
-      	 	 	 hSystPartForDrawing[5][ipt] = (TH1D*)hSystPart[5][ipt]->Clone(Form("%sdraw", hSystPart[5][ipt]->GetName()));
+      	 	 	 hSystPartForDrawing[5][ipt] = (TH1D*)hSystPart[5][ipt]->Clone(TString::Format("%sdraw", hSystPart[5][ipt]->GetName()));
       	 	 }
       	 }
       }
@@ -1277,7 +1277,7 @@ void runSystUnfolding(Bool_t style = kFALSE){
       	  gSystem->ChangeDirectory(wdircmpTrkEv2);
       	  Printf("in directory  %s", gSystem->pwd());
       	  fileSysOutput[act] = gSystem->pwd();
-      	  fileSysOutput[act] += Form("/Ratio%sOver%s.root", legcmpTrkEv2[0].Data(), legcmpTrkEv2[1].Data());
+      	  fileSysOutput[act] += TString::Format("/Ratio%sOver%s.root", legcmpTrkEv2[0].Data(), legcmpTrkEv2[1].Data());
       	  hnameSysMean[act] = "hSysMean96TrkEffv2";
       	  act++;
       	  if(!dryrun) {
@@ -1290,10 +1290,10 @@ void runSystUnfolding(Bool_t style = kFALSE){
       	  	  //delete list;
       	  	  
       	  	  hSystPart[6] = new TH1D*[nptbins];
-      	  	  TH1D** hnewSysPart = SmoothUnceraintyByFit(nptbins, htmpSysPart, fittype[6], Form("h%ssmoot", description[6].Data()), hSystPart[6]);
+      	  	  TH1D** hnewSysPart = SmoothUnceraintyByFit(nptbins, htmpSysPart, fittype[6], TString::Format("h%ssmooth", description[6].Data()), hSystPart[6]);
    	   	   	   
       	  	  for(Int_t ipt = 0 ; ipt< nptbins; ipt++){
-      	  	  	  hSystPartForDrawing[6][ipt] = (TH1D*)hSystPart[6][ipt]->Clone(Form("%sdraw", hSystPart[6][ipt]->GetName()));
+      	  	  	  hSystPartForDrawing[6][ipt] = (TH1D*)hSystPart[6][ipt]->Clone(TString::Format("%sdraw", hSystPart[6][ipt]->GetName()));
       	  	  	  hSystPartForDrawing[6][ipt]->Reset();
       	  	  }
       	  }
@@ -1311,7 +1311,7 @@ void runSystUnfolding(Bool_t style = kFALSE){
       	  gSystem->ChangeDirectory(wdircmpPrior);
       	  Printf("in directory  %s", gSystem->pwd());
       	  fileSysOutput[act] = gSystem->pwd();
-      	  fileSysOutput[act] += Form("/Ratio%sOver%s.root", legcmpPrior[0].Data(), legcmpPrior[1].Data());
+      	  fileSysOutput[act] += TString::Format("/Ratio%sOver%s.root", legcmpPrior[0].Data(), legcmpPrior[1].Data());
       	  hnameSysMean[act] = "hSysMeanPrior";
       	  act++;
       	  if(!dryrun) {
@@ -1325,11 +1325,11 @@ void runSystUnfolding(Bool_t style = kFALSE){
       	  	  
       	  	  hSystPart[7] = new TH1D*[nptbins];
       	  	  
-      	  	  //TH1D** hnewSysPart = SmoothUnceraintyByFit(nptbins, htmpSysPart, fittype[7], Form("h%ssmoot", description[7].Data()), hSystPart[7]);
+      	  	  //TH1D** hnewSysPart = SmoothUnceraintyByFit(nptbins, htmpSysPart, fittype[7], TString::Format("h%ssmoot", description[7].Data()), hSystPart[7]);
    	   	   	   
       	  	  for(Int_t ipt = 0 ; ipt< nptbins; ipt++){
       	  	  	  hSystPart[7][ipt] = htmpSysPart[ipt];
-      	  	  	  hSystPartForDrawing[7][ipt] = (TH1D*)hSystPart[7][ipt]->Clone(Form("%sdraw", hSystPart[7][ipt]->GetName()));
+      	  	  	  hSystPartForDrawing[7][ipt] = (TH1D*)hSystPart[7][ipt]->Clone(TString::Format("%sdraw", hSystPart[7][ipt]->GetName()));
       	  	  	  hSystPartForDrawing[7][ipt]->Reset();
       	  	  }
       	  }
@@ -1422,6 +1422,10 @@ void runSystUnfolding(Bool_t style = kFALSE){
       	 	 
       	 	 hSyst[isys] = hSystPart[isys][ipt];
       	 	 
+      	 	 foutSysTot->cd();
+      	 	 hSystPart[isys][ipt]->Write();
+      	 	 hSystPartForDrawing[isys][ipt]->Write();
+      	 	 
       	 }
       	 
       	 hSystTot[ipt] = AddInQuadrature(hSyst, ncontribution, ipt, basenamehsystot);
@@ -1434,7 +1438,7 @@ void runSystUnfolding(Bool_t style = kFALSE){
       	 hSystTot[ipt]->SetMarkerColor(kOrange+8);
       	 if(ipt == 0) legSysTot->AddEntry(hSystTot[ipt], "Total", "l");
       	 
-      	 hSystTotForDrawing[ipt] = (TH1D*)hSystTot[ipt]->Clone(Form("%sdraw", hSystTot[ipt]->GetName()));
+      	 hSystTotForDrawing[ipt] = (TH1D*)hSystTot[ipt]->Clone(TString::Format("%sdraw", hSystTot[ipt]->GetName()));
       	 hSystTotForDrawing[ipt]->Reset();
       	 
       	 
@@ -1473,7 +1477,7 @@ void runSystUnfolding(Bool_t style = kFALSE){
    	   TPaveText *pvpPb = new  TPaveText(0.25, 0.7, 0.6, 0.8, "NDC");
    	   pvpPb->SetFillStyle(0);
    	   pvpPb->SetBorderSize(0);
-   	   pvpPb->AddText(Form("p-Pb #sqrt{#it{s}_{NN}} = 5.02 TeV"));
+   	   pvpPb->AddText(TString::Format("p-Pb #sqrt{#it{s}_{NN}} = 5.02 TeV"));
    	   
    	   TCanvas *cSystPaper = new TCanvas("cSystPaper", "Systematics", dx, dy);
    	   cSystPaper->Divide(nx, ny);
@@ -1486,9 +1490,9 @@ void runSystUnfolding(Bool_t style = kFALSE){
    	   TH1D *hKineDen[nptbins];
    	   
    	   if(correctforkineeff){
-   	   	   TString kineeffMBFilename = Form("KineEffPtR%.0f_%0.fMR%.0f_%0.f.root", pt_min[centralrec], pt_max[centralrec], m_min[centralrec], m_max[centralrec]);
+   	   	   TString kineeffMBFilename = TString::Format("KineEffPtR%.0f_%0.fMR%.0f_%0.f.root", pt_min[centralrec], pt_max[centralrec], m_min[centralrec], m_max[centralrec]);
    	   	   
-   	   	   TString kineeffJEFilename = Form("KineEffPtR%.0f_%0.fMR%.0f_%0.f.root", pt_mineje[centralrec], pt_maxeje[centralrec], m_mineje[centralrec], m_maxeje[centralrec]);
+   	   	   TString kineeffJEFilename = TString::Format("KineEffPtR%.0f_%0.fMR%.0f_%0.f.root", pt_mineje[centralrec], pt_maxeje[centralrec], m_mineje[centralrec], m_maxeje[centralrec]);
    	   	   
    	   	   
    	   	   TFile *feffMB = new TFile(kineeffMBFilename);
@@ -1515,11 +1519,11 @@ void runSystUnfolding(Bool_t style = kFALSE){
    	   	   	   TString basenameDen = "hDenMPtPar";
    	   	   	   for(Int_t ipt = 0; ipt<nptbins; ipt++){
    	   	   	   	   if(ipt < binSwitchToEJE) {
-   	   	   	   	   	   hKineNum[ipt] = (TH1D*)feffMB->Get(Form("%s%.0f%0.f", basenameNum.Data(), ptlims[ipt], ptlims[ipt+1]));
-   	   	   	   	   	   hKineDen[ipt] = (TH1D*)feffMB->Get(Form("%s%.0f%0.f", basenameDen.Data(), ptlims[ipt], ptlims[ipt+1]));
+   	   	   	   	   	   hKineNum[ipt] = (TH1D*)feffMB->Get(TString::Format("%s%.0f%0.f", basenameNum.Data(), ptlims[ipt], ptlims[ipt+1]));
+   	   	   	   	   	   hKineDen[ipt] = (TH1D*)feffMB->Get(TString::Format("%s%.0f%0.f", basenameDen.Data(), ptlims[ipt], ptlims[ipt+1]));
    	   	   	   	   } else {
-   	   	   	   	   	   hKineNum[ipt] = (TH1D*)feffJE->Get(Form("%s%.0f%0.f", basenameNum.Data(), ptlims[ipt], ptlims[ipt+1]));
-   	   	   	   	   	   hKineDen[ipt] = (TH1D*)feffJE->Get(Form("%s%.0f%0.f", basenameDen.Data(), ptlims[ipt], ptlims[ipt+1]));
+   	   	   	   	   	   hKineNum[ipt] = (TH1D*)feffJE->Get(TString::Format("%s%.0f%0.f", basenameNum.Data(), ptlims[ipt], ptlims[ipt+1]));
+   	   	   	   	   	   hKineDen[ipt] = (TH1D*)feffJE->Get(TString::Format("%s%.0f%0.f", basenameDen.Data(), ptlims[ipt], ptlims[ipt+1]));
    	   	   	   	   }
    	   	   	   }
    	   	   	   
@@ -1551,7 +1555,7 @@ void runSystUnfolding(Bool_t style = kFALSE){
    	   if(!hMassPythia) Printf("Not possible to find pythia");
    	   
    	   //method
-   	   TList *results = AddSystematicstoMassFromFile(Form("%s/%s/%s", defaultUnfPaths.Data(), subdir[centralvar].Data(), outfileunfmergename.Data()), basehnname, kFALSE, Form("%s/%s", basewdircmp.Data(), filetotsystname.Data()), Form("%s_Pt", basenamehsystot.Data()), kTRUE);
+   	   TList *results = AddSystematicstoMassFromFile(TString::Format("%s/%s/%s", defaultUnfPaths.Data(), subdir[centralvar].Data(), outfileunfmergename.Data()), basehnname, kFALSE, TString::Format("%s/%s", basewdircmp.Data(), filetotsystname.Data()), TString::Format("%s_Pt", basenamehsystot.Data()), kTRUE);
    	   
    	   TFile *fMassResults = new TFile("MasspPbResults.root", "recreate");
    	   TFile *fFigPaper = new TFile("InputFiguresPaperSyst.root", "recreate");
@@ -1559,8 +1563,8 @@ void runSystUnfolding(Bool_t style = kFALSE){
    	   
    	   //manual
    	   /*
-   	   TFile *finM = new TFile(Form("%s/%s/%s", defaultUnfPaths.Data(), subdir[centralvar].Data(), outfileunfmergename.Data()));
-   	   TFile *finSys = new TFile(Form("%s/%s", basewdircmp.Data(), filetotsystname.Data()));
+   	   TFile *finM = new TFile(TString::Format("%s/%s/%s", defaultUnfPaths.Data(), subdir[centralvar].Data(), outfileunfmergename.Data()));
+   	   TFile *finSys = new TFile(TString::Format("%s/%s", basewdircmp.Data(), filetotsystname.Data()));
    	   */
    	   // end manual
    	   
@@ -1581,13 +1585,13 @@ void runSystUnfolding(Bool_t style = kFALSE){
    	   	   pvpt[ipt] = new TPaveText(0.33, 0.8, 0.83, 0.9, "NDC");
    	   	   pvpt[ipt]->SetFillStyle(0);
    	   	   pvpt[ipt]->SetBorderSize(0);
-   	   	   pvpt[ipt]->AddText(Form("%.0f < #it{p}_{T, ch jet} (GeV/#it{c}) < %.0f", ptlims[ipt], ptlims[ipt+1]));
+   	   	   pvpt[ipt]->AddText(TString::Format("%.0f < #it{p}_{T, ch jet} (GeV/#it{c}) < %.0f", ptlims[ipt], ptlims[ipt+1]));
    	   	   //method
    	   	   
    	   	   Int_t hnumbperptbin = 4; // check this in AddSystematicstoMassFromFile
    	   	   TH1D* hMass = (TH1D*)results->At(ipt*hnumbperptbin);
    	   	   //Printf("Reading result mass histogram %s, mean %f", hMass->GetName(), hMass->GetMean());
-   	   	   hMass->SetName(Form("hUnfM_Itr%d_Pt%.0f_%.0f", iterdef, ptlims[ipt],ptlims[ipt+1]));
+   	   	   hMass->SetName(TString::Format("hUnfM_Itr%d_Pt%.0f_%.0f", iterdef, ptlims[ipt],ptlims[ipt+1]));
    	   	   hMass->SetMarkerStyle(21);
    	   	   hMass->SetMarkerColor(kOrange+8);
    	   	   hMass->SetLineColor(hMass->GetMarkerColor());
@@ -1602,7 +1606,7 @@ void runSystUnfolding(Bool_t style = kFALSE){
    	   	   
    	   	   //copy the histogram of the mass for its stat unc to be drawn in the systematics
    	   	   
-   	   	   hStatUncForDrawing[ipt] = (TH1D*)hMass->Clone(Form("%sdraw", hMass->GetName()));
+   	   	   hStatUncForDrawing[ipt] = (TH1D*)hMass->Clone(TString::Format("%sdraw", hMass->GetName()));
    	   	   hStatUncForDrawing[ipt]->GetXaxis()->SetTitle("#it{M}_{ch jet} (GeV/#it{c}^{2})");
    	   	   hStatUncForDrawing[ipt]->GetYaxis()->SetTitle("Relative Difference");
    	   	   hStatUncForDrawing[ipt]->GetYaxis()->SetTitleOffset(1.45);
@@ -1635,7 +1639,7 @@ void runSystUnfolding(Bool_t style = kFALSE){
    	   	   TH1D* hMassK= 0x0;
    	   	   if(hKineNum[ipt] && hKineDen[ipt]) {
    	   	   	   hMassK = ApplyKineEff(hMass, hKineNum[ipt], hKineDen[ipt]);
-   	   	   	   hMassK->SetName(Form("hUnfEffCorM_Itr%d_Pt%.0f_%.0f", iterdef, ptlims[ipt],ptlims[ipt+1]));
+   	   	   	   hMassK->SetName(TString::Format("hUnfEffCorM_Itr%d_Pt%.0f_%.0f", iterdef, ptlims[ipt],ptlims[ipt+1]));
    	   	   	   hMassK->SetMarkerColor(kRed+2);
    	   	   	   hMassK->SetLineColor(kRed+2);
    	   	   	   hMassK->GetYaxis()->SetRangeUser(0, 0.25);
@@ -1727,13 +1731,13 @@ void runSystUnfolding(Bool_t style = kFALSE){
    	   	   legSysPaper->Write();
    	   	   //manual
    	   	   /*
-   	   	   TString hname = Form("hMUnf_%d_Iter%d", ipt, iterdef);
+   	   	   TString hname = TString::Format("hMUnf_%d_Iter%d", ipt, iterdef);
    	   	   TH1D* hMass = (TH1D*)finM->Get(hname);
    	   	   if(!hMass){
    	   	   	   Printf("%s not found, continue", hname.Data());
    	   	   	   continue;
    	   	   }
-   	   	   TString hsysname = Form("%s_Pt%.0f_%.0f", basenamehsystot.Data(), ptlims[ipt],ptlims[ipt+1]); 
+   	   	   TString hsysname = TString::Format("%s_Pt%.0f_%.0f", basenamehsystot.Data(), ptlims[ipt],ptlims[ipt+1]); 
    	   	   TH1D* hsysTot = (TH1D*)finSys->Get(hsysname);
    	   	   if(!hsysTot){
    	   	   	   Printf("%s not found, continue", hsysname.Data());
@@ -1798,18 +1802,18 @@ void runSystUnfolding(Bool_t style = kFALSE){
    	   }
    	   
    	   for(Int_t ih = 0; ih<nhM ; ih++){
-   	   	   hMassMStat[ih] = (TH1D*)fResM->Get(Form("%s%d", nameMSt.Data(), ih+offset));
-   	   	   hMassMSyst[ih] = (TH1D*)fResM->Get(Form("%s%d", nameMSy.Data(),ih+offset));
+   	   	   hMassMStat[ih] = (TH1D*)fResM->Get(TString::Format("%s%d", nameMSt.Data(), ih+offset));
+   	   	   hMassMSyst[ih] = (TH1D*)fResM->Get(TString::Format("%s%d", nameMSy.Data(),ih+offset));
    	   	   
-   	   	   hMassMStat[ih]->SetName(Form("pPbM%s%d", nameMSt.Data(), ih+offset));
+   	   	   hMassMStat[ih]->SetName(TString::Format("pPbM%s%d", nameMSt.Data(), ih+offset));
    	   	   hMassMStat[ih]->SetMarkerColor(kBlue+3);
    	   	   hMassMStat[ih]->SetLineColor(kBlue+3);
-   	   	   hMassMSyst[ih]->SetName(Form("pPbM%s%d", nameMSy.Data(), ih+offset));
+   	   	   hMassMSyst[ih]->SetName(TString::Format("pPbM%s%d", nameMSy.Data(), ih+offset));
    	   	   hMassMSyst[ih]->SetFillColor(kAzure+1);
    	   	   hMassMSyst[ih]->SetMarkerColor(kBlue+3);
    	   	   
-   	   	   hMassMPbPbStat[ih] = (TH1D*)fResPbPbM->Get(Form("%s%d", nameMSt.Data(), ih+offset));
-   	   	   hMassMPbPbSyst[ih] = (TH1D*)fResPbPbM->Get(Form("%s%d", nameMSy.Data(),ih+offset));
+   	   	   hMassMPbPbStat[ih] = (TH1D*)fResPbPbM->Get(TString::Format("%s%d", nameMSt.Data(), ih+offset));
+   	   	   hMassMPbPbSyst[ih] = (TH1D*)fResPbPbM->Get(TString::Format("%s%d", nameMSy.Data(),ih+offset));
    	   	   hMassMPbPbStat[ih]->SetMarkerColor(kOrange+3);
    	   	   hMassMPbPbStat[ih]->SetLineColor(kOrange+3);
    	   	   hMassMPbPbSyst[ih]->SetFillColor(kYellow+1);

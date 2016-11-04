@@ -14,6 +14,7 @@
 #include <TGraphAsymmErrors.h>
 #include <TPaveText.h>
 #include <THnSparse.h>
+#include <TGraphErrors.h>
 
 Int_t colorSeriesBlue[] = {kCyan-3, kCyan-7, kCyan-6, kCyan-2, kCyan+4, kBlue, kBlue-7, kBlue-1, kBlue-6, kBlue+3};
 Int_t colorSeriesGreen[] = {kGreen-9, kGreen+4, kGreen+1, kGreen-8, kGreen-6, kGreen+2, kGreen+3, kGreen+4 };
@@ -24,6 +25,7 @@ TObject* ReadObjInFile(TString strIn, TString strLst, TString objname);
 TH1* CompareDistributions(TVirtualPad* pad, TH1* h1, TH1* h2);
 void CalculatePads(Int_t n, Int_t&nx, Int_t&ny, Int_t&dx, Int_t&dy, Int_t perrow = 1, Int_t stdd = 400);
 Int_t UniformTH1FForDivide(TH1 *h1, TH1 *h2, TH1 *&h1bis, TH1 *&h2bis, TString type = "TH1F", Bool_t onlycheck = kFALSE);
+TH1D* MinimumRange(TH1D* h1, TH1D* h2, TH1D*& hcp);
 Int_t FindBinInArray(Double_t q, Double_t array[], Int_t dim, Bool_t verbose = kFALSE);
 TH1F* ConvertTH1DinF(TH1D *h1d);
 TH2F* ConvertTH2DinF(TH2D *h2d);
@@ -41,13 +43,15 @@ TH1D** GetPythiaOrThnSpaseProjections(Int_t axrange, Int_t axproj, Double_t binW
 
 TH2D* RebinVariableWidth2D(const Int_t nbinsvarwX, Double_t varwlimsX[], const Int_t nbinsvarwY, Double_t varwlimsY[], TH2D* hinput, Double_t ex = 0.001, Double_t ey = 0.001);
 
+TH1D* TGraphToTH1D(TGraphErrors* graph, const char* newname);
+
 //method implementation
 
 void SaveCv(TCanvas* c,TString suffix, Int_t format){
-   if(format > 0) c->SaveAs(Form("%s%s.png",c->GetName(),suffix.Data()));
-   if(format > 1) c->SaveAs(Form("%s%s.pdf",c->GetName(),suffix.Data()));
-   if(format > 2) c->SaveAs(Form("%s%s.eps",c->GetName(),suffix.Data()));
-   if(format > 3 || format==0) c->SaveAs(Form("%s%s.root",c->GetName(),suffix.Data()));
+   if(format > 0) c->SaveAs(TString::Format("%s%s.png",c->GetName(),suffix.Data()));
+   if(format > 1) c->SaveAs(TString::Format("%s%s.pdf",c->GetName(),suffix.Data()));
+   if(format > 2) c->SaveAs(TString::Format("%s%s.eps",c->GetName(),suffix.Data()));
+   if(format > 3 || format==0) c->SaveAs(TString::Format("%s%s.root",c->GetName(),suffix.Data()));
 }
 
 //---------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -109,8 +113,8 @@ TObject* ReadObjInFile(TString strIn, TString strLst, TString objname){
 //---------------------------------------------------------------------------------------------------------------------------------------------------------
 
 TH1* CompareDistributions(TVirtualPad* pad, TH1* h1, TH1* h2){
-   h1->SetName(Form("%s1", h1->GetName()));
-   h2->SetName(Form("%s2", h2->GetName()));
+   h1->SetName(TString::Format("%s1", h1->GetName()));
+   h2->SetName(TString::Format("%s2", h2->GetName()));
    Printf("Compare %s and %s", h1->GetName(), h2->GetName());
    h1->Scale(1./h1->Integral("width"));
    h2->Scale(1./h2->Integral("width"));
@@ -178,7 +182,7 @@ void SaveGraphInCanvasToFile(TCanvas *corigin, TString graphname, TString newnam
       g->Write();
       
       TH1F* h = g->GetHistogram();
-      h->SetName(Form("h%s", newname.Data()));
+      h->SetName(TString::Format("h%s", newname.Data()));
       fout->cd();
       h->Write();
    }
@@ -202,6 +206,7 @@ Int_t UniformTH1FForDivide(TH1 *h1, TH1 *h2, TH1 *&h1bis, TH1 *&h2bis, TString t
       Printf("Need valid input!");
       return -1;
    }
+   
    Printf("UniformTH1FForDivide:: THINK: if the histograms are ratios this method does not do what you want");
    Int_t nBins1 = h1->GetNbinsX(), nBins2 = h2->GetNbinsX();
    Double_t binW1 = h1->GetBinWidth(3), binW2 = h2->GetBinWidth(3);
@@ -212,11 +217,11 @@ Int_t UniformTH1FForDivide(TH1 *h1, TH1 *h2, TH1 *&h1bis, TH1 *&h2bis, TString t
    if(((nBins1 == nBins2) && ((binW1-binW2) < 1e-6) &&  ((low1-low2) < 1e-6) && ((up1-up2) < 1e-6)) || onlycheck) {
       if(onlycheck) Printf("Check performed");
       else Printf("Histograms can be divided");
-      h1bis = (TH1*)h1->Clone(Form("%sb", h1->GetName()));
-      h2bis = (TH1*)h2->Clone(Form("%sb", h2->GetName()));
+      h1bis = (TH1*)h1->Clone(TString::Format("%sb", h1->GetName()));
+      h2bis = (TH1*)h2->Clone(TString::Format("%sb", h2->GetName()));
       return 0;
    }
-   
+
    Double_t commonlow = TMath::Min(low1, low2), commonup = TMath::Max(up1, up2);
    Double_t commonW = TMath::Max(binW1, binW2); // the wider bin width it the one that will be used for both
    Int_t commonNBins = (commonup - commonlow)/commonW;
@@ -230,7 +235,7 @@ Int_t UniformTH1FForDivide(TH1 *h1, TH1 *h2, TH1 *&h1bis, TH1 *&h2bis, TString t
    else h2->Rebin(rebin); //otherwise rebin h2
    
    
-   //TCanvas *ctest = new TCanvas(Form("c%s%s", h1->GetName(), h2->GetName() ), Form("canvas %s%s", h1->GetName(), h2->GetName() ));
+   //TCanvas *ctest = new TCanvas(TString::Format("c%s%s", h1->GetName(), h2->GetName() ), TString::Format("canvas %s%s", h1->GetName(), h2->GetName() ));
    //ctest->cd();
    //h1->Draw();
    //h2->Draw("sames");
@@ -238,12 +243,12 @@ Int_t UniformTH1FForDivide(TH1 *h1, TH1 *h2, TH1 *&h1bis, TH1 *&h2bis, TString t
    //Printf("N bins : %s: %d , for %s: %d ", h1->GetName(), h1->GetNbinsX(), h2->GetName(), h2->GetNbinsX());
    //create the new histograms with correct range
    if(type == "TH1F"){
-      h1bis = new TH1F(Form("%sb", h1->GetName()), Form("%s bis; %s; %s", h1->GetTitle(), h1->GetXaxis()->GetTitle(), h1->GetYaxis()->GetTitle()), commonNBins, commonlow, commonup);
-      h2bis = new TH1F(Form("%sb", h2->GetName()), Form("%s bis; %s; %s", h2->GetTitle(), h2->GetXaxis()->GetTitle(), h2->GetYaxis()->GetTitle()), commonNBins, commonlow, commonup);
+      h1bis = new TH1F(TString::Format("%sb", h1->GetName()), TString::Format("%s bis; %s; %s", h1->GetTitle(), h1->GetXaxis()->GetTitle(), h1->GetYaxis()->GetTitle()), commonNBins, commonlow, commonup);
+      h2bis = new TH1F(TString::Format("%sb", h2->GetName()), TString::Format("%s bis; %s; %s", h2->GetTitle(), h2->GetXaxis()->GetTitle(), h2->GetYaxis()->GetTitle()), commonNBins, commonlow, commonup);
    } else {
       if(type == "TH1D"){
-      	 h1bis = new TH1D(Form("%sb", h1->GetName()), Form("%s bis; %s; %s", h1->GetTitle(), h1->GetXaxis()->GetTitle(), h1->GetYaxis()->GetTitle()), commonNBins, commonlow, commonup);
-      	 h2bis = new TH1D(Form("%sb", h2->GetName()), Form("%s bis; %s; %s", h2->GetTitle(), h2->GetXaxis()->GetTitle(), h2->GetYaxis()->GetTitle()), commonNBins, commonlow, commonup);
+      	 h1bis = new TH1D(TString::Format("%sb", h1->GetName()), TString::Format("%s bis; %s; %s", h1->GetTitle(), h1->GetXaxis()->GetTitle(), h1->GetYaxis()->GetTitle()), commonNBins, commonlow, commonup);
+      	 h2bis = new TH1D(TString::Format("%sb", h2->GetName()), TString::Format("%s bis; %s; %s", h2->GetTitle(), h2->GetXaxis()->GetTitle(), h2->GetYaxis()->GetTitle()), commonNBins, commonlow, commonup);
       } else {
       	 Printf("%s Not defined!", type.Data());
       	 return -1;
@@ -254,12 +259,14 @@ Int_t UniformTH1FForDivide(TH1 *h1, TH1 *h2, TH1 *&h1bis, TH1 *&h2bis, TString t
    h1bis->SetLineWidth(h1->GetLineWidth());
    h1bis->SetMarkerColor(h1->GetMarkerColor());
    h1bis->SetMarkerStyle(h1->GetMarkerStyle());
+   h1bis->SetMarkerSize(h1->GetMarkerSize());
    
    h2bis->Sumw2();
    h2bis->SetLineColor(h2->GetLineColor());
    h2bis->SetLineWidth(h2->GetLineWidth());
    h2bis->SetMarkerColor(h2->GetMarkerColor());
    h2bis->SetMarkerStyle(h2->GetMarkerStyle());
+   h2bis->SetMarkerSize(h2->GetMarkerSize());
    
    //refill the original histograms using the same binning
    for(Int_t i = 0; i < commonNBins; i++){
@@ -294,6 +301,41 @@ Int_t UniformTH1FForDivide(TH1 *h1, TH1 *h2, TH1 *&h1bis, TH1 *&h2bis, TString t
 }
 
 //---------------------------------------------------------------------------------------------------------------------------------------------------------
+
+TH1D* MinimumRange(TH1D* h1, TH1D* h2, TH1D*& hcp){
+	// set the range in common among the two and fill with the content and error of h1
+	
+	Int_t nbins1 = h1->GetNbinsX();
+	Double_t range1[2] = {h1->GetBinLowEdge(1), h1->GetBinLowEdge(nbins1+1)};
+	Int_t nbins2 = h2->GetNbinsX();
+	Double_t range2[2] = {h2->GetBinLowEdge(1), h2->GetBinLowEdge(nbins2+1)};
+	
+	Double_t binW1 = h1->GetBinWidth(1), binW2 = h2->GetBinWidth(1);
+	if(TMath::Abs(binW1 - binW2) > 1e-5){ 
+		Printf("Binning is different, need to implement something better here");
+		return 0;
+	}
+	
+	Double_t rangeC[2] = {TMath::Max(range1[0], range2[0]), TMath::Min(range1[1], range2[1])};
+	Int_t nbinsC = (Int_t)((rangeC[1] - rangeC[0])/binW1);
+	
+	TH1D* hnew = new TH1D(TString::Format("h%s%s1", h1->GetName(), h2->GetName()), TString::Format("h%s%s1", h1->GetName(), h2->GetName()), nbinsC, rangeC[0], rangeC[1]);
+	hnew->Sumw2();
+	hcp= new TH1D(TString::Format("h%s%s2", h1->GetName(), h2->GetName()), TString::Format("h%s%s2", h1->GetName(), h2->GetName()), nbinsC, rangeC[0], rangeC[1]);
+	hcp->Sumw2();
+	for(Int_t ib = 0 ; ib< nbinsC; ib++){
+		Int_t ib1 = h1->FindBin(hnew->GetBinCenter(ib+1));
+		Int_t ib2 = h2->FindBin(hnew->GetBinCenter(ib+1));
+		hnew->SetBinContent(ib+1, h1->GetBinContent(ib1));
+		hnew->SetBinError(ib+1, h1->GetBinError(ib1));
+		
+		hcp->SetBinContent(ib+1, h2->GetBinContent(ib2));
+		hcp->SetBinError(ib+1, h2->GetBinError(ib2));
+	}
+	
+	return hnew;
+}
+//---------------------------------------------------------------------------------------------------------------------------------------------------------
 Int_t FindBinInArray(Double_t q, Double_t array[], Int_t dim, Bool_t verbose){
    
    if((q > array[dim-1]) || (q<array[0])) {
@@ -301,7 +343,7 @@ Int_t FindBinInArray(Double_t q, Double_t array[], Int_t dim, Bool_t verbose){
       return -1;
    }
    for(Int_t i = 0; i<dim-1; i++ ){
-   	   //Printf("i = %d", i);
+   	  //Printf("i = %d arr %f - %f", i, array[i], array[i+1]);
       if(q >= array[i] && q < array[i+1]) return i;
       
    }
@@ -312,7 +354,7 @@ Int_t FindBinInArray(Double_t q, Double_t array[], Int_t dim, Bool_t verbose){
 TH1F* ConvertTH1DinF(TH1D *h1d){
    //deletes the original histogram
    Int_t nbins = h1d->GetNbinsX();
-   TH1F *h1f = new TH1F(Form("%sF", h1d->GetName()), Form("%s;%s;%s", h1d->GetTitle(), h1d->GetXaxis()->GetTitle(), h1d->GetYaxis()->GetTitle()), nbins, h1d->GetBinLowEdge(1), h1d->GetBinLowEdge(nbins+1));
+   TH1F *h1f = new TH1F(TString::Format("%sF", h1d->GetName()), TString::Format("%s;%s;%s", h1d->GetTitle(), h1d->GetXaxis()->GetTitle(), h1d->GetYaxis()->GetTitle()), nbins, h1d->GetBinLowEdge(1), h1d->GetBinLowEdge(nbins+1));
    
    h1f->Sumw2();
    
@@ -333,7 +375,7 @@ TH2F* ConvertTH2DinF(TH2D *h2d){
    //deletes the original histogram
    Int_t nbinsX = h2d->GetNbinsX();
    Int_t nbinsY = h2d->GetNbinsY();
-   TH2F *h2f = new TH2F(Form("%sF", h2d->GetName()), Form("%s;%s;%s", h2d->GetTitle(), h2d->GetXaxis()->GetTitle(), h2d->GetYaxis()->GetTitle()), nbinsX, h2d->GetXaxis()->GetBinLowEdge(1), h2d->GetXaxis()->GetBinLowEdge(nbinsX+1), nbinsY, h2d->GetYaxis()->GetBinLowEdge(1), h2d->GetYaxis()->GetBinLowEdge(nbinsY+1));
+   TH2F *h2f = new TH2F(TString::Format("%sF", h2d->GetName()), TString::Format("%s;%s;%s", h2d->GetTitle(), h2d->GetXaxis()->GetTitle(), h2d->GetYaxis()->GetTitle()), nbinsX, h2d->GetXaxis()->GetBinLowEdge(1), h2d->GetXaxis()->GetBinLowEdge(nbinsX+1), nbinsY, h2d->GetYaxis()->GetBinLowEdge(1), h2d->GetYaxis()->GetBinLowEdge(nbinsY+1));
    
    h2f->Sumw2();
    
@@ -356,7 +398,7 @@ TH2F* ConvertTH2DinF(TH2D *h2d){
 //---------------------------------------------------------------------------------------------------------------------------------------------------------
 TH2F* TransformAxisRanges(TH2F *h2orig, Int_t xnbinsnew, Float_t xminnew, Float_t xmaxnew, Int_t ynbinsnew, Float_t yminnew, Float_t ymaxnew){
    
-   TH2F* h2new = new TH2F(Form("%sNew", h2orig->GetName()), Form("%sNew;%s;%s", h2orig->GetTitle(),  h2orig->GetXaxis()->GetTitle(),  h2orig->GetYaxis()->GetTitle()), xnbinsnew, xminnew, xmaxnew, ynbinsnew, yminnew, ymaxnew);
+   TH2F* h2new = new TH2F(TString::Format("%sNew", h2orig->GetName()), TString::Format("%sNew;%s;%s", h2orig->GetTitle(),  h2orig->GetXaxis()->GetTitle(),  h2orig->GetYaxis()->GetTitle()), xnbinsnew, xminnew, xmaxnew, ynbinsnew, yminnew, ymaxnew);
    h2new->Sumw2();
    
    //Define nbinx nbiny number of bins original histos
@@ -391,7 +433,7 @@ TH2F* TransformAxisRanges(TH2F *h2orig, Int_t xnbinsnew, Float_t xminnew, Float_
 //---------------------------------------------------------------------------------------------------------------------------------------------------------
 TH1F* TransformAxisRanges(TH1F *h1orig, Int_t xnbinsnew, Float_t xminnew, Float_t xmaxnew){
    
-   TH1F* h1new = new TH1F(Form("%sNew", h1orig->GetName()), Form("%sNew;%s;%s", h1orig->GetTitle(),  h1orig->GetXaxis()->GetTitle(),  h1orig->GetYaxis()->GetTitle()), xnbinsnew, xminnew, xmaxnew);
+   TH1F* h1new = new TH1F(TString::Format("%sNew", h1orig->GetName()), TString::Format("%sNew;%s;%s", h1orig->GetTitle(),  h1orig->GetXaxis()->GetTitle(),  h1orig->GetYaxis()->GetTitle()), xnbinsnew, xminnew, xmaxnew);
    h1new->Sumw2();
    
    //Define nbinx nbiny number of bins original histos
@@ -487,7 +529,7 @@ TPaveText** GetPavePtBins(const Int_t nptbins, Double_t *lims, Int_t x1, Int_t y
       pvtxt[ip] = new TPaveText(x1, y1, x2, y2, "NDC");
       pvtxt[ip]->SetBorderSize(0);
       pvtxt[ip]->SetFillStyle(0);
-      pvtxt[ip]->AddText(Form("%.0f < #it{p}_{T} < %.0f GeV/#it{c}", lims[ip], lims[ip+1]));
+      pvtxt[ip]->AddText(TString::Format("%.0f < #it{p}_{T} < %.0f GeV/#it{c}", lims[ip], lims[ip+1]));
       Printf("pave %p", pvtxt[ip]);
    }
    
@@ -543,7 +585,7 @@ TH1D** GetPythiaOrThnSpaseProjections(Int_t axrange, Int_t axproj, Double_t binW
 		hsph->GetAxis(axrange)->SetRange(binrange[0], binrange[1]);
 		
 		hproj[ipt] = hsph->Projection(axproj);
-		hproj[ipt]->SetName(Form("%s_%d", pjbasename.Data(), ipt));
+		hproj[ipt]->SetName(TString::Format("%s_%d", pjbasename.Data(), ipt));
 		Printf("Pointer %s %p", hproj[ipt]->GetName(), hproj[ipt]);
 	}
 	
@@ -602,14 +644,14 @@ TH1D** GetProjectionsTH3(Int_t axrange, Int_t axproj, Double_t binWaxproj, const
 			if(axrange == 1){
 				Int_t binrange[2] = {h3->GetYaxis()->FindBin(binlims[ipt]), h3->GetYaxis()->FindBin(binlims[ipt+1] - 0.001)};
 				
-				hM[ipt] = h3->ProjectionX(Form("%sPj%d_%.0f_%.0f", pjbasename.Data(), axproj, binlims[ipt], binlims[ipt+1]), binrange[0], binrange[1], 0,  -1);
+				hM[ipt] = h3->ProjectionX(TString::Format("%sPj%d_%.0f_%.0f", pjbasename.Data(), axproj, binlims[ipt], binlims[ipt+1]), binrange[0], binrange[1], 0,  -1);
 				
 			} else 
 			if(axrange == 2){
 				
 				Int_t binrange[2] = {h3->GetZaxis()->FindBin(binlims[ipt]), h3->GetZaxis()->FindBin(binlims[ipt+1] - 0.001)};
 				
-				hM[ipt] = h3->ProjectionX(Form("%sPj%d_%.0f_%.0f", pjbasename.Data(), axproj, binlims[ipt], binlims[ipt+1]), 0, -1, binrange[0], binrange[1]);
+				hM[ipt] = h3->ProjectionX(TString::Format("%sPj%d_%.0f_%.0f", pjbasename.Data(), axproj, binlims[ipt], binlims[ipt+1]), 0, -1, binrange[0], binrange[1]);
 				
 			} else {
 				Printf("Error range and projection on the same axis!");
@@ -622,14 +664,14 @@ TH1D** GetProjectionsTH3(Int_t axrange, Int_t axproj, Double_t binWaxproj, const
 			if(axrange == 0){
 				Int_t binrange[2] = {h3->GetXaxis()->FindBin(binlims[ipt]), h3->GetXaxis()->FindBin(binlims[ipt+1] - 0.001)};
 				
-				hM[ipt] = h3->ProjectionY(Form("%sPj%d_%.0f_%.0f", pjbasename.Data(), axproj, binlims[ipt], binlims[ipt+1]), binrange[0], binrange[1], 0,  -1);
+				hM[ipt] = h3->ProjectionY(TString::Format("%sPj%d_%.0f_%.0f", pjbasename.Data(), axproj, binlims[ipt], binlims[ipt+1]), binrange[0], binrange[1], 0,  -1);
 				
 			} else 
 			if(axrange == 2){
 				
 				Int_t binrange[2] = {h3->GetZaxis()->FindBin(binlims[ipt]), h3->GetZaxis()->FindBin(binlims[ipt+1] - 0.001)};
 				
-				hM[ipt] = h3->ProjectionY(Form("%sPj%d_%.0f_%.0f", pjbasename.Data(), axproj, binlims[ipt], binlims[ipt+1]), 0, -1, binrange[0], binrange[1]);
+				hM[ipt] = h3->ProjectionY(TString::Format("%sPj%d_%.0f_%.0f", pjbasename.Data(), axproj, binlims[ipt], binlims[ipt+1]), 0, -1, binrange[0], binrange[1]);
 				
 			} else {
 				Printf("Error range and projection on the same axis!");
@@ -641,14 +683,14 @@ TH1D** GetProjectionsTH3(Int_t axrange, Int_t axproj, Double_t binWaxproj, const
 			if(axrange == 0){
 				Int_t binrange[2] = {h3->GetXaxis()->FindBin(binlims[ipt]), h3->GetXaxis()->FindBin(binlims[ipt+1] - 0.001)};
 				
-				hM[ipt] = h3->ProjectionZ(Form("%sPj%d_%.0f_%.0f", pjbasename.Data(), axproj, binlims[ipt], binlims[ipt+1]), binrange[0], binrange[1], 0,  -1);
+				hM[ipt] = h3->ProjectionZ(TString::Format("%sPj%d_%.0f_%.0f", pjbasename.Data(), axproj, binlims[ipt], binlims[ipt+1]), binrange[0], binrange[1], 0,  -1);
 				
 			} else 
 			if(axrange == 1){
 				
 				Int_t binrange[2] = {h3->GetYaxis()->FindBin(binlims[ipt]), h3->GetYaxis()->FindBin(binlims[ipt+1] - 0.001)};
 				
-				hM[ipt] = h3->ProjectionZ(Form("%sPj%d_%.0f_%.0f", pjbasename.Data(), axproj, binlims[ipt], binlims[ipt+1]), 0, -1, binrange[0], binrange[1]);
+				hM[ipt] = h3->ProjectionZ(TString::Format("%sPj%d_%.0f_%.0f", pjbasename.Data(), axproj, binlims[ipt], binlims[ipt+1]), 0, -1, binrange[0], binrange[1]);
 				
 			} else {
 				Printf("Error range and projection on the same axis!");
@@ -696,7 +738,7 @@ TH2D* RebinVariableWidth2D(const Int_t nbinsvarwX, Double_t varwlimsX[], const I
 		return 0x0;
 	}
 	
-	TH2D* houtput = new TH2D(Form("%sRb", hinput->GetName()), Form("%sRb; %s; %s",  hinput->GetTitle(),  hinput->GetXaxis()->GetTitle(), hinput->GetYaxis()->GetTitle()), nbinsvarwX, varwlimsX, nbinsvarwY, varwlimsY);
+	TH2D* houtput = new TH2D(TString::Format("%sRb", hinput->GetName()), TString::Format("%sRb; %s; %s",  hinput->GetTitle(),  hinput->GetXaxis()->GetTitle(), hinput->GetYaxis()->GetTitle()), nbinsvarwX, varwlimsX, nbinsvarwY, varwlimsY);
 	
 	houtput->Sumw2();
 	
@@ -732,9 +774,9 @@ TH1D*** DrawProjFrom2D(const Int_t n2dh, TH2D** hist, Int_t axpj, const Int_t ax
 	else CalculatePads(nbinsrange, nx, ny, dx, dy);
 	
 	
-	TCanvas *cProj = new TCanvas(Form("cProj%s", namenew), "Projections", dx, dy);
+	TCanvas *cProj = new TCanvas(TString::Format("cProj%s", namenew), "Projections", dx, dy);
 	cProj->Divide(nx, ny);
-	TCanvas *cRati = new TCanvas(Form("cRat%s", namenew), "Ratios", dx, dy);
+	TCanvas *cRati = new TCanvas(TString::Format("cRat%s", namenew), "Ratios", dx, dy);
 	cRati->Divide(nx, ny);
 	
 	TH1D*** hproj = new TH1D**[n2dh];
@@ -754,8 +796,8 @@ TH1D*** DrawProjFrom2D(const Int_t n2dh, TH2D** hist, Int_t axpj, const Int_t ax
 			hproj[ih][irb] = 0x0;
 			hRati[ih][irb] = 0x0;
 			TString currentname = namenew;
-			if(nametype == 0) currentname = Form("%s%d_R%d", namenew, ih,  irb);
-			if(nametype == 1) currentname = Form("%s%d_R%.0f_%.0f", namenew, ih, rangelims[irb], rangelims[irb+1]);
+			if(nametype == 0) currentname = TString::Format("%s%d_R%d", namenew, ih,  irb);
+			if(nametype == 1) currentname = TString::Format("%s%d_R%.0f_%.0f", namenew, ih, rangelims[irb], rangelims[irb+1]);
 			
 			if(axrange == 0 && axpj == 1){ //projection on Y axis
 				Int_t bin[2] = {hist[ih]->GetXaxis()->FindBin(rangelims[irb]), hist[ih]->GetXaxis()->FindBin(rangelims[irb+1] - eps)};
@@ -786,7 +828,7 @@ TH1D*** DrawProjFrom2D(const Int_t n2dh, TH2D** hist, Int_t axpj, const Int_t ax
 			if(integral > 0) hproj[ih][irb]->Scale(1./integral);
 			
 			// ratio
-			if(!hRati[ih][irb]) hRati[ih][irb] = (TH1D*)hproj[ih][irb]->Clone(Form("hRatio%s", currentname.Data()));
+			if(!hRati[ih][irb]) hRati[ih][irb] = (TH1D*)hproj[ih][irb]->Clone(TString::Format("hRatio%s", currentname.Data()));
 			
 			
 			cProj->cd(irb+1);
@@ -829,5 +871,49 @@ TH1D*** DrawProjFrom2D(const Int_t n2dh, TH2D** hist, Int_t axpj, const Int_t ax
 	
 	return hproj;
 }
+
+//---------------------------------------------------------------------------------------------------------------------------------------------------------
+
+TH1D* TGraphToTH1D(TGraphErrors* graph, const char* newname){
+	
+	Int_t nbinmass = graph->GetN();
+	Double_t mass, reldiff, error;
+	graph->GetPoint(0, mass, reldiff);
+	graph->GetPoint(1,  error, reldiff);
+	//Printf("Point 0, mass = %f, error = %f", mass, error);
+	error = (error - mass)*0.5;
+	Double_t minh, maxh;
+	minh = mass - error;
+	
+	graph->GetPoint(nbinmass-1, mass, reldiff);
+	graph->GetPoint(nbinmass-2, error, reldiff);
+	//Printf("Point %d, mass = %f, error = %f", nbinmass-2, mass, error);
+	error = (mass - error)*0.5;
+	maxh = mass + error;
+	
+	Printf("%d points, min = %f, max = %f", nbinmass, minh, maxh);
+	
+	TH1D* hout = new TH1D(TString::Format("h%s", newname), TString::Format("h%s", newname), nbinmass, minh, maxh);
+	
+	hout->Sumw2();
+	for(Int_t ib = 0; ib<nbinmass; ib++){
+		
+		graph->GetPoint(ib, mass, reldiff);
+		
+		hout->SetBinContent(ib+1, reldiff);
+		
+		Double_t error = graph->GetErrorY(ib);
+		hout->SetBinError(ib+1, error);
+		
+		Printf("Fill bin %d with %f +- %f", ib+1, reldiff, error);
+	}
+		
+	//TCanvas *c = new TCanvas(TString::Format("c%s", newname), TString::Format("c%s", newname));
+	//c->cd();
+	//hout->Draw();
+	return hout;
+}	
+
+
 
 #endif

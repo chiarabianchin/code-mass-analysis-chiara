@@ -55,9 +55,9 @@ void unfold(TString str = "/data/Work/jets/JetMass/DetectorCorrections/LHC13b4_p
 	TH2D *hMeasured = 0x0;
 	PlotUtilEmcalJetMass *util = 0x0;
 	TParameter<Double_t> *par = 0x0; // understand how this is used! Not implemented for MassOutput. How to deal with EJE triggers?
-	TString cvsuff = Form("%d_Bkg%d_%s", colType, iList, suff.Data());
+	TString cvsuff = TString::Format("%d_Bkg%d_%s", colType, iList, suff.Data());
 	
-	TCanvas *cMass = new TCanvas(Form("cMassInput%s", cvsuff.Data()), "Input mass", 800, 400);
+	TCanvas *cMass = new TCanvas(TString::Format("cMassInput%s", cvsuff.Data()), "Input mass", 800, 400);
 	cMass->Divide(2,1);
 	
 	// read from the merged MB+EJE output. This is not to be used, it gives wrong results 
@@ -69,7 +69,7 @@ void unfold(TString str = "/data/Work/jets/JetMass/DetectorCorrections/LHC13b4_p
 			Printf("... not found");
 			return;
 		}
-		TString hname = Form("h2MPtTagged_BkgSub%d_TrgCmb%d", iList, colType-2); //see MBEJETrigComb in plotMassCompareTriggers (plotJetMasspPb.C)
+		TString hname = TString::Format("h2MPtTagged_BkgSub%d_TrgCmb%d", iList, colType-2); //see MBEJETrigComb in plotMassCompareTriggers (plotJetMasspPb.C)
 		
 		hMeasured = (TH2D*)fin->Get(hname);
 		if(!hMeasured){
@@ -206,12 +206,12 @@ void unfold(TString str = "/data/Work/jets/JetMass/DetectorCorrections/LHC13b4_p
 		unfold[iter-iterMin] = RooUnfoldBayes(resp, hMeas, iter);
 		
 		hReco[iter-iterMin] = (TH2D*)unfold[iter-iterMin].Hreco(errorTreatment);
-		hReco[iter-iterMin]->SetName(Form("hReco_Iter%d",iter));
-		hReco[iter-iterMin]->SetTitle(Form("Result Iter%d; #it{p}_{T};#it{M}",iter));
+		hReco[iter-iterMin]->SetName(TString::Format("hReco_Iter%d",iter));
+		hReco[iter-iterMin]->SetTitle(TString::Format("Result Iter%d; #it{p}_{T};#it{M}",iter));
 		// unfold[iter-iterMin].Print();
 		hFolded[iter-iterMin] = (TH2D*)resp->ApplyToTruth(hReco[iter-iterMin]);
-		hFolded[iter-iterMin]->SetName(Form("hFolded_Iter%d",iter));
-		hFolded[iter-iterMin]->SetTitle(Form("Folded Iter%d; #it{p}_{T};#it{M}",iter));
+		hFolded[iter-iterMin]->SetName(TString::Format("hFolded_Iter%d",iter));
+		hFolded[iter-iterMin]->SetTitle(TString::Format("Folded Iter%d; #it{p}_{T};#it{M}",iter));
 		Printf("Before Ereco");
 		covmat[iter-iterMin] = unfold[iter-iterMin].Ereco(RooUnfold::kCovariance);
 		Printf("After Ereco");
@@ -219,7 +219,7 @@ void unfold(TString str = "/data/Work/jets/JetMass/DetectorCorrections/LHC13b4_p
 	TH2D *hPriorFolded = (TH2D*)resp->ApplyToTruth(hPrior);
 	hPriorFolded->SetName("hPriorFolded");
 	
-	TCanvas *c2 = new TCanvas(Form("cRespSummary%s",cvsuff.Data()),"Response and Result summary",800,750);
+	TCanvas *c2 = new TCanvas(TString::Format("cRespSummary%s",cvsuff.Data()),"Response and Result summary",800,750);
 	c2->Divide(2,2);
 	TLegend *legSummary = new TLegend(0.1, 0.55, 0.3, 0.8);
 	legSummary->SetFillStyle(0);
@@ -319,15 +319,15 @@ void unfold(TString str = "/data/Work/jets/JetMass/DetectorCorrections/LHC13b4_p
 	for(Int_t i = 0; i<nPtBins; i++) {
 		Int_t min = hTrue->GetXaxis()->FindBin(ptmin[i]+0.00001);
 		Int_t max = hTrue->GetXaxis()->FindBin(ptmax[i]-0.00001);
-		hMTru[i] = dynamic_cast<TH1D*>(hTrue->ProjectionY(Form("hMTru_%d",i),min,max));
+		hMTru[i] = dynamic_cast<TH1D*>(hTrue->ProjectionY(TString::Format("hMTru_%d",i),min,max));
 		
 		min = hMeas->GetXaxis()->FindBin(ptmin[i]+0.00001);
 		max = hMeas->GetXaxis()->FindBin(ptmax[i]-0.00001);
-		hMSme[i] = dynamic_cast<TH1D*>(hMeas->ProjectionY(Form("hMSme_%d",i),min,max));
+		hMSme[i] = dynamic_cast<TH1D*>(hMeas->ProjectionY(TString::Format("hMSme_%d",i),min,max));
 		
 		min = hPrior->GetXaxis()->FindBin(ptmin[i]+0.00001);
 		max = hPrior->GetXaxis()->FindBin(ptmax[i]-0.00001);
-		hMPri[i] = dynamic_cast<TH1D*>(hPrior->ProjectionY(Form("hMPri_%d",i),min,max));
+		hMPri[i] = dynamic_cast<TH1D*>(hPrior->ProjectionY(TString::Format("hMPri_%d",i),min,max));
 		
 		//make up
 		hMTru[i]->SetLineColor(hTP[0]->GetLineColor());
@@ -340,13 +340,13 @@ void unfold(TString str = "/data/Work/jets/JetMass/DetectorCorrections/LHC13b4_p
 		hMPri[i]->SetMarkerStyle(3);
 		hMPri[i]->SetLineWidth(2);
 		
-		hMeasUnc[i] = (TH1D*)hMSme[i]->Clone(Form("hMeasUnc_%d", i));
+		hMeasUnc[i] = (TH1D*)hMSme[i]->Clone(TString::Format("hMeasUnc_%d", i));
 		hMeasUnc[i]->Reset();
 		hMeasUnc[i]->SetMarkerStyle(28);
 		hMeasUnc[i]->SetMarkerColor(kBlue+2);
 		hMeasUnc[i]->SetLineColor(kBlue+2);
 		
-		hMeasRelUnc[i] = (TH1D*)hMSme[i]->Clone(Form("hMeasRelUnc_%d", i));
+		hMeasRelUnc[i] = (TH1D*)hMSme[i]->Clone(TString::Format("hMeasRelUnc_%d", i));
 		hMeasRelUnc[i]->Reset();
 		hMeasRelUnc[i]->SetMarkerStyle(34);
 		hMeasRelUnc[i]->SetMarkerColor(kBlue+2);
@@ -363,14 +363,14 @@ void unfold(TString str = "/data/Work/jets/JetMass/DetectorCorrections/LHC13b4_p
 			
 			min = hReco[iter-iterMin]->GetXaxis()->FindBin(ptmin[i]+0.00001);
 			max = hReco[iter-iterMin]->GetXaxis()->FindBin(ptmax[i]-0.00001);
-			hMUnf[i][iter-iterMin] = dynamic_cast<TH1D*>(hReco[iter-iterMin]->ProjectionY(Form("hMUnf_%d_Iter%d",i,iter),min,max));
+			hMUnf[i][iter-iterMin] = dynamic_cast<TH1D*>(hReco[iter-iterMin]->ProjectionY(TString::Format("hMUnf_%d_Iter%d",i,iter),min,max));
 			Printf("Marker size %f", hMUnf[i][iter-iterMin]->GetMarkerSize());
 			
-			hMUncUnf[i][iter-iterMin] = (TH1D*)hMUnf[i][iter-iterMin]->Clone(Form("hMUncUnf_%d_Iter%d",i,iter));
+			hMUncUnf[i][iter-iterMin] = (TH1D*)hMUnf[i][iter-iterMin]->Clone(TString::Format("hMUncUnf_%d_Iter%d",i,iter));
 			hMUncUnf[i][iter-iterMin]->SetMarkerStyle(28);
 			hMUncUnf[i][iter-iterMin]->SetMarkerColor(kOrange+7);
 			hMUncUnf[i][iter-iterMin]->Reset();
-			hMRelUncUnf[i][iter-iterMin] = (TH1D*)hMUnf[i][iter-iterMin]->Clone(Form("hMRelUncUnf_%d_Iter%d",i,iter));
+			hMRelUncUnf[i][iter-iterMin] = (TH1D*)hMUnf[i][iter-iterMin]->Clone(TString::Format("hMRelUncUnf_%d_Iter%d",i,iter));
 			hMRelUncUnf[i][iter-iterMin]->SetMarkerStyle(34);
 			hMRelUncUnf[i][iter-iterMin]->SetMarkerColor(kOrange+7);
 			hMRelUncUnf[i][iter-iterMin]->Reset();
@@ -383,7 +383,7 @@ void unfold(TString str = "/data/Work/jets/JetMass/DetectorCorrections/LHC13b4_p
 			
 			min = hFolded[iter-iterMin]->GetXaxis()->FindBin(ptmin[i]+0.00001);
 			max = hFolded[iter-iterMin]->GetXaxis()->FindBin(ptmax[i]-0.00001);
-			hMFol[i][iter-iterMin] = dynamic_cast<TH1D*>(hFolded[iter-iterMin]->ProjectionY(Form("hMFol_%d_Iter%d", i, iter),min,max));
+			hMFol[i][iter-iterMin] = dynamic_cast<TH1D*>(hFolded[iter-iterMin]->ProjectionY(TString::Format("hMFol_%d_Iter%d", i, iter),min,max));
 			
 			
 			//make up
@@ -398,7 +398,7 @@ void unfold(TString str = "/data/Work/jets/JetMass/DetectorCorrections/LHC13b4_p
 			hMFol[i][iter-iterMin]->SetLineWidth(hFoldedP[0]->GetLineWidth());
 			
 			if(i == 0) {
-				legIter->AddEntry(hMUnf[i][iter-iterMin], Form("%d", iter), "PL");
+				legIter->AddEntry(hMUnf[i][iter-iterMin], TString::Format("%d", iter), "PL");
 			}
 			
 			
@@ -410,7 +410,7 @@ void unfold(TString str = "/data/Work/jets/JetMass/DetectorCorrections/LHC13b4_p
 		
 	}
 	
-	TFile *fout = new TFile(Form("UnfoldedDistributionsPrior%d%s.root",varyPrior, suff.Data()), "RECREATE");
+	TFile *fout = new TFile(TString::Format("UnfoldedDistributionsPrior%d%s.root",varyPrior, suff.Data()), "RECREATE");
 	hPrior->Write("fh2Prior");
 	hTrue->Write("fh2True");
 	hMeas->Write("fh2Smear");
@@ -422,11 +422,11 @@ void unfold(TString str = "/data/Work/jets/JetMass/DetectorCorrections/LHC13b4_p
 	for(Int_t iter = iterMin; iter<iterMax; iter++) {
 		hReco[iter-iterMin]->Write();
 		hFolded[iter-iterMin]->Write();
-		covmat[iter-iterMin].Write(Form("covmat%d",iter));
-		unfold[iter-iterMin].Write(Form("unfold%d",iter));
+		covmat[iter-iterMin].Write(TString::Format("covmat%d",iter));
+		unfold[iter-iterMin].Write(TString::Format("unfold%d",iter));
 		
 		// adding this, is it correct?
-		hPtUnf[iter-iterMin] = dynamic_cast<TH1D*>(hReco[iter-iterMin]->ProjectionX(Form("hPtUnf_Iter%d",iter)));
+		hPtUnf[iter-iterMin] = dynamic_cast<TH1D*>(hReco[iter-iterMin]->ProjectionX(TString::Format("hPtUnf_Iter%d",iter)));
 		//Double_t Njets = hPtUnf[i][iter-iterMin]->Integral();
 		//Double_t bWdt = hMUnf[i][iter-iterMin]->GetBinWidth(1);
 		
@@ -453,29 +453,29 @@ void unfold(TString str = "/data/Work/jets/JetMass/DetectorCorrections/LHC13b4_p
 	
 	// break;
 	
-	TCanvas *c3 = new TCanvas(Form("c3%s",cvsuff.Data()),"c3",800,750);
+	TCanvas *c3 = new TCanvas(TString::Format("c3%s",cvsuff.Data()),"c3",800,750);
 	c3->Divide(3,2);
 	TLegend *leg3 = new TLegend(0.2, 0.4, 0.8, 0.8);
-	TCanvas *cIter = new TCanvas(Form("cIter%s",cvsuff.Data()), "Iterations", 800, 750);
+	TCanvas *cIter = new TCanvas(TString::Format("cIter%s",cvsuff.Data()), "Iterations", 800, 750);
 	cIter->Divide(3, 2);
-	TCanvas *cItertoTrue = new TCanvas(Form("cItertoTrue%s",cvsuff.Data()), "Iterations Ratio to True", 800, 750);
+	TCanvas *cItertoTrue = new TCanvas(TString::Format("cItertoTrue%s",cvsuff.Data()), "Iterations Ratio to True", 800, 750);
 	cItertoTrue->Divide(3, 2);
-	TCanvas *cIterFoltoMeas = new TCanvas(Form("cIterFoltoMeas%s",cvsuff.Data()), "Iterations Ratio Folded to Measured", 800, 750);
+	TCanvas *cIterFoltoMeas = new TCanvas(TString::Format("cIterFoltoMeas%s",cvsuff.Data()), "Iterations Ratio Folded to Measured", 800, 750);
 	cIterFoltoMeas->Divide(3, 2);
 	TLegend *legUnc = new TLegend(0.2, 0.4, 0.8, 0.8);
 	TLegend *legRUnc = new TLegend(0.2, 0.4, 0.8, 0.8);
 	
-	TCanvas *cUnc = new TCanvas(Form("cUnc%s",cvsuff.Data()), "Uncertainties", 800, 750);
+	TCanvas *cUnc = new TCanvas(TString::Format("cUnc%s",cvsuff.Data()), "Uncertainties", 800, 750);
 	cUnc->Divide(3, 2);
 	
-	TCanvas *cRelUnc = new TCanvas(Form("cRelUnc%s",cvsuff.Data()), "Relative Uncertainties", 800, 750);
+	TCanvas *cRelUnc = new TCanvas(TString::Format("cRelUnc%s",cvsuff.Data()), "Relative Uncertainties", 800, 750);
 	cRelUnc->Divide(3, 2);
 	
 	for(Int_t i = 0; i<nPtBins; i++) {
 		TPaveText *pvpT = new TPaveText(0.2, 0.8, 0.8, 0.9, "NDC");
 		pvpT->SetBorderSize(0);
 		pvpT->SetFillStyle(0);
-		pvpT->AddText(Form("%.0f < #it{p}_{T} < %.0f GeV/#it{c}", ptmin[i], ptmax[i]));
+		pvpT->AddText(TString::Format("%.0f < #it{p}_{T} < %.0f GeV/#it{c}", ptmin[i], ptmax[i]));
 		
 		c3->cd(i+1);
 		gPad->SetLogy();
@@ -526,8 +526,8 @@ void unfold(TString str = "/data/Work/jets/JetMass/DetectorCorrections/LHC13b4_p
 				legIter->Draw();
 				
 				
-				hMUnfRatiotoTru[i][j-iterMin] = (TH1D*)hMUnf[i][j-iterMin]->Clone(Form("hMUnf_It%dRatiotoTru_Pt%d", j, i));
-				hMUnfRatiotoTru[i][j-iterMin]->SetTitle(Form("Unfolded/True; #it{M} (GeV); Unfolded_{Iter}/True"));
+				hMUnfRatiotoTru[i][j-iterMin] = (TH1D*)hMUnf[i][j-iterMin]->Clone(TString::Format("hMUnf_It%dRatiotoTru_Pt%d", j, i));
+				hMUnfRatiotoTru[i][j-iterMin]->SetTitle(TString::Format("Unfolded/True; #it{M} (GeV); Unfolded_{Iter}/True"));
 				hMUnfRatiotoTru[i][j-iterMin] ->Divide(hMTru[i]);
 				
 				cItertoTrue->cd(i+1);
@@ -539,8 +539,8 @@ void unfold(TString str = "/data/Work/jets/JetMass/DetectorCorrections/LHC13b4_p
 				legIter->Draw();
 				
 				//hMFol[i][j]->SetLineColor(colors[j]);
-				hMFolRatiotoMeas[i][j-iterMin] = (TH1D*)hMFol[i][j-iterMin]->Clone(Form("hMFol_It%dRatiotoMeas_Pt%d", j, i));
-				hMFolRatiotoMeas[i][j-iterMin]->SetTitle(Form("Folded/Measured; #it{M} (GeV); Folded_{Iter}/Measured"));
+				hMFolRatiotoMeas[i][j-iterMin] = (TH1D*)hMFol[i][j-iterMin]->Clone(TString::Format("hMFol_It%dRatiotoMeas_Pt%d", j, i));
+				hMFolRatiotoMeas[i][j-iterMin]->SetTitle(TString::Format("Folded/Measured; #it{M} (GeV); Folded_{Iter}/Measured"));
 				hMFolRatiotoMeas[i][j-iterMin]->Divide(hMSme[i]);
 				cIterFoltoMeas->cd(i+1);
 				if(firstdraw[2]) {
@@ -644,18 +644,18 @@ Int_t CombineTriggersCorrected(const Int_t ninputs, TString files[], Int_t itera
 			continue;
 		}
 		hUnfol2D[ifi] = 0x0;
-		hUnfol2D[ifi] = (TH2D*)fin->Get(Form("%s%d", basename.Data(), iteration[ifi]));
+		hUnfol2D[ifi] = (TH2D*)fin->Get(TString::Format("%s%d", basename.Data(), iteration[ifi]));
 		if(!hUnfol2D[ifi]){
 			Printf("The 2D histogram %s%d is not there, check!", basename.Data(), iteration[ifi]);
 			fin->ls();
 			return -1;
 		}
-		hUnfol2D[ifi]->SetName(Form("%s_%d", hUnfol2D[ifi]->GetName(), ifi));
+		hUnfol2D[ifi]->SetName(TString::Format("%s_%d", hUnfol2D[ifi]->GetName(), ifi));
 		
 		c2D->cd(1+ifi);
 		hUnfol2D[ifi]->Draw("colz");
 		
-		hPtUnf[ifi] = (TH1D*)fin->Get(Form("%s%s%d", basenamept.Data(), iters.Data(), iteration[ifi]));
+		hPtUnf[ifi] = (TH1D*)fin->Get(TString::Format("%s%s%d", basenamept.Data(), iters.Data(), iteration[ifi]));
 		
 		
 		if(!hPtUnf[ifi]){
@@ -669,11 +669,11 @@ Int_t CombineTriggersCorrected(const Int_t ninputs, TString files[], Int_t itera
 		legpt->AddEntry(hPtUnf[ifi], legs[ifi], "Pl");
 		
 		for(Int_t ipt = 0; ipt < nPtBins; ipt++){
-			hMUnf[ifi][ipt] = (TH1D*)fin->Get(Form("%s%d%s%d", basename1d.Data(), ipt, iters.Data(), iteration[ifi]));
+			hMUnf[ifi][ipt] = (TH1D*)fin->Get(TString::Format("%s%d%s%d", basename1d.Data(), ipt, iters.Data(), iteration[ifi]));
 			hMUnf[ifi][ipt]->SetLineColor(colors[ifi]);
 			hMUnf[ifi][ipt]->SetMarkerColor(colors[ifi]);
 			// decide wether it's better to change name
-			//hMUnf[ifi][ipt]->SetName(Form("%s%s%dPt%d", basename1d.Data(), iters.Data(), iteration[ifi], ipt));
+			//hMUnf[ifi][ipt]->SetName(TString::Format("%s%s%dPt%d", basename1d.Data(), iters.Data(), iteration[ifi], ipt));
 			
 			Int_t binrange[2] = {hPtUnf[ifi]->GetXaxis()->FindBin(ptmin[ipt]), hPtUnf[ifi]->GetXaxis()->FindBin(ptmax[ipt] -0.0001)};
 			
@@ -709,7 +709,7 @@ Int_t CombineTriggersCorrected(const Int_t ninputs, TString files[], Int_t itera
 	TCanvas *cMass = new TCanvas("cMass", "Mass Projections", 800, 800);
 	cMass->Divide(3,2);
 	
-	TFile *fout = new TFile(Form("MassUnfSum%s%s.root", legs[0].Data(), legs[1].Data()), "recreate");
+	TFile *fout = new TFile(TString::Format("MassUnfSum%s%s.root", legs[0].Data(), legs[1].Data()), "recreate");
 	fout->cd();
 	hUnfol2DRB[0]->Write();
 	hUnfol2DRB[1]->Write();
@@ -721,7 +721,7 @@ Int_t CombineTriggersCorrected(const Int_t ninputs, TString files[], Int_t itera
 		return -1;
 	} else Printf("Bin threshold %d", ptbinSwitch);
 	
-	TH1D* hPtProj = hUnfol2DSum->ProjectionX(Form("hUnfPtpj_Itr%d", iteration[0]));
+	TH1D* hPtProj = hUnfol2DSum->ProjectionX(TString::Format("hUnfPtpj_Itr%d", iteration[0]));
 	hPtProj->SetMarkerStyle(20);
 	hPtProj->SetMarkerColor(colors[ninputs]);
 	legpt->AddEntry(hPtProj, "2Dglued", "Pl");
@@ -738,9 +738,9 @@ Int_t CombineTriggersCorrected(const Int_t ninputs, TString files[], Int_t itera
 		TPaveText *pvt = new TPaveText(0.3, 0.8, 0.8, 0.9, "NDC");
 		pvt->SetFillStyle(0);
 		pvt->SetBorderSize(0);
-		pvt->AddText(Form("%.0f < #it{p}_{T} < %.0f GeV/#it{c}", ptmin[ipt], ptmax[ipt]));
+		pvt->AddText(TString::Format("%.0f < #it{p}_{T} < %.0f GeV/#it{c}", ptmin[ipt], ptmax[ipt]));
 		
-		TH1D *hMptbin = hUnfol2DSum->ProjectionY(Form("hUnfMpj_Itr%d_ptb%d", iteration[0], ipt), ptbinrange[0], ptbinrange[1]);
+		TH1D *hMptbin = hUnfol2DSum->ProjectionY(TString::Format("hUnfMpj_Itr%d_ptb%d", iteration[0], ipt), ptbinrange[0], ptbinrange[1]);
 		hUnfol2DSum->SetTitle("Mass projection of the 2D unfolded sum");
 		hMptbin->SetLineWidth(2);
 		hMptbin->SetLineColor(colors[ninputs]);
@@ -840,9 +840,9 @@ void ReturnWiderRangeHistogram(TH2D* h, TH2D* g, TH2D*& hnew, TH2D*& gnew){
 	Int_t nbinsX =  (higherR[0] - lowerR[0])/binWh[0];
 	Int_t nbinsY =  (higherR[1] - lowerR[1])/binWh[1];
 	Printf("Output histograms: Nbins = %d, %d, Ranges (%.2f, %.2f), (%.2f, %.2f)", nbinsX, nbinsY,  lowerR[0], higherR[0],  lowerR[1], higherR[1]);
-	hnew = new TH2D(Form("%s_n", h->GetName()), ";#it{p}_{T} (GeV/#it{c}); #it{M} (GeV)",  nbinsX, lowerR[0], higherR[0],  nbinsY,  lowerR[1], higherR[1]);
+	hnew = new TH2D(TString::Format("%s_n", h->GetName()), ";#it{p}_{T} (GeV/#it{c}); #it{M} (GeV)",  nbinsX, lowerR[0], higherR[0],  nbinsY,  lowerR[1], higherR[1]);
 	
-	gnew = new TH2D(Form("%s_n", g->GetName()), ";#it{p}_{T} (GeV/#it{c}); #it{M} (GeV)", nbinsX, lowerR[0], higherR[0], nbinsY,  lowerR[1], higherR[1]);
+	gnew = new TH2D(TString::Format("%s_n", g->GetName()), ";#it{p}_{T} (GeV/#it{c}); #it{M} (GeV)", nbinsX, lowerR[0], higherR[0], nbinsY,  lowerR[1], higherR[1]);
 	
 	for(Int_t i = 0; i < nbinsX; i++){
 		for(Int_t j = 0; j < nbinsY; j++){

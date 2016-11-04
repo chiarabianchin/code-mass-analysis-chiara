@@ -148,11 +148,11 @@ void DefineRangeUnfolding(TH2D* hMeasured, Int_t bkgType, Int_t triggerType, Dou
 	Printf("Rebin factor x axis (%s) = %d, Rebin factor y axis (%s) = %d",  hMeasured->GetXaxis()->GetTitle(), rebPt, hMeasured->GetYaxis()->GetTitle(), rebMa);
 	
 	Int_t rebinF[2] = {rebPt, rebMa};
-	TH2D *hMeasReb = (TH2D*)hMeasured->Rebin2D(rebPt, rebMa, Form("%sRb", hMeasured->GetName()));
+	TH2D *hMeasReb = (TH2D*)hMeasured->Rebin2D(rebPt, rebMa, TString::Format("%sRb", hMeasured->GetName()));
 	
 	Double_t maxMa = 30, maxPt = hMeasReb->GetXaxis()->GetBinLowEdge(hMeasReb->GetXaxis()->GetNbins());
 	
-	TCanvas *cMassPtNumb = new TCanvas(Form("cMassW%.0fPtW%.0fNumbBkg%sTr%s", binWMa, binWPt, bkgS.Data(), trgS.Data()), "Mass vs Pt content", 500, 500);
+	TCanvas *cMassPtNumb = new TCanvas(TString::Format("cMassW%.0fPtW%.0fNumbBkg%sTr%s", binWMa, binWPt, bkgS.Data(), trgS.Data()), "Mass vs Pt content", 500, 500);
 	cMassPtNumb->cd();
 	hMeasReb->GetYaxis()->SetRangeUser(hMeasReb->GetYaxis()->GetBinLowEdge(1), 30.);
 	hMeasReb->Draw("text");	
@@ -175,7 +175,7 @@ void DefineRangeUnfolding(TH2D* hMeasured, Int_t bkgType, Int_t triggerType, Dou
 	
 	if(triggerType == 2) hMeasuredRbVarW = RebinVariableWidth2D(nbinsXje, binlimsXje, nbinsYje, binlimsYje, hMeasured);
 	
-	TCanvas *cMassRebVarW = new TCanvas(Form("cMassRebVarWNumbBkg%sTr%s", bkgS.Data(), trgS.Data()), Form("Mass vs pT with variable bin width"), 500, 500);
+	TCanvas *cMassRebVarW = new TCanvas(TString::Format("cMassRebVarWNumbBkg%sTr%s", bkgS.Data(), trgS.Data()), TString::Format("Mass vs pT with variable bin width"), 500, 500);
 	cMassRebVarW->cd();
 	hMeasuredRbVarW->Draw("text");
 	Double_t ptminT = 10, mminT = 0, ptmaxT = 140, mmaxT = 40;
@@ -479,7 +479,7 @@ void DefineRangeUnfolding(TH2D* hMeasured, Int_t bkgType, Int_t triggerType, Dou
 	const Int_t nbinsSyUPt = binSyUPtup - binSyUPtdo;
 	Double_t limsSyUPt[nbinsSyUPt+1];
 	
-	TFile *foutMassvsPt = new TFile(Form("MassVsPtVarWBkg%sTr%s.root", bkgS.Data(), trgS.Data()), "recreate");
+	TFile *foutMassvsPt = new TFile(TString::Format("MassVsPtVarWBkg%sTr%s.root", bkgS.Data(), trgS.Data()), "recreate");
 	TParameter<Int_t> nbinsMpar("nbinsM"    , nbinsM);
 	TParameter<Int_t> nbinsPpar("nbinsPt"   , nbinsPt);
 	TParameter<Int_t> nbinsMSyDpar("nbinsMSyD" , nbinsSyDM);
@@ -507,7 +507,7 @@ void DefineRangeUnfolding(TH2D* hMeasured, Int_t bkgType, Int_t triggerType, Dou
 		if(triggerType == 2) limsM[id] = binlimsYje[ibm];
 		Printf("%d, ibm = %d -> lim %f", ibm, id, limsM[id]);
 		
-		TParameter<Double_t> mlimpar(Form("limM%d", id), limsM[id]);
+		TParameter<Double_t> mlimpar(TString::Format("limM%d", id), limsM[id]);
 		foutMassvsPt->cd();
 		mlimpar.Write();
 		
@@ -521,7 +521,7 @@ void DefineRangeUnfolding(TH2D* hMeasured, Int_t bkgType, Int_t triggerType, Dou
 		if(triggerType == 2) limsSyDM[id] = binlimsYje[ibm];
 		Printf("%d, ibm = %d -> lim %f", ibm, id, limsSyDM[id]);
 		
-		TParameter<Double_t> mlimpar(Form("limMSyD%d", id), limsSyDM[id]);
+		TParameter<Double_t> mlimpar(TString::Format("limMSyD%d", id), limsSyDM[id]);
 		foutMassvsPt->cd();
 		mlimpar.Write();
 		
@@ -536,7 +536,7 @@ void DefineRangeUnfolding(TH2D* hMeasured, Int_t bkgType, Int_t triggerType, Dou
 		if(triggerType == 2) limsSyUM[id] = binlimsYje[ibm];
 		Printf("%d, ibm = %d -> lim %f", ibm, id, limsSyUM[id]);
 		
-		TParameter<Double_t> mlimpar(Form("limMSyU%d", id), limsSyUM[id]);
+		TParameter<Double_t> mlimpar(TString::Format("limMSyU%d", id), limsSyUM[id]);
 		foutMassvsPt->cd();
 		mlimpar.Write();
 		
@@ -549,7 +549,7 @@ void DefineRangeUnfolding(TH2D* hMeasured, Int_t bkgType, Int_t triggerType, Dou
 		if(triggerType == 1) limsPt[id] = binlimsXmb[ibp];
 		if(triggerType == 2) limsPt[id] = binlimsXje[ibp];
 		Printf("%d, ibm = %d -> lim %f", ibp, id, limsPt[id]);
-		TParameter<Double_t> ptlimpar(Form("limPt%d", id), limsPt[id]);
+		TParameter<Double_t> ptlimpar(TString::Format("limPt%d", id), limsPt[id]);
 		foutMassvsPt->cd();
 		ptlimpar.Write();
 		
@@ -563,7 +563,7 @@ void DefineRangeUnfolding(TH2D* hMeasured, Int_t bkgType, Int_t triggerType, Dou
 		if(triggerType == 2) limsSyDPt[id] = binlimsXje[ibp];
 		Printf("%d, ibm = %d -> lim %f", ibp, id, limsSyDPt[id]);
 		
-		TParameter<Double_t> ptlimpar(Form("limPtSyD%d", id), limsSyDPt[id]);
+		TParameter<Double_t> ptlimpar(TString::Format("limPtSyD%d", id), limsSyDPt[id]);
 		foutMassvsPt->cd();
 		ptlimpar.Write();
 		
@@ -576,7 +576,7 @@ void DefineRangeUnfolding(TH2D* hMeasured, Int_t bkgType, Int_t triggerType, Dou
 		if(triggerType == 1) limsSyUPt[id] = binlimsXmb[ibp];
 		if(triggerType == 2) limsSyUPt[id] = binlimsXje[ibp];
 		Printf("%d, ibm = %d -> lim %f", ibp, id, limsSyUPt[id]);
-		TParameter<Double_t> ptlimpar(Form("limPtSyU%d", id), limsSyUPt[id]);
+		TParameter<Double_t> ptlimpar(TString::Format("limPtSyU%d", id), limsSyUPt[id]);
 		foutMassvsPt->cd();
 		ptlimpar.Write();
 		
@@ -692,7 +692,7 @@ void CompareProjections(Int_t nh2, TH2D** h2d, const Int_t nbins, Double_t binli
 	if(nbins>3) CalculatePads(nbins, nx, ny, dx, dy, 2);
 	else CalculatePads(nbins, nx, ny, dx, dy);
 	
-	TCanvas *ccomp = new TCanvas(Form("cNbins%dNh%d%s%s", nbins, nh2, namepj, bscale ? "scaled" : ""), "Comparisons", dx, dy);
+	TCanvas *ccomp = new TCanvas(TString::Format("cNbins%dNh%d%s%s", nbins, nh2, namepj, bscale ? "scaled" : ""), "Comparisons", dx, dy);
 	ccomp->Divide(nx, ny);
 	
 	TLegend *leg = new TLegend(0.1, 0.5, 0.3, 0.8);
@@ -707,8 +707,8 @@ void CompareProjections(Int_t nh2, TH2D** h2d, const Int_t nbins, Double_t binli
 			
 			Int_t range[2] = {h2d[ih]->GetXaxis()->FindBin(binlims[ib]), h2d[ih]->GetXaxis()->FindBin(binlims[ib+1] - ex)};
 			
-			TH1D* h1d = h2d[ih]->ProjectionY(Form("h%s%d%s_%.0f_%.0f", namepj, ih, bscale ? "scaled" : "", binlims[ib], binlims[ib+1]), range[0], range[1]);
-			if(bscale) h1d->SetTitle(Form("%s_scaled", h1d->GetTitle()));
+			TH1D* h1d = h2d[ih]->ProjectionY(TString::Format("h%s%d%s_%.0f_%.0f", namepj, ih, bscale ? "scaled" : "", binlims[ib], binlims[ib+1]), range[0], range[1]);
+			if(bscale) h1d->SetTitle(TString::Format("%s_scaled", h1d->GetTitle()));
 			
 			h1d->SetLineColor(colors[ih]);
 			h1d->SetMarkerColor(colors[ih]);
@@ -725,7 +725,7 @@ void CompareProjections(Int_t nh2, TH2D** h2d, const Int_t nbins, Double_t binli
 				TPaveText *pvlims = new TPaveText(0.3, 0.8, 0.8, 0.9, "NDC");
 				pvlims->SetBorderSize(0);
 				pvlims->SetFillStyle(0);
-				pvlims->AddText(Form("%.0f < %s < %.0f", binlims[ib], h2d[ih]->GetXaxis()->GetTitle(), binlims[ib+1]));
+				pvlims->AddText(TString::Format("%.0f < %s < %.0f", binlims[ib], h2d[ih]->GetXaxis()->GetTitle(), binlims[ib+1]));
 				h1d->Draw("sames");
 				pvlims->Draw();
 			}

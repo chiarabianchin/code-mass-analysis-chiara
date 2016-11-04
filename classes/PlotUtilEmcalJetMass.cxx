@@ -87,7 +87,7 @@ Bool_t PlotUtilEmcalJetMass::LoadList() {
   if(fJetType.Contains("Full")) fStrClus = "CaloClustersCorr";
   else fStrClus = "";
   // exemple: JetMass_Jet_AKTChargedR040_PicoTracks_pT0150_E_schemeConstSub_TC
-  TString listName = Form("JetMass%s_Jet%s_AKT%sR%03d_%s_%sE_scheme%s%s",fTaskName.Data(), fJetName.Data(), fStrJetType.Data(), (Int_t)(fRadius*100),fStrTrk.Data(), fStrClus.Data(),fConstTag.Data(), fTag.Data());
+  TString listName = TString::Format("JetMass%s_Jet%s_AKT%sR%03d_%s_%sE_scheme%s%s",fTaskName.Data(), fJetName.Data(), fStrJetType.Data(), (Int_t)(fRadius*100),fStrTrk.Data(), fStrClus.Data(),fConstTag.Data(), fTag.Data());
   Printf("listName: %s",listName.Data());
   TList *lst = dynamic_cast<TList*>(fFileIn->Get(listName.Data()));
   if(!lst) {
@@ -106,7 +106,7 @@ Bool_t PlotUtilEmcalJetMass::LoadRhoLists(TString trkname) {
     return kFALSE;
   }
  Printf("Jet Type = %s", fJetType.Data());
-  TString strTrk = Form("%s_pT0150", trkname.Data());
+  TString strTrk = TString::Format("%s_pT0150", trkname.Data());
   if(fJetType.Contains("MCParticlesSelected")) strTrk = "MCParticlesSelected_pT0000";
   TString strClus = "";
   if(fJetType.Contains("Full")) strClus = "CaloClustersCorr";
@@ -115,8 +115,8 @@ Bool_t PlotUtilEmcalJetMass::LoadRhoLists(TString trkname) {
   TString sparse = "Sparse", ending = "TPC_histos";
   //rho
   TString listName;
-  if(!fListNameType) listName = Form("Rho%s%sR%03d_Jet%s_KT%sR%03d_%s_%sE_scheme_%s%s",sparse.Data() , fTaskName.Data(), (Int_t)(fRadius*100), fJetName.Data(), strJetType.Data(), (Int_t)(fRadius*100),strTrk.Data(), strClus.Data(),ending.Data(), fTag.Data());
-  else listName = Form("Rho%s%s_Jet%s_KT%sR%03d_%s_%sE_scheme_%s%s",sparse.Data() , fTaskName.Data(), fJetName.Data(), strJetType.Data(), (Int_t)(fRadius*100),strTrk.Data(), strClus.Data(),ending.Data(), fTag.Data()); //figure out how to do handle the different names
+  if(!fListNameType) listName = TString::Format("Rho%s%sR%03d_Jet%s_KT%sR%03d_%s_%sE_scheme_%s%s",sparse.Data() , fTaskName.Data(), (Int_t)(fRadius*100), fJetName.Data(), strJetType.Data(), (Int_t)(fRadius*100),strTrk.Data(), strClus.Data(),ending.Data(), fTag.Data());
+  else listName = TString::Format("Rho%s%s_Jet%s_KT%sR%03d_%s_%sE_scheme_%s%s",sparse.Data() , fTaskName.Data(), fJetName.Data(), strJetType.Data(), (Int_t)(fRadius*100),strTrk.Data(), strClus.Data(),ending.Data(), fTag.Data()); //figure out how to do handle the different names
   Printf("listName: %s",listName.Data());
   TList *lst = dynamic_cast<TList*>(fFileIn->Get(listName.Data()));
   if(!lst) {
@@ -127,8 +127,8 @@ Bool_t PlotUtilEmcalJetMass::LoadRhoLists(TString trkname) {
   fRhoListArr.Add(lst);
   
   //rho mass
-  if(!fListNameType) listName = Form("RhoMass%s%sR%03d_Jet%s_KT%sR%03d_%s_%sE_scheme_%s%s", sparse.Data(), fTaskName.Data(), (Int_t)(fRadius*100), fJetName.Data(), strJetType.Data(), (Int_t)(fRadius*100),strTrk.Data(), strClus.Data(),ending.Data(), fTag.Data());
-  else listName = Form("RhoMass%s%s_Jet%s_KT%sR%03d_%s_%sE_scheme_%s%s", sparse.Data(), fTaskName.Data(), fJetName.Data(), strJetType.Data(), (Int_t)(fRadius*100),strTrk.Data(), strClus.Data(),ending.Data(), fTag.Data());
+  if(!fListNameType) listName = TString::Format("RhoMass%s%sR%03d_Jet%s_KT%sR%03d_%s_%sE_scheme_%s%s", sparse.Data(), fTaskName.Data(), (Int_t)(fRadius*100), fJetName.Data(), strJetType.Data(), (Int_t)(fRadius*100),strTrk.Data(), strClus.Data(),ending.Data(), fTag.Data());
+  else listName = TString::Format("RhoMass%s%s_Jet%s_KT%sR%03d_%s_%sE_scheme_%s%s", sparse.Data(), fTaskName.Data(), fJetName.Data(), strJetType.Data(), (Int_t)(fRadius*100),strTrk.Data(), strClus.Data(),ending.Data(), fTag.Data());
   Printf("listName: %s",listName.Data());
   lst = dynamic_cast<TList*>(fFileIn->Get(listName.Data()));
   if(!lst) {
@@ -144,7 +144,7 @@ Bool_t PlotUtilEmcalJetMass::LoadRhoLists(TString trkname) {
 TH3* PlotUtilEmcalJetMass::Scale(TH3* horig){
    // time consuming, but at the moment no better solution found
    
-   TH3* hnew = (TH3D*)horig->Clone(Form("%sbis", horig->GetName()));
+   TH3* hnew = (TH3D*)horig->Clone(TString::Format("%sbis", horig->GetName()));
    Printf("Scale factor %f", fScaleFactor);
    hnew->Scale(1./fScaleFactor);
    Printf("Integral %.3f -> %.3f", horig->Integral(), hnew->Integral());
@@ -177,7 +177,7 @@ TH1D* PlotUtilEmcalJetMass::GetJetMassDistribution(JetSelection jSel, Int_t iLis
     return 0x0;
   }
 
-  TString histName = Form("fh3PtJet1VsMassVsLeadPt%s_%d",strJSel.Data(),fCentBin);
+  TString histName = TString::Format("fh3PtJet1VsMassVsLeadPt%s_%d",strJSel.Data(),fCentBin);
   TH3 *fh3PtVsMassVsLeadPtJet1 = dynamic_cast<TH3*>(lst->FindObject(histName.Data()));
   if(!fh3PtVsMassVsLeadPtJet1) {
     Printf("Couldn't find fh3PtVsMassVsLeadPtJet1 %s. Returning null pointer.",histName.Data());
@@ -192,7 +192,7 @@ TH1D* PlotUtilEmcalJetMass::GetJetMassDistribution(JetSelection jSel, Int_t iLis
   Int_t minx = fh3PtVsMassVsLeadPtJet1bis->GetXaxis()->FindBin(fPtMin+0.00001);
   Int_t maxx = fh3PtVsMassVsLeadPtJet1bis->GetXaxis()->FindBin(fPtMax-0.00001);
   Printf("Range for projection in pT jet %d - %d", minx, maxx);
-  TH1D *hM = dynamic_cast<TH1D*>(fh3PtVsMassVsLeadPtJet1bis->ProjectionY(Form("fh1Mass%s_Lst%d_Cent%d_LeadTrk%.0f", strJSel.Data(),iList,fCentBin,fMinLeadTrkPt),minx,maxx,minz,maxz));
+  TH1D *hM = dynamic_cast<TH1D*>(fh3PtVsMassVsLeadPtJet1bis->ProjectionY(TString::Format("fh1Mass%s_Lst%d_Cent%d_LeadTrk%.0f", strJSel.Data(),iList,fCentBin,fMinLeadTrkPt),minx,maxx,minz,maxz));
   ClearScaledH(fh3PtVsMassVsLeadPtJet1bis);
   return hM;
 }
@@ -215,7 +215,7 @@ TH1D* PlotUtilEmcalJetMass::GetJetPtDistribution(JetSelection jSel, Int_t iList)
     return 0x0;
   }
 
-  TString histName = Form("fh3PtJet1VsMassVsLeadPt%s_%d",strJSel.Data(),fCentBin);
+  TString histName = TString::Format("fh3PtJet1VsMassVsLeadPt%s_%d",strJSel.Data(),fCentBin);
   TH3 *fh3PtVsMassVsLeadPtJet1 = dynamic_cast<TH3*>(lst->FindObject(histName.Data()));
   if(!fh3PtVsMassVsLeadPtJet1) {
     Printf("Couldn't find fh3PtVsMassVsLeadPtJet1 %s. Returning null pointer.",histName.Data());
@@ -225,7 +225,7 @@ TH1D* PlotUtilEmcalJetMass::GetJetPtDistribution(JetSelection jSel, Int_t iList)
   Int_t minz = fh3PtVsMassVsLeadPtJet1->GetZaxis()->FindBin(fMinLeadTrkPt+0.000001);
   Int_t maxz = fh3PtVsMassVsLeadPtJet1->GetZaxis()->FindBin(fMaxLeadTrkPt-0.000001);
   
-  TH1D *hPt = dynamic_cast<TH1D*>(fh3PtVsMassVsLeadPtJet1->ProjectionX(Form("fh1Pt%s_Lst%d_Cent%d_LeadTrk%.0f_%.0f",strJSel.Data(),iList,fCentBin,fMinLeadTrkPt,fMaxLeadTrkPt),1,-1,minz,maxz));
+  TH1D *hPt = dynamic_cast<TH1D*>(fh3PtVsMassVsLeadPtJet1->ProjectionX(TString::Format("fh1Pt%s_Lst%d_Cent%d_LeadTrk%.0f_%.0f",strJSel.Data(),iList,fCentBin,fMinLeadTrkPt,fMaxLeadTrkPt),1,-1,minz,maxz));
   hPt->Sumw2();
   return hPt;
 }
@@ -239,7 +239,7 @@ TH1* PlotUtilEmcalJetMass::GetCentralityHist(Int_t iList) const {
     return 0x0;
   }
 
-  TString histName = Form("fHistCentrality");
+  TString histName = TString::Format("fHistCentrality");
   TH1 *fHistCentrality = dynamic_cast<TH1*>(lst->FindObject(histName.Data()));
   return fHistCentrality;
 }
@@ -253,7 +253,7 @@ Double_t PlotUtilEmcalJetMass::GetNEvents(Int_t iList) const {
   //   return 0x0;
   // }
 
-  // TString histName = Form("fHistCentrality");
+  // TString histName = TString::Format("fHistCentrality");
   // TH1 *fHistCentrality = dynamic_cast<TH1*>(lst->FindObject(histName.Data()));
   TH1 *fHistCentrality = GetCentralityHist(iList);
   Double_t centMin[4] = {0.,10.,30.,50.};
@@ -273,7 +273,7 @@ Double_t PlotUtilEmcalJetMass::GetNEventsAll(Int_t iList) const {
     return 0x0;
   }
 
-  TString histName = Form("fHistCentrality");
+  TString histName = TString::Format("fHistCentrality");
   TH1 *fHistCentrality = dynamic_cast<TH1*>(lst->FindObject(histName.Data()));
   Double_t nEvt = fHistCentrality->Integral();
   return nEvt;
@@ -297,7 +297,7 @@ TH2D* PlotUtilEmcalJetMass::GetJetMassVsPt(JetSelection jSel, Int_t iList) {
     return 0x0;
   }
 
-  TString histName = Form("fh3PtJet1VsMassVsLeadPt%s_%d",strJSel.Data(),fCentBin);
+  TString histName = TString::Format("fh3PtJet1VsMassVsLeadPt%s_%d",strJSel.Data(),fCentBin);
   TH3 *fh3PtVsMassVsLeadPtJet1 = dynamic_cast<TH3*>(lst->FindObject(histName.Data()));
   if(!fh3PtVsMassVsLeadPtJet1) {
     Printf("Couldn't find fh3PtVsMassVsLeadPtJet1 %s. Returning null pointer.",histName.Data());
@@ -308,7 +308,7 @@ TH2D* PlotUtilEmcalJetMass::GetJetMassVsPt(JetSelection jSel, Int_t iList) {
   Int_t maxz = fh3PtVsMassVsLeadPtJet1->GetZaxis()->FindBin(fMaxLeadTrkPt-0.000001);
   fh3PtVsMassVsLeadPtJet1->GetZaxis()->SetRange(minz,maxz);
   TH2D *hMPt = dynamic_cast<TH2D*>(fh3PtVsMassVsLeadPtJet1->Project3D("yx"));
-  hMPt->SetName(Form("fh2MPt%s_Lst%d_Cent%d_LeadTrk%.0f_%.0f",strJSel.Data(),iList,fCentBin,fMinLeadTrkPt,fMaxLeadTrkPt));
+  hMPt->SetName(TString::Format("fh2MPt%s_Lst%d_Cent%d_LeadTrk%.0f_%.0f",strJSel.Data(),iList,fCentBin,fMinLeadTrkPt,fMaxLeadTrkPt));
   return hMPt;
 }
 
@@ -363,7 +363,7 @@ TH1D* PlotUtilEmcalJetMass::GetMassInCentrality(Double_t c1, Double_t c2, JetSel
       Printf("Couldn't find list %d",iList);
       return 0x0;
    }
-   TString histName = Form("fh3PtJet1VsMassVsCent%s",strJSel.Data());
+   TString histName = TString::Format("fh3PtJet1VsMassVsCent%s",strJSel.Data());
    TH3 *fh3PtVsMassVsCent = dynamic_cast<TH3*>(lst->FindObject(histName.Data()));
    if(!fh3PtVsMassVsCent) {
     Printf("Couldn't find fh3PtVsMassVsCent %s. Returning null pointer.",histName.Data());
@@ -374,7 +374,7 @@ TH1D* PlotUtilEmcalJetMass::GetMassInCentrality(Double_t c1, Double_t c2, JetSel
    Int_t minz = fh3PtVsMassVsCent->GetZaxis()->FindBin(c1);
    Int_t maxz = fh3PtVsMassVsCent->GetZaxis()->FindBin(c2)-1;
    
-   TH1D *hM = dynamic_cast<TH1D*>(fh3PtVsMassVsCent->ProjectionY(Form("fh1Mass%sLst%d_Cent%.0f-%.0f_pTj%.0f-%.0f", strJSel.Data(),iList,c1, c2,fPtMin,fPtMax),minx,maxx,minz,maxz));
+   TH1D *hM = dynamic_cast<TH1D*>(fh3PtVsMassVsCent->ProjectionY(TString::Format("fh1Mass%sLst%d_Cent%.0f-%.0f_pTj%.0f-%.0f", strJSel.Data(),iList,c1, c2,fPtMin,fPtMax),minx,maxx,minz,maxz));
    return hM;
 
 }
@@ -411,12 +411,12 @@ TH2D* PlotUtilEmcalJetMass::GetRho(Int_t sel){
       }
       if(sel == 3){
       	 hRho = dynamic_cast<TH2D*>(fHistRhovsNtrackvsV0Mult->Project3D("zx"));
-      	 hRho->SetName(Form("hRho_V0M"));
+      	 hRho->SetName(TString::Format("hRho_V0M"));
       	 
       }
       if(sel == 2){
       	 hRho = dynamic_cast<TH2D*>(fHistRhovsNtrackvsV0Mult->Project3D("yx"));
-      	 hRho->SetName(Form("hRho_NTrack"));
+      	 hRho->SetName(TString::Format("hRho_NTrack"));
       	 
       }
    }
@@ -488,7 +488,7 @@ TH1D* PlotUtilEmcalJetMass::GetRhoProjection(Double_t c1, Double_t c2, Int_t sel
      if(sel == 0) {
      	minx = 0; maxx=-1;
      }
-     hRho = dynamic_cast<TH1D*>(fHistRhovsCent->ProjectionY(Form("hRho_Cent%.0f-%.0f", c1, c2),minx,maxx));
+     hRho = dynamic_cast<TH1D*>(fHistRhovsCent->ProjectionY(TString::Format("hRho_Cent%.0f-%.0f", c1, c2),minx,maxx));
      
      
   }
@@ -503,14 +503,14 @@ TH1D* PlotUtilEmcalJetMass::GetRhoProjection(Double_t c1, Double_t c2, Int_t sel
      	//c1 and c2 are V0 multiplicity
      	Int_t minz = fHistRhovsNtrackvsV0Mult->GetZaxis()->FindBin(c1);
      	Int_t maxz = fHistRhovsNtrackvsV0Mult->GetZaxis()->FindBin(c2)-1;
-     	hRho = dynamic_cast<TH1D*>(fHistRhovsNtrackvsV0Mult->ProjectionZ(Form("hRho_V0M%.0f-%.0f", c1, c2),minz,maxz));
+     	hRho = dynamic_cast<TH1D*>(fHistRhovsNtrackvsV0Mult->ProjectionZ(TString::Format("hRho_V0M%.0f-%.0f", c1, c2),minz,maxz));
      	
      }
      if(sel == 2){
      	//c1 and c2 are number of tracks
      	Int_t minx = fHistRhovsNtrackvsV0Mult->GetXaxis()->FindBin(c1);
      	Int_t maxx = fHistRhovsNtrackvsV0Mult->GetXaxis()->FindBin(c2)-1;
-     	hRho = dynamic_cast<TH1D*>(fHistRhovsNtrackvsV0Mult->ProjectionY(Form("hRho_NTrack%.0f-%.0f", c1, c2),minx,maxx));
+     	hRho = dynamic_cast<TH1D*>(fHistRhovsNtrackvsV0Mult->ProjectionY(TString::Format("hRho_NTrack%.0f-%.0f", c1, c2),minx,maxx));
      	
      }
   }
@@ -545,7 +545,7 @@ TH1D* PlotUtilEmcalJetMass::GetRhoMProjection(Double_t c1, Double_t c2, Int_t se
      if(sel == 0) {
      	minx = 0; maxx=-1;
      }
-     hRhoMass = dynamic_cast<TH1D*>(fHistRhoMassvsCent->ProjectionY(Form("hRhoMass_Cent%.0f-%.0f", c1, c2),minx,maxx));
+     hRhoMass = dynamic_cast<TH1D*>(fHistRhoMassvsCent->ProjectionY(TString::Format("hRhoMass_Cent%.0f-%.0f", c1, c2),minx,maxx));
      
      
   }
@@ -560,7 +560,7 @@ TH1D* PlotUtilEmcalJetMass::GetRhoMProjection(Double_t c1, Double_t c2, Int_t se
      	//c1 and c2 are number of tracks
      	Int_t minx = fHistRhoMassvsNtrack->GetXaxis()->FindBin(c1);
      	Int_t maxx = fHistRhoMassvsNtrack->GetXaxis()->FindBin(c2)-1;
-     	hRhoMass = dynamic_cast<TH1D*>(fHistRhoMassvsNtrack->ProjectionY(Form("hRhoMass_V0M%.0f-%.0f", c1, c2),minx,maxx));
+     	hRhoMass = dynamic_cast<TH1D*>(fHistRhoMassvsNtrack->ProjectionY(TString::Format("hRhoMass_V0M%.0f-%.0f", c1, c2),minx,maxx));
      	
      }
   }
@@ -586,7 +586,7 @@ TH3* PlotUtilEmcalJetMass::GetEPCorr3D(JetSelection jSel, Int_t iList) {
     return 0x0;
   }
 
-  TString histName = Form("fh3JetPtVsMassVsEPRel%s_%d",strJSel.Data(),fCentBin);
+  TString histName = TString::Format("fh3JetPtVsMassVsEPRel%s_%d",strJSel.Data(),fCentBin);
   TH3 *fh3JetPtVsMassVsEPRel = dynamic_cast<TH3*>(lst->FindObject(histName.Data()));
   if(!fh3JetPtVsMassVsEPRel) {
     Printf("Couldn't find fh3JetPtVsMassVsEPRel %s. Returning null pointer.",histName.Data());
@@ -627,7 +627,7 @@ TProfile* PlotUtilEmcalJetMass::GetJetMassVsEPProf(JetSelection jSel, Int_t iLis
   TH2D *h2 = GetJetMassVsEP(jSel,iList);
   if(!h2) return 0x0;
 
-  TProfile *p = dynamic_cast<TProfile*>(h2->ProfileX(Form("hpM%d",iList),1,-1));//,"s"));
+  TProfile *p = dynamic_cast<TProfile*>(h2->ProfileX(TString::Format("hpM%d",iList),1,-1));//,"s"));
   return p;
 }
 
@@ -637,7 +637,7 @@ TProfile* PlotUtilEmcalJetMass::GetJetPtVsEPProf(JetSelection jSel, Int_t iList)
   TH2D *h2 = GetJetPtVsEP(jSel,iList);
   if(!h2) return 0x0;
 
-  TProfile *p = dynamic_cast<TProfile*>(h2->ProfileX(Form("hpPt%d",iList),1,-1));//,"s"));
+  TProfile *p = dynamic_cast<TProfile*>(h2->ProfileX(TString::Format("hpPt%d",iList),1,-1));//,"s"));
   return p;
 }
 
@@ -649,7 +649,7 @@ TH1D* PlotUtilEmcalJetMass::GetJetMassDetFromTHnSparse(JetSelection jSel, Int_t 
     return 0x0;
   }
 
-  TString histName = Form("fhnMassResponse");
+  TString histName = TString::Format("fhnMassResponse");
 
 
   THnSparse* hns = (THnSparse*)lst->FindObject(histName);
@@ -669,7 +669,7 @@ TH1D* PlotUtilEmcalJetMass::GetJetpTDetFromTHnSparse(JetSelection jSel, Int_t iL
     return 0x0;
   }
 
-  TString histName = Form("fhnMassResponse");
+  TString histName = TString::Format("fhnMassResponse");
 
 
   THnSparse* hns = (THnSparse*)lst->FindObject(histName);
@@ -689,7 +689,7 @@ TH1D* PlotUtilEmcalJetMass::GetJetMassPartFromTHnSparse(JetSelection jSel, Int_t
     return 0x0;
   }
 
-  TString histName = Form("fhnMassResponse");
+  TString histName = TString::Format("fhnMassResponse");
 
 
   THnSparseD* hns = (THnSparseD*)lst->FindObject(histName);
@@ -702,7 +702,7 @@ TH1D* PlotUtilEmcalJetMass::GetJetMassPartFromTHnSparse(JetSelection jSel, Int_t
   Printf("Select %f (%d) - %f (%d)", fPtMin, minx, fPtMax, maxx);
   hns->GetAxis(2)->SetRange(minx, maxx);
   TH1D* hMassPart = dynamic_cast<TH1D*>(hns->Projection(1));
-  hMassPart->SetName(Form("hMassPart%d",iList));
+  hMassPart->SetName(TString::Format("hMassPart%d",iList));
   Printf("%p %s has %.0f entries",  hMassPart , hMassPart->GetName(), hMassPart->GetEntries());
   TCanvas *c=new TCanvas("c","c");
   c->cd(); hMassPart->Draw();
@@ -717,7 +717,7 @@ TH1D* PlotUtilEmcalJetMass::GetJetpTPartFromTHnSparse(JetSelection jSel, Int_t i
     return 0x0;
   }
 
-  TString histName = Form("fhnMassResponse");
+  TString histName = TString::Format("fhnMassResponse");
 
 
   THnSparse* hns = (THnSparse*)lst->FindObject(histName);

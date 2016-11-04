@@ -102,13 +102,13 @@ pT Systematic up
 	Double_t binlimsYmb[nbinsYmb+1];
 	printf("Lims pt [%d] = {", nbinsXmb);
 	for(Int_t i = 0; i<nbinsXmb+1; i++){
-		binlimsXmb[i] = ((TParameter<Double_t>*)finData->Get(Form("limPt%d", i)))->GetVal();
+		binlimsXmb[i] = ((TParameter<Double_t>*)finData->Get(TString::Format("limPt%d", i)))->GetVal();
 		printf("%f, ", binlimsXmb[i]);
 	}
 	Printf("}");
 	printf("Lims M [%d] = {", nbinsYmb);
 	for(Int_t i = 0; i<nbinsYmb+1; i++){
-		binlimsYmb[i] = ((TParameter<Double_t>*)finData->Get(Form("limM%d", i)))->GetVal();
+		binlimsYmb[i] = ((TParameter<Double_t>*)finData->Get(TString::Format("limM%d", i)))->GetVal();
 		printf("%f, ", binlimsYmb[i]);
 	}
 	Printf("}");
@@ -143,25 +143,25 @@ void CreateRooUnfoldResponseVarWidthFromFile(TString fileData, Double_t massbw, 
 	}
 	Printf("Reading %s%s and %s%s ", namenptbins.Data(), sufname.Data(), namenmabins.Data(), sufname.Data());
 	
-	const Int_t nbinsXmb = ((TParameter<Int_t>*)finData->Get(Form("%s%s", namenptbins.Data(), sufname.Data())))->GetVal();
+	const Int_t nbinsXmb = ((TParameter<Int_t>*)finData->Get(TString::Format("%s%s", namenptbins.Data(), sufname.Data())))->GetVal();
 	Double_t binlimsXmb[nbinsXmb+1];
-	const Int_t nbinsYmb = ((TParameter<Int_t>*)finData->Get(Form("%s%s", namenmabins.Data(), sufname.Data()))) ->GetVal();
+	const Int_t nbinsYmb = ((TParameter<Int_t>*)finData->Get(TString::Format("%s%s", namenmabins.Data(), sufname.Data()))) ->GetVal();
 	Double_t binlimsYmb[nbinsYmb+1];
 	printf("Lims pt [%d] = {", nbinsXmb);
 	
 	Double_t deltaPt = 0, deltaM = 0;
 	
 	if(idx == 4){
-		binlimsXmb[0] = ((TParameter<Double_t>*)finData->Get(Form("%sMin", nameptlims.Data())))->GetVal();
-		deltaPt = (((TParameter<Double_t>*)finData->Get(Form("%sMax", nameptlims.Data())))->GetVal() - binlimsXmb[0])/(Double_t)nbinsXmb;
+		binlimsXmb[0] = ((TParameter<Double_t>*)finData->Get(TString::Format("%sMin", nameptlims.Data())))->GetVal();
+		deltaPt = (((TParameter<Double_t>*)finData->Get(TString::Format("%sMax", nameptlims.Data())))->GetVal() - binlimsXmb[0])/(Double_t)nbinsXmb;
 		
-		binlimsYmb[0] = ((TParameter<Double_t>*)finData->Get(Form("%sMin", namemalims.Data())))->GetVal();
-		deltaM = (((TParameter<Double_t>*)finData->Get(Form("%sMax", namemalims.Data())))->GetVal() - binlimsYmb[0])/(Double_t)nbinsYmb;
+		binlimsYmb[0] = ((TParameter<Double_t>*)finData->Get(TString::Format("%sMin", namemalims.Data())))->GetVal();
+		deltaM = (((TParameter<Double_t>*)finData->Get(TString::Format("%sMax", namemalims.Data())))->GetVal() - binlimsYmb[0])/(Double_t)nbinsYmb;
 		
 	}
 	for(Int_t i = 0; i<nbinsXmb+1; i++){
 		if(idx != 4){
-			binlimsXmb[i] = ((TParameter<Double_t>*)finData->Get(Form("%s%s%d", nameptlims.Data(), sufname.Data(), i)))->GetVal();
+			binlimsXmb[i] = ((TParameter<Double_t>*)finData->Get(TString::Format("%s%s%d", nameptlims.Data(), sufname.Data(), i)))->GetVal();
 		} else{
 			if(i>0) binlimsXmb[i] = binlimsXmb[0]+i*deltaPt;
 		}
@@ -171,7 +171,7 @@ void CreateRooUnfoldResponseVarWidthFromFile(TString fileData, Double_t massbw, 
 	printf("Lims M [%d] = {", nbinsYmb);
 	for(Int_t i = 0; i<nbinsYmb+1; i++){
 		if(idx != 4){
-			binlimsYmb[i] = ((TParameter<Double_t>*)finData->Get(Form("%s%s%d", namemalims.Data(), sufname.Data(), i)))->GetVal();
+			binlimsYmb[i] = ((TParameter<Double_t>*)finData->Get(TString::Format("%s%s%d", namemalims.Data(), sufname.Data(), i)))->GetVal();
 		}else {
 			if(i>0) binlimsYmb[i] = binlimsYmb[0]+i*deltaM;
 		}
@@ -200,25 +200,25 @@ TString namenptbins = "nbinsPt";
 	}
 	Printf("Reading %s%s and %s%s ", namenptbins.Data(), sufname.Data(), namenmabins.Data(), sufname.Data());
 	
-	const Int_t nbinsXmb = ((TParameter<Int_t>*)finData->Get(Form("%s%s", namenptbins.Data(), sufname.Data())))->GetVal();
+	const Int_t nbinsXmb = ((TParameter<Int_t>*)finData->Get(TString::Format("%s%s", namenptbins.Data(), sufname.Data())))->GetVal();
 	Double_t binlimsXmb[nbinsXmb+1];
-	const Int_t nbinsYmb = ((TParameter<Int_t>*)finData->Get(Form("%s%s", namenmabins.Data(), sufname.Data()))) ->GetVal();
+	const Int_t nbinsYmb = ((TParameter<Int_t>*)finData->Get(TString::Format("%s%s", namenmabins.Data(), sufname.Data()))) ->GetVal();
 	Double_t binlimsYmb[nbinsYmb+1];
 	printf("Lims pt [%d] = {", nbinsXmb);
 	
 	Double_t deltaPt = 0, deltaM = 0;
 	
 	if(idx == 4){
-		binlimsXmb[0] = ((TParameter<Double_t>*)finData->Get(Form("%sMin", nameptlims.Data())))->GetVal();
-		deltaPt = (((TParameter<Double_t>*)finData->Get(Form("%sMax", nameptlims.Data())))->GetVal() - binlimsXmb[0])/(Double_t)nbinsXmb;
+		binlimsXmb[0] = ((TParameter<Double_t>*)finData->Get(TString::Format("%sMin", nameptlims.Data())))->GetVal();
+		deltaPt = (((TParameter<Double_t>*)finData->Get(TString::Format("%sMax", nameptlims.Data())))->GetVal() - binlimsXmb[0])/(Double_t)nbinsXmb;
 		
-		binlimsYmb[0] = ((TParameter<Double_t>*)finData->Get(Form("%sMin", namemalims.Data())))->GetVal();
-		deltaM = (((TParameter<Double_t>*)finData->Get(Form("%sMax", namemalims.Data())))->GetVal() - binlimsYmb[0])/(Double_t)nbinsYmb;
+		binlimsYmb[0] = ((TParameter<Double_t>*)finData->Get(TString::Format("%sMin", namemalims.Data())))->GetVal();
+		deltaM = (((TParameter<Double_t>*)finData->Get(TString::Format("%sMax", namemalims.Data())))->GetVal() - binlimsYmb[0])/(Double_t)nbinsYmb;
 		
 	}
 	for(Int_t i = 0; i<nbinsXmb+1; i++){
 		if(idx != 4){
-			binlimsXmb[i] = ((TParameter<Double_t>*)finData->Get(Form("%s%s%d", nameptlims.Data(), sufname.Data(), i)))->GetVal();
+			binlimsXmb[i] = ((TParameter<Double_t>*)finData->Get(TString::Format("%s%s%d", nameptlims.Data(), sufname.Data(), i)))->GetVal();
 		} else{
 			if(i>0) binlimsXmb[i] = binlimsXmb[0]+i*deltaPt;
 		}
@@ -228,7 +228,7 @@ TString namenptbins = "nbinsPt";
 	printf("Lims M [%d] = {", nbinsYmb);
 	for(Int_t i = 0; i<nbinsYmb+1; i++){
 		if(idx != 4){
-			binlimsYmb[i] = ((TParameter<Double_t>*)finData->Get(Form("%s%s%d", namemalims.Data(), sufname.Data(), i)))->GetVal();
+			binlimsYmb[i] = ((TParameter<Double_t>*)finData->Get(TString::Format("%s%s%d", namemalims.Data(), sufname.Data(), i)))->GetVal();
 		}else {
 			if(i>0) binlimsYmb[i] = binlimsYmb[0]+i*deltaM;
 		}
@@ -262,7 +262,7 @@ void CreateRooUnfoldResponseVarWidth(const Int_t nbinsPt, Double_t ptlims[], con
 		}
 		lst->Print();
 		//Get response
-		hn = static_cast<THnSparseF*>(lst->FindObject(Form("%s%s_%d",nameResponse.Data(),"",ic)));
+		hn = static_cast<THnSparseF*>(lst->FindObject(TString::Format("%s%s_%d",nameResponse.Data(),"",ic)));
 		if(!hn) hn = static_cast<THnSparseF*>(lst->FindObject(nameResponse.Data()));
 		if(!hn) {
 			Printf("Could not find fhnMassResponse_%d",ic);
@@ -414,7 +414,7 @@ void CreateRooUnfoldResponseVarWidth(const Int_t nbinsPt, Double_t ptlims[], con
 	else delete cMis;
 	
 	//Write response + 2D histos to file
-	TFile *fout = new TFile(Form("response%s.root",suff.Data()),"RECREATE");
+	TFile *fout = new TFile(TString::Format("response%s.root",suff.Data()),"RECREATE");
 	hn->Write();
 	fResponse->Write("resp");
 	hParRbVarW->Write();
@@ -535,7 +535,7 @@ void CreateRooUnfoldResponse(TString strIn, TString strL, TString tag, Int_t bin
        }
      lst->Print();
      //Get response
-     hn = static_cast<THnSparseF*>(lst->FindObject(Form("%s%s_%d",nameResponse.Data(),"",ic)));
+     hn = static_cast<THnSparseF*>(lst->FindObject(TString::Format("%s%s_%d",nameResponse.Data(),"",ic)));
      if(!hn) hn = static_cast<THnSparseF*>(lst->FindObject(nameResponse.Data()));
      if(!hn) {
      	Printf("Could not find fhnMassResponse_%d",ic);
@@ -673,7 +673,7 @@ void CreateRooUnfoldResponse(TString strIn, TString strL, TString tag, Int_t bin
   delete [] coord;
 
   //Write response + 2D histos to file
-  TFile *fout = new TFile(Form("response%s.root",tag.Data()),"RECREATE");
+  TFile *fout = new TFile(TString::Format("response%s.root",tag.Data()),"RECREATE");
   hn->Write("fhn");
   fhnSparseReduced->Write("fhnReduced");
   fResponse->Write("resp");
@@ -726,7 +726,7 @@ void DefineRangeWithEnoughStatistics(TString strDat = "/data/Work/jets/JetMass/p
 		}
 	}
 	
-	TCanvas *cRanges = new TCanvas(Form("c%sRanges_min%.0f", hname2D.Data(), mincounts) , Form("Usable range (content > %.0f)", mincounts), 600, 600);
+	TCanvas *cRanges = new TCanvas(TString::Format("c%sRanges_min%.0f", hname2D.Data(), mincounts) , TString::Format("Usable range (content > %.0f)", mincounts), 600, 600);
 	cRanges->cd();
 	hInvertedContent->Draw("colz");
 	
@@ -888,7 +888,7 @@ void CompareTreeAndResp(TTree *tree, THnSparse *hresp){
 		cCompare->cd(iax+1);
 		gPad->SetLogy();
 		hpjres[iax]->DrawClone();
-		htree[iax] = (TH1D*)hpjres[iax]->Clone(Form("htreeAx_%d", iax));
+		htree[iax] = (TH1D*)hpjres[iax]->Clone(TString::Format("htreeAx_%d", iax));
 		htree[iax]->Reset();
 		htree[iax]->SetLineColor(kBlack);
 		
@@ -907,7 +907,7 @@ void CompareTreeAndResp(TTree *tree, THnSparse *hresp){
 		htree[iax]->Scale(1./nentries);
 		Printf("Integral branch axis %d= %f",iax, htree[iax]->Integral());
 		htree[iax]->DrawClone("sames");
-		hrati[iax] = (TH1D*)htree[iax]->Clone(Form("htreeOresp_%d", iax));
+		hrati[iax] = (TH1D*)htree[iax]->Clone(TString::Format("htreeOresp_%d", iax));
 		hrati[iax]->Divide(hpjres[iax]);
 		cRatios->cd(iax+1);
 		hrati[iax]->Draw();
@@ -952,25 +952,25 @@ void SmearedResp(TString fileData = "/data/Work/jets/JetMass/pPbJetMassAnalysis/
 	}
 	Printf("Reading %s%s and %s%s ", namenptbins.Data(), sufname.Data(), namenmabins.Data(), sufname.Data());
 	
-	const Int_t nbinsPt = ((TParameter<Int_t>*)finData->Get(Form("%s%s", namenptbins.Data(), sufname.Data())))->GetVal();
+	const Int_t nbinsPt = ((TParameter<Int_t>*)finData->Get(TString::Format("%s%s", namenptbins.Data(), sufname.Data())))->GetVal();
 	Double_t ptlims[nbinsPt+1];
-	const Int_t nbinsM = ((TParameter<Int_t>*)finData->Get(Form("%s%s", namenmabins.Data(), sufname.Data()))) ->GetVal();
+	const Int_t nbinsM = ((TParameter<Int_t>*)finData->Get(TString::Format("%s%s", namenmabins.Data(), sufname.Data()))) ->GetVal();
 	Double_t mlims[nbinsM+1];
 	printf("Lims pt [%d] = {", nbinsPt);
 	
 	Double_t deltaPt = 0, deltaM = 0;
 	
 	if(idx == 4){
-		ptlims[0] = ((TParameter<Double_t>*)finData->Get(Form("%sMin", nameptlims.Data())))->GetVal();
-		deltaPt = (((TParameter<Double_t>*)finData->Get(Form("%sMax", nameptlims.Data())))->GetVal() - ptlims[0])/(Double_t)nbinsPt;
+		ptlims[0] = ((TParameter<Double_t>*)finData->Get(TString::Format("%sMin", nameptlims.Data())))->GetVal();
+		deltaPt = (((TParameter<Double_t>*)finData->Get(TString::Format("%sMax", nameptlims.Data())))->GetVal() - ptlims[0])/(Double_t)nbinsPt;
 		
-		mlims[0] = ((TParameter<Double_t>*)finData->Get(Form("%sMin", namemalims.Data())))->GetVal();
-		deltaM = (((TParameter<Double_t>*)finData->Get(Form("%sMax", namemalims.Data())))->GetVal() - mlims[0])/(Double_t)nbinsM;
+		mlims[0] = ((TParameter<Double_t>*)finData->Get(TString::Format("%sMin", namemalims.Data())))->GetVal();
+		deltaM = (((TParameter<Double_t>*)finData->Get(TString::Format("%sMax", namemalims.Data())))->GetVal() - mlims[0])/(Double_t)nbinsM;
 		
 	}
 	for(Int_t i = 0; i<nbinsPt+1; i++){
 		if(idx != 4){
-			ptlims[i] = ((TParameter<Double_t>*)finData->Get(Form("%s%s%d", nameptlims.Data(), sufname.Data(), i)))->GetVal();
+			ptlims[i] = ((TParameter<Double_t>*)finData->Get(TString::Format("%s%s%d", nameptlims.Data(), sufname.Data(), i)))->GetVal();
 		} else{
 			if(i>0) ptlims[i] = ptlims[0]+i*deltaPt;
 		}
@@ -980,7 +980,7 @@ void SmearedResp(TString fileData = "/data/Work/jets/JetMass/pPbJetMassAnalysis/
 	printf("Lims M [%d] = {", nbinsM);
 	for(Int_t i = 0; i<nbinsM+1; i++){
 		if(idx != 4){
-			mlims[i] = ((TParameter<Double_t>*)finData->Get(Form("%s%s%d", namemalims.Data(), sufname.Data(), i)))->GetVal();
+			mlims[i] = ((TParameter<Double_t>*)finData->Get(TString::Format("%s%s%d", namemalims.Data(), sufname.Data(), i)))->GetVal();
 		}else {
 			if(i>0) mlims[i] = mlims[0]+i*deltaM;
 		}
@@ -1120,7 +1120,7 @@ void SmearedResp(TString fileData = "/data/Work/jets/JetMass/pPbJetMassAnalysis/
 	else delete cMis;
 	
     //Write response + 2D histos to file
-	TFile *fout = new TFile(Form("response%s.root",suff.Data()),"RECREATE");
+	TFile *fout = new TFile(TString::Format("response%s.root",suff.Data()),"RECREATE");
 	hn->Write();
 	responsenew->Write("resp");
 	hParRbVarW->Write();

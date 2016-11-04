@@ -42,7 +42,7 @@ TH1D** CompareResults(const Int_t ninputs, TString files[], TString hnamebase[],
    
    Int_t nx, ny, dx, dy;
    CalculatePads(nptbins, nx, ny, dx, dy);
-   TCanvas *cMass = new TCanvas(Form("cMass"), Form("Mass"), dx, dy);
+   TCanvas *cMass = new TCanvas(TString::Format("cMass"), TString::Format("Mass"), dx, dy);
    cMass->Divide(nx, ny);
    
    TCanvas *cMasR = new TCanvas("cMasR", "Mass Ratios", dx, dy);
@@ -54,7 +54,7 @@ TH1D** CompareResults(const Int_t ninputs, TString files[], TString hnamebase[],
    TH1D **houtputPerPtBin = new TH1D*[nptbins];
    TH1D **hSystFromRatio  = new TH1D*[ninputs];
    Double_t mean[nptbins][ninputs];
-   TH1D *hSystMean = new TH1D(Form("hSysMean%s",name.Data()), "Systematic on the mean", nptbins, ptlims);
+   TH1D *hSystMean = new TH1D(TString::Format("hSysMean%s",name.Data()), "Systematic on the mean", nptbins, ptlims);
    
    for(Int_t ifile = 0; ifile<ninputs; ifile++){
       
@@ -68,8 +68,8 @@ TH1D** CompareResults(const Int_t ninputs, TString files[], TString hnamebase[],
       	 hnamepref = hnamebase[ifile](0, 6);
       	 Printf("Pref %s Suff %s -> %d", hnamepref.Data(), hnamesuff.Data(), isdifferentnamingscheme);
       }
-      cMass->SetName(Form("%s%s%s", cMass->GetName(), legs[ifile].Data(), logscale ? "logy" : ""));
-      cMasR->SetName(Form("%s%s", cMasR->GetName(), legs[ifile].Data()));
+      cMass->SetName(TString::Format("%s%s%s", cMass->GetName(), legs[ifile].Data(), logscale ? "logy" : ""));
+      cMasR->SetName(TString::Format("%s%s", cMasR->GetName(), legs[ifile].Data()));
       //read input file
       TFile *fin = new TFile(files[ifile]);
       if(!fin->IsOpen()) {
@@ -87,14 +87,14 @@ TH1D** CompareResults(const Int_t ninputs, TString files[], TString hnamebase[],
       	 TString hnamethisloop = "", hnamedoublethisloop = "";
       	 if(isdifferentnamingscheme) {
       	    Printf("isdifferentnamingscheme");
-      	    hnamethisloop = Form("%s%d%s", hnamepref.Data(),  ipt + offset[ifile], hnamesuff.Data());
+      	    hnamethisloop = TString::Format("%s%d%s", hnamepref.Data(),  ipt + offset[ifile], hnamesuff.Data());
       	    
       	     // for the comparison of the unfolded new
       	    
       	 }
       	 else {
-      	 	 hnamethisloop = Form("%s%d", hnamebase[ifile].Data() ,  ipt + offset[ifile]);
-      	 	 hnamedoublethisloop = Form("%s%.0f%.0fb", hnamebase[ifile].Data() ,  ptlims[ipt + offset[ifile]],  ptlims[ipt + 1 + offset[ifile]]);
+      	 	 hnamethisloop = TString::Format("%s%d", hnamebase[ifile].Data() ,  ipt + offset[ifile]);
+      	 	 hnamedoublethisloop = TString::Format("%s%.0f%.0fb", hnamebase[ifile].Data() ,  ptlims[ipt + offset[ifile]],  ptlims[ipt + 1 + offset[ifile]]);
       	 }
       	 histogram[ifile][ipt] = (TH1*)fin->Get(hnamethisloop);
       	 if(!histogram[ifile][ipt]) {
@@ -106,7 +106,7 @@ TH1D** CompareResults(const Int_t ninputs, TString files[], TString hnamebase[],
       	 	 	 continue;
       	 	 }
       	 }
-      	 histogram[ifile][ipt]->SetName(Form("%s_%s_id%d", histogram[ifile][ipt]->GetName(), name.Data(), ifile));
+      	 histogram[ifile][ipt]->SetName(TString::Format("%s_%s_id%d", histogram[ifile][ipt]->GetName(), name.Data(), ifile));
       	 histogram[ifile][ipt]->SetMarkerSize(1);
       	 Printf("Read hisrogram %s", histogram[ifile][ipt]->GetName());
       }
@@ -115,7 +115,7 @@ TH1D** CompareResults(const Int_t ninputs, TString files[], TString hnamebase[],
    TFile *fout = 0x0;
    
    if(writeRatios) {
-      fout = new TFile(Form("Ratio%sOver%s.root", legs[0].Data(), legs[1].Data()), "recreate");
+      fout = new TFile(TString::Format("Ratio%sOver%s.root", legs[0].Data(), legs[1].Data()), "recreate");
    }
    Int_t color = 0;
    for(Int_t ipt = 0 ; ipt< nptbins; ipt++){
@@ -169,9 +169,9 @@ TH1D** CompareResults(const Int_t ninputs, TString files[], TString hnamebase[],
       	       firsttime = kFALSE;
       	    }
       	    else h1->Draw("sames");
-      	    hR = (TH1*)h1->Clone(Form("hR_%d_pt%d", ih, ipt));
+      	    hR = (TH1*)h1->Clone(TString::Format("hR_%d_pt%d", ih, ipt));
       	    hR->GetYaxis()->SetRangeUser(-0., 2.);
-      	    hR->GetYaxis()->SetTitle(Form("%s/%s", legs[ih].Data(), legs[base].Data()));
+      	    hR->GetYaxis()->SetTitle(TString::Format("%s/%s", legs[ih].Data(), legs[base].Data()));
       	 }
       	 if(hbase){
       	    if(!noUniform) hbase->Scale(1./hbase->Integral());
@@ -194,12 +194,12 @@ TH1D** CompareResults(const Int_t ninputs, TString files[], TString hnamebase[],
       	 }
       	 
       	 hSystFromRatio[ihindex] = 0x0;
-      	 hSystFromRatio[ihindex] = SystematicFromRatio((TH1D*)hR, Form("hSyst%d%s_Pt%.0f_%.0f",ih, name.Data(), ptlims[ipt], ptlims[ipt+1]));
+      	 hSystFromRatio[ihindex] = SystematicFromRatio((TH1D*)hR, TString::Format("hSyst%d%s_Pt%.0f_%.0f",ih, name.Data(), ptlims[ipt], ptlims[ipt+1]));
       	 //Printf("Index %d, Sys from ratio pointer %p (%s)",ihindex, hSystFromRatio[ihindex], hSystFromRatio[ihindex]->GetName());
       }
       if(ninputs > 2) {
       	  Printf("Systematics as standard deviation of the ratios");
-      	  houtputPerPtBin[ipt] = MaxSpread(hSystFromRatio, ninputs -1, ipt, Form("hSystMx%s_Pt%.0f_%.0f",name.Data(), ptlims[ipt], ptlims[ipt+1]));
+      	  houtputPerPtBin[ipt] = MaxSpread(hSystFromRatio, ninputs -1, ipt, TString::Format("hSystMx%s_Pt%.0f_%.0f",name.Data(), ptlims[ipt], ptlims[ipt+1]));
       
       	  cMasR->cd(ipt+1);
       	  
@@ -258,7 +258,7 @@ TH1D* SystematicFromRatio(TH1D* hRatio, TString systname){
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 TH1D* MaxSpread(TH1D** hsystratio, Int_t nh, Int_t index, TString name){
 	
-	TH1D* hmaxspread = (TH1D*)hsystratio[0]->Clone(Form("%s_Pt%.0f_%.0f", name.Data(), ptlims[index], ptlims[index+1]));
+	TH1D* hmaxspread = (TH1D*)hsystratio[0]->Clone(TString::Format("%s_Pt%.0f_%.0f", name.Data(), ptlims[index], ptlims[index+1]));
 	hmaxspread->SetLineColor(1);
 	hmaxspread->Reset();
    
@@ -320,7 +320,7 @@ TH1D* AddInQuadrature(TH1D** haddq, Int_t nh, Int_t index, TString name){
 		if(!hsyst) {
 			Printf("Using index %d, h %p entries %.0f", ihs, haddq[ihs], haddq[ihs]->GetEntries());
 			TString namesystot = name;
-			if(index > -1) namesystot = Form("%s_Pt%.0f_%.0f", name.Data(), ptlims[index], ptlims[index+1]);
+			if(index > -1) namesystot = TString::Format("%s_Pt%.0f_%.0f", name.Data(), ptlims[index], ptlims[index+1]);
 			hsyst = (TH1D*)haddq[ihs]->Clone(namesystot);
 			hsyst->Reset();
 			break;
@@ -421,7 +421,7 @@ TList* AddSystematicstoMassFromFile(TString inMfilename, TString hbasenamemass, 
      Printf("Mass before adding syst %s, mean value %f", hMStattmp->GetName(), hMStattmp->GetMean());
      UniformTH1FForDivide(hMStattmp, hAbsSysttmp, hMStat[i], hAbsSyst[i]);
      hRelSyst[i] = SetMassValueInSystematic((TH1D*)hAbsSyst[i], (TH1D*)hMStat[i]);
-     hRelStat[i] = SetMassValueInSystematic((TH1D*)hMStat[i]->Clone(Form("hMassCopy%d", i)), (TH1D*)hMStat[i]);
+     hRelStat[i] = SetMassValueInSystematic((TH1D*)hMStat[i]->Clone(TString::Format("hMassCopy%d", i)), (TH1D*)hMStat[i]);
      
      Printf("Mass AFTER adding syst %s, mean value %f", hMStat[i]->GetName(), hMStat[i]->GetMean());
      //number of plots added to the list = 4
@@ -464,13 +464,13 @@ TList* ReadHistogramsInFile(TString infilename, TString basehname, Bool_t usebin
    	   TString name = "";
    	   if(isdifferentnamingscheme) {
    	   	   Printf("isdifferentnamingscheme");
-   	   	   name = Form("%s%d%s", hnamepref.Data(),  i, hnamesuff.Data());
+   	   	   name = TString::Format("%s%d%s", hnamepref.Data(),  i, hnamesuff.Data());
    	   	   
    	   	   // for the comparison of the unfolded new
    	   	   
    	   }
-   	   if(usebinlims) name = Form("%s%.0f_%.0f", basehname.Data(), ptlims[i], ptlims[i+1]);
-   	   else  Form("%s%d", basehname.Data(), i);
+   	   if(usebinlims) name = TString::Format("%s%.0f_%.0f", basehname.Data(), ptlims[i], ptlims[i+1]);
+   	   else  TString::Format("%s%d", basehname.Data(), i);
    	   TH1D *h = (TH1D*)fin->Get(name);
    	   if(!h){
       	 Printf("%s not found", name.Data());
@@ -530,7 +530,7 @@ TH1D* SmoothUncertaintyByAverage(const Int_t nh, TH1D** hinputUnc, const char* n
 	}
 	
 	// uncomment for debugging
-	//TCanvas *c = new TCanvas(Form("c%s", hsmoothsys->GetName()), Form("c%s", hsmoothsys->GetName()));
+	//TCanvas *c = new TCanvas(TString::Format("c%s", hsmoothsys->GetName()), TString::Format("c%s", hsmoothsys->GetName()));
 	//c->cd();
 	//hsmoothsys->Draw();
 	
@@ -550,7 +550,7 @@ TH1D** SmoothUnceraintyByFit(const Int_t nh, TH1D** hinputUnc, Int_t fittype, co
 	Int_t nx, ny, dx, dy;
 	CalculatePads(nh, nx, ny, dx, dy);
 	
-	TCanvas *cSmooth = new TCanvas(Form("cSmooth%s", newname), Form("cSmooth%s", newname), dx, dy);
+	TCanvas *cSmooth = new TCanvas(TString::Format("cSmooth%s", newname), TString::Format("cSmooth%s", newname), dx, dy);
 	
 	cSmooth->Divide(nx, ny);
 	
@@ -560,22 +560,22 @@ TH1D** SmoothUnceraintyByFit(const Int_t nh, TH1D** hinputUnc, Int_t fittype, co
 			Printf("Histo %d not found", ih);
 			continue;
 		}
-		hnewUnc[ih] = (TH1D*)hinputUnc[ih]->Clone(Form("%s%d", newname, ih));
+		hnewUnc[ih] = (TH1D*)hinputUnc[ih]->Clone(TString::Format("%s%d", newname, ih));
 		hnewUnc[ih]->Reset();
-		hSysOnError[ih] = (TH1D*)hinputUnc[ih]->Clone(Form("%sSysOnErr%d", newname, ih));
+		hSysOnError[ih] = (TH1D*)hinputUnc[ih]->Clone(TString::Format("%sSysOnErr%d", newname, ih));
 		hSysOnError[ih]->Reset();
 		
 		for(Int_t ib = 0; ib<hnewUnc[ih]->GetNbinsX(); ib++){
 			hnewUnc[ih]->SetBinContent(ib+1, hinputUnc[ih]->GetBinError(ib+1));
 			
 		}
-		TF1 *fpol1 = new TF1(Form("fpol1%s_id%d", newname, ih), "[0]+[1]*x", xmin, xmax);
+		TF1 *fpol1 = new TF1(TString::Format("fpol1%s_id%d", newname, ih), "[0]+[1]*x", xmin, xmax);
 		fpol1->SetLineWidth(2);
 		fpol1->SetLineStyle(2);
 		fpol1->SetLineColor(kBlue);
 		fpol1->SetParameters(5., 0.1);
 		
-		TF1 *fpol2 = new TF1(Form("fpol2%s_id%d", newname, ih), "[0]+[1]*x + [2]*x*x", xmin, xmax);
+		TF1 *fpol2 = new TF1(TString::Format("fpol2%s_id%d", newname, ih), "[0]+[1]*x + [2]*x*x", xmin, xmax);
 		fpol2->SetLineWidth(2);
 		fpol2->SetLineStyle(3);
 		fpol2->SetLineColor(kMagenta);
@@ -593,7 +593,7 @@ TH1D** SmoothUnceraintyByFit(const Int_t nh, TH1D** hinputUnc, Int_t fittype, co
 		
 		Int_t nbinsx = hnewUnc[ih]->GetNbinsX();
 		//Bool_t exclufromfit[nbinsx];
-		//TH1D *hexclu = new TH1D(Form("hexclu%s%d", newname, ih), Form("hexclu%s%d", newname, ih), nbinsx, xmin, xmax);
+		//TH1D *hexclu = new TH1D(TString::Format("hexclu%s%d", newname, ih), TString::Format("hexclu%s%d", newname, ih), nbinsx, xmin, xmax);
 		
 		for(Int_t ib = 0; ib<nbinsx; ib++){
 			//if(fitres2 == 0){
@@ -642,8 +642,8 @@ TList* GetMeanAndSystFromList(Double_t *rangeup, const Int_t ninputs, TString in
 	
 	Printf("Running GetMeanAndSystFromList %s", namehmeanout.Data());
 	Double_t xmean[nptbins][ninputs];
-	TH1D *hMeanSta = new TH1D(Form("%sSt", namehmeanout.Data()), Form("Mean with statistical %s", namehmeanout.Data()), nptbins, ptlims);
-	TH1D *hMeanSys = new TH1D(Form("%sSy", namehmeanout.Data()), Form("Mean with 	systematic %s", namehmeanout.Data()), nptbins, ptlims);
+	TH1D *hMeanSta = new TH1D(TString::Format("%sSt", namehmeanout.Data()), TString::Format("Mean with statistical %s", namehmeanout.Data()), nptbins, ptlims);
+	TH1D *hMeanSys = new TH1D(TString::Format("%sSy", namehmeanout.Data()), TString::Format("Mean with 	systematic %s", namehmeanout.Data()), nptbins, ptlims);
 	TList* listRes = new TList();
 	listRes->SetOwner(kTRUE);
 	listRes->Add(hMeanSta);
@@ -1001,21 +1001,22 @@ void CompareSysRangeVarBinW(Bool_t logy = kFALSE){
 
 //______________________________________________________________________________
 
-void CompareFixedVariableBinWCentralValueMBEJE(Bool_t logy = kFALSE){
-	const Int_t ninputs = 3;
+void CompareDegudVarBW(Bool_t logy = kFALSE){
+	const Int_t ninputs = 4;
 	TString files[ninputs] = {
-		"/data/Work/jets/JetMass/pPbJetMassAnalysis/ResultspPbJetMass/Train806-807-810-811/UnfoldingNoBkgSub/MBEJE/00resp_pt20_80or70_120_ptT10_150or50_150_m0_12or0_14_mT0_40/MassUnfSumMBEJE.root",
-		"/data/Work/jets/JetMass/pPbJetMassAnalysis/ResultspPbJetMass/Train806-807-810-811/UnfoldingNoBkgSub/MBEJE/08resp_pt20_80or70_120_ptT10_150or50_150_m0_12or0_16_mT0_40/MassUnfSumMBEJE.root",
-		"/data/Work/jets/JetMass/pPbJetMassAnalysis/ResultspPbJetMass/Train806-807-810-811/UnfoldVarBinW/MBEJE/MassUnfSumMBEJE.root"	
-
+		"/data/Work/jets/JetMass/pPbJetMassAnalysis/ResultspPbJetMass/Syst20161004VarBinW/byHand/UnfoldedDistributionsPrior0Def.root",
+		"/data/Work/jets/JetMass/pPbJetMassAnalysis/ResultspPbJetMass/Syst20161004VarBinW/byHand/UnfoldedDistributionsPrior0Sys1.root",
+		"/data/Work/jets/JetMass/pPbJetMassAnalysis/ResultspPbJetMass/Train806-807-810-811/UnfoldingNoBkgSub/MB/00resp_pt20_80or70_120_ptT10_150or50_150_m0_12or0_14_mT0_40/UnfoldedDistributionsPrior0DetFlBkgNoSub.root",
+		"/data/Work/jets/JetMass/pPbJetMassAnalysis/ResultspPbJetMass/Syst20161004VarBinW/byHand/UnfoldedDistributionsPrior0ClosResData.root"
+//UnfoldedDistributionsPrior0VarCodeFixed.root
 	};
 	//these below are the test that match best
 	//"/data/Work/jets/JetMass/pPbJetMassAnalysis/ResultspPbJetMass/Train806-807-810-811/UnfoldVarBinW/EJE/tests/UnfoldedDistributionsPrior010GeVpar.root",
 	//"/data/Work/jets/JetMass/pPbJetMassAnalysis/ResultspPbJetMass/Train806-807-810-811/UnfoldVarBinW/EJE/tests/UnfoldedDistributionsPrior0.root","/data/Work/jets/JetMass/pPbJetMassAnalysis/ResultspPbJetMass/Train806-807-810-811/UnfoldingNoBkgSub/EJE/00resp_pt20_80or70_120_ptT10_150or50_150_m0_12or0_14_mT0_40/UnfoldedDistributionsPrior0DetFlBkgNoSub.root"
 
-	TString hnamebase[ninputs] = {"hMUnf__Iter3", "hMUnf__Iter3", "hMUnf__Iter3"};
-	TString legs[ninputs] = {"MBEJEFixM012_014","MBEJEFixM014_016", "MBEJEVar"};
-	Int_t firstMatchingBin[ninputs] = {0, 0, 0};
+	TString hnamebase[ninputs] = {"hMUnf__Iter3", "hMUnf__Iter3", "hMUnf__Iter3", "hMUnf__Iter3"};
+	TString legs[ninputs] = {"MBDef","MBSys1", "MBFixDef", "MCClosResData"}; //"VarCodeFixed"
+	Int_t firstMatchingBin[ninputs] = {0, 0, 0, 0};
 	Bool_t changeColor = kTRUE;
 	Bool_t writeout = kTRUE;
 	Bool_t nouniform = kFALSE;
