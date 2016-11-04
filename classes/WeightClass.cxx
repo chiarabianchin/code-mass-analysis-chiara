@@ -8,7 +8,7 @@
 #include <TLegend.h>
 #include <TParameter.h>
 
-#include </data/Work/MyCodeJetMass/classes/WeightClass.h>
+#include </data/Work/code-mass-analysis-chiara/classes/WeightClass.h>
 
 
 ClassImp(WeightClass)
@@ -1089,6 +1089,12 @@ void WeightClass::NormalizePerBin(Int_t ipthb){
       rebPPt = TMath::Abs(rebPPt); 
       hNJetsPerPtPBinThisPtHBin->Rebin(rebPPt);
    }
+   
+   //temporary
+   //rebinall[0] = 1;
+   //rebinall[1] = 1;
+   //rebinall[2] = factorPt*rebPPt ;
+   //rebinall[3] = 1;
    THnSparseF* fhResponseWRebin = (THnSparseF*)fhResponseW[ipthb]->Rebin(rebinall); 
    hNJetsPerPtPBinThisPtHBin->Rebin(factorPt);
    

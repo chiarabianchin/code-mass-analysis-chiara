@@ -767,6 +767,7 @@ void WeightedTree(Bool_t donorm = kFALSE, TString pathPythiaFile = "/data/Work/j
    /// For later tags >=20160730 (check) available also the non-bkg-subtracted M, pT 
    ///          - trueFrom4vecEmb = 2
    ///
+   /// 5) can use hname = "fhnResolution" with the same other settings of 3) to get the resolution
    /// ptHardFirst = <number> : start merging the output from pThard = <number> . Counter starts from 1. In must be > than firstBin
    /// firstBin: first pT hard bin available in the output. Counter starts from 0
    /// The histogram "fhnDeltaMass_0" contains dM (axis 0) dpT (axis 1). Axis 2 and 4 contain M and pT at det (or det+fluc) level, Axis 3 and 5 contain M and pT at particle level  
@@ -836,6 +837,10 @@ void WeightedTree(Bool_t donorm = kFALSE, TString pathPythiaFile = "/data/Work/j
    	   // 2, 4 M, pt sub
    	   // 3, 5 M, pt unsub
    }
+    if(hname == "fhnResolution"){
+   	   MpMdptpptd[0] = 2; MpMdptpptd[1] = 0; MpMdptpptd[2] = 3; MpMdptpptd[3] = 1;
+   }
+   
    WeightClass *doweight = new WeightClass("weight", "Weight", npthb);
    
    if(pathDataFile.IsNull()) doweight->Initialise(pathPythiaFile, listnameInp, filename, listnameInp);
