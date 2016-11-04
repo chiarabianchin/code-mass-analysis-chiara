@@ -6,6 +6,8 @@
 #include <TLegend.h>
 //#include <TGaxis.h>
 
+
+// final figures with RatiopPbPbPb, 
 //global
 
 Double_t maxM = 26.;
@@ -27,6 +29,19 @@ TList* GetJEWELQPYTHIA(Int_t mod);
 TH1D* CalculateMean(Double_t **xrange, Int_t nbins, Double_t lims[], TH1D** hdistr, TGraphErrors *&grmean, TH1D *&hrms, const char* namehmean);
 void DrawMeanComparison(Double_t **xrange, const Int_t ninputs, TString inputDistr[], TString h1names[], const Int_t ninputsSy, TString inputSyst[], TString hsysnames[], Int_t offset[], TString leg[], Int_t mrk[], Int_t clr[], Int_t clrsy[], Int_t fillsy[]);
 TH1D* CalculateSysMean(Double_t **xrange, Int_t nbins, Double_t lims[], TH1D** hSysdistr, TGraphErrors *&grSysmean, TH1D *&hSysrms, const char* namehsysmean);
+TH1D* GetSystFromFile(TFile *fin);
+TH1D* GetMeanFromFile(TString filename);
+TH1D* GetMeanFromFile(TFile *fin);
+TH1D* GetMeanSystFromFile(TString filename);
+TH1D* GetMeanAndSystFromFile(TString filename, TH1D*& hSyst);
+
+TH1D* SystEnergyDep(TString filenamepPb);
+TList* TreatSystematicsPbPb(Int_t* reject, TString name);
+
+TH1D* GetpPb(TFile* finpPb, Int_t index);
+void GetpPbSystematics(Int_t* reject, TString name, TFile* finpPb, Int_t index,  TH1D*& hNewSyspPb, TH1D*& hFullSyspPb);
+void RatioWithReducedSyst(Int_t* rejectPbPb, Int_t* rejectpPb, TString name);
+
 
 // the first histogram contains the numerator and will be filled with the ratio and calculated error. The second histogram contains the denominator
 void CalculateSysRatio(TH1D* hRatioPbPbOpPbSys, TH1D* hRDivpPbC);
@@ -49,15 +64,17 @@ TList* GetPbPbResults(){
 	listPbPb->SetOwner();
 	
 	for(Int_t ih = 0; ih<nhM ; ih++){
-		TH1D* hMassSt = (TH1D*)fResPbPbM->Get(Form("%s%d", nameMSt.Data(), ih+1));
-		TH1D* hMassSy = (TH1D*)fResPbPbM->Get(Form("%s%d", nameMSy.Data(),ih+1));
+		TH1D* hMassSt = (TH1D*)fResPbPbM->Get(TString::Format("%s%d", nameMSt.Data(), ih+1));
+		TH1D* hMassSy = (TH1D*)fResPbPbM->Get(TString::Format("%s%d", nameMSy.Data(),ih+1));
 		
 		// set this nicely at some point
 		hMassSt->SetMarkerColor(kBlue+2);
+		hMassSt->SetMarkerSize(2);
 		hMassSt->SetLineColor(kBlue+2);
 		
 		hMassSy->SetFillColor(kBlue-10);
 		hMassSy->SetMarkerStyle(1);
+		hMassSy->SetMarkerSize(2);
 		hMassSy->SetMarkerColor(hMassSy->GetFillColor());
 		hMassSy->SetLineColor(hMassSy->GetFillColor());
 		hMassSy->GetXaxis()->SetRangeUser(0., maxM);
@@ -92,8 +109,8 @@ TList* GetPbPbResultsGraph(){
 	
 	for(Int_t ih = 0; ih<nhM ; ih++){
 		
-		TGraphErrors* gMassSt = (TGraphErrors*)fResPbPbM->Get(Form("%s%d", nameMSt.Data(), ih+offset));
-		TGraphErrors* gMassSy = (TGraphErrors*)fResPbPbM->Get(Form("%s%d", nameMSy.Data(),ih+offset));
+		TGraphErrors* gMassSt = (TGraphErrors*)fResPbPbM->Get(TString::Format("%s%d", nameMSt.Data(), ih+offset));
+		TGraphErrors* gMassSy = (TGraphErrors*)fResPbPbM->Get(TString::Format("%s%d", nameMSy.Data(),ih+offset));
 		
 		Int_t npoints = gMassSt->GetN();
 		if(gMassSy->GetN() != npoints) Printf("Number of points in syst = %d != %d",gMassSy->GetN(), npoints);
@@ -115,17 +132,19 @@ TList* GetPbPbResultsGraph(){
 		}
 		binlimits[npoints] = last;
 		
-		TH1D* hMassSt = new TH1D(Form("hUnfMass_PtBin%d", ih+offset), Form("hUnfMass_PtBin%d", ih+offset), npoints, binlimits);
+		TH1D* hMassSt = new TH1D(TString::Format("hUnfMass_PtBin%d", ih+offset), TString::Format("hUnfMass_PtBin%d", ih+offset), npoints, binlimits);
 		hMassSt->Sumw2();
-		TH1D* hMassSy = new TH1D(Form("hUnfMassSyst_PtBin%d", ih+offset), Form("hUnfMassSyst_PtBin%d", ih+offset), npoints, binlimits);
+		TH1D* hMassSy = new TH1D(TString::Format("hUnfMassSyst_PtBin%d", ih+offset), TString::Format("hUnfMassSyst_PtBin%d", ih+offset), npoints, binlimits);
 		hMassSy->Sumw2();
 		// set this nicely at some point
 		hMassSt->SetMarkerColor(kBlue+2);
 		hMassSt->SetMarkerStyle(20);
+		hMassSt->SetMarkerSize(2);
 		hMassSt->SetLineColor(kBlue+2);
 		
 		hMassSy->SetFillColor(kBlue-10);
 		hMassSy->SetMarkerStyle(1);
+		hMassSy->SetMarkerSize(2);
 		hMassSy->SetMarkerColor(hMassSy->GetFillColor());
 		hMassSy->SetLineColor(hMassSy->GetFillColor());
 		hMassSy->GetXaxis()->SetRangeUser(0., maxM);
@@ -178,7 +197,7 @@ TList* GetpPbResults(Bool_t kinecorr){
 	TString nameMSt = "hUnfEffCorM_Itr3_Pt";
 	if(!kinecorr) nameMSt = "hUnfM_Itr3_Pt";
 	TString nameMSy = "hSystTot_Pt";
-	const Int_t nhM = fin->GetListOfKeys()->GetEntries()/2;
+	const Int_t nhM = nptbins;
 	Printf("Number of bins found: %d", nhM);
 	TList *listpPb = new TList();
 	listpPb->SetOwner();
@@ -193,25 +212,27 @@ TList* GetpPbResults(Bool_t kinecorr){
 		Int_t nbinsM = (Int_t)(maxRangeMassFinal[ih]/2.);
 		Printf("Filling histogram %d with %d bins from 0 to %f", ih, nbinsM, maxRangeMassFinal[ih]);
 		
-		TH1D* hMassSt = new TH1D(Form("%sMax%.0f_%.0f", nameMSt.Data(), ptlims[ih],ptlims[ih+1]), Form("Mass pPb Pt %.0f - %.0f; #it{M} (GeV/c^2)", ptlims[ih],ptlims[ih+1]), nbinsM, 0, maxRangeMassFinal[ih]);
+		TH1D* hMassSt = new TH1D(TString::Format("%sMax%.0f_%.0f", nameMSt.Data(), ptlims[ih],ptlims[ih+1]), TString::Format("Mass pPb Pt %.0f - %.0f; #it{M} (GeV/c^2)", ptlims[ih],ptlims[ih+1]), nbinsM, 0, maxRangeMassFinal[ih]);
 		hMassSt->Sumw2();
 		hMassSt->SetTitle("; #it{M}_{ch jet} (GeV/#it{c}^{2}); #frac{1}{#it{N}_{jets}} #frac{d#it{N}}{d#it{M}_{ch jet}} (#it{c}^{2}/GeV)");
 		
-		TH1D* hMassSy = (TH1D*)hMassSt->Clone(Form("%sMax%.0f_%.0f", nameMSy.Data(), ptlims[ih],ptlims[ih+1]));
+		TH1D* hMassSy = (TH1D*)hMassSt->Clone(TString::Format("%sMax%.0f_%.0f", nameMSy.Data(), ptlims[ih],ptlims[ih+1]));
 		hMassSy->Sumw2();
 		
-		TH1D* hMtmp = (TH1D*)fin->Get(Form("%s%.0f_%.0f", nameMSt.Data(), ptlims[ih],ptlims[ih+1]));
-		
+		TH1D* hMtmp = (TH1D*)fin->Get(TString::Format("%s%.0f_%.0f", nameMSt.Data(), ptlims[ih],ptlims[ih+1]));
+		if(!hMtmp) {
+			Printf("Problem, mass histogram %s%.0f_%.0f not found", nameMSt.Data(), ptlims[ih],ptlims[ih+1]);
+			fin->ls();
+		}
 		TH1D* hSytmp = 0x0;
 		if(kinecorr) hSytmp = (TH1D*)listKineEffSy->At(ih*nhM+1);
-		else hSytmp = (TH1D*)fin->Get(Form("%s%.0f_%.0fb", nameMSy.Data(), ptlims[ih],ptlims[ih+1]));
+		else hSytmp = (TH1D*)fin->Get(TString::Format("%s%.0f_%.0fb", nameMSy.Data(), ptlims[ih],ptlims[ih+1]));
 		Printf("Low edge %f and %f (they have to be the same)", hMtmp->GetBinLowEdge(0), hSytmp->GetBinLowEdge(0));
 		
 		for(Int_t ib = 0; ib < nbinsM; ib++){
 			Int_t bin = hMtmp->FindBin(hMassSt->GetBinCenter(ib+1));
 			//Printf("BIN = %d", bin);
 			if(bin == 0 || bin == -1) {
-				//Printf("WAAARNIIIINGGGGGG");
 				hMassSt->SetBinContent(ib+1, 0);
 				hMassSt->SetBinError(ib+1, 0);
 				hMassSy->SetBinContent(ib+1, 0);
@@ -228,12 +249,14 @@ TList* GetpPbResults(Bool_t kinecorr){
 		hMassSt->SetMarkerStyle(hMtmp->GetMarkerStyle());
 		hMassSt->SetMarkerColor(hMtmp->GetMarkerColor());
 		hMassSt->SetLineColor(hMtmp->GetLineColor());
+		hMassSt->SetMarkerSize(2);
 		//hMassSt->GetYaxis()->SetTitleOffset(1.7);
 		
 		//hMassSt->GetXaxis()->SetRangeUser(0., maxRangeMassFinal[ih]);
 		hMassSy->SetFillStyle(hSytmp->GetFillStyle());
 		hMassSy->SetLineWidth(hSytmp->GetLineWidth());
 		hMassSy->SetLineColor(hSytmp->GetLineColor());
+		hMassSy->SetMarkerSize(2);
 		//hMassSy->GetYaxis()->SetTitleOffset(1.7);
 		//hMassSy->GetXaxis()->SetRangeUser(0., maxRangeMassFinal[ih]);
 		
@@ -263,12 +286,14 @@ TList* GetpPbMarta(){
 	listpPb->SetOwner();
 	
 	for(Int_t ih = 0; ih<nhM ; ih++){
-		TH1D* hMassSt = (TH1D*)fRespPbM->Get(Form("%s%d", nameMSt.Data(), ih+1));
-		TH1D* hMassSy = (TH1D*)fRespPbM->Get(Form("%s%d", nameMSy.Data(),ih+1));
+		TH1D* hMassSt = (TH1D*)fRespPbM->Get(TString::Format("%s%d", nameMSt.Data(), ih+1));
+		TH1D* hMassSy = (TH1D*)fRespPbM->Get(TString::Format("%s%d", nameMSy.Data(),ih+1));
 		
 		// set this nicely at some point
 		hMassSt->SetLineColor(kOrange+1);
 		hMassSt->SetMarkerColor(kOrange+1);
+		hMassSt->SetMarkerSize(2);
+		
 		hMassSy->SetLineColor(kOrange+1);
 		hMassSy->SetFillColor(kOrange+1);
 		hMassSy->SetFillStyle(3001);
@@ -317,6 +342,7 @@ TList* GetPythiapPb(Int_t input){
 	
 	for(Int_t ih = 0; ih<nptbins; ih++){
 		hMassPythia[ih]->SetMarkerStyle(25);
+		hMassPythia[ih]->SetMarkerSize(2);
 		hMassPythia[ih]->SetMarkerColor(kGreen-3);
 		hMassPythia[ih]->SetLineColor(kGreen-3);
 		listPythia->Add(hMassPythia[ih]);
@@ -344,10 +370,11 @@ TList* GetPythiaPbPb(){
 	listPythia->SetOwner();
 	
 	for(Int_t ih = 0; ih<nhM ; ih++){
-		TH1D* hMassSt = (TH1D*)fMPythia276->Get(Form("%s%d", nameMSt.Data(), ih+offset));
+		TH1D* hMassSt = (TH1D*)fMPythia276->Get(TString::Format("%s%d", nameMSt.Data(), ih+offset));
 		
 		// set this nicely at some point
 		hMassSt->SetMarkerStyle(25);
+		hMassSt->SetMarkerSize(2);
 		hMassSt->SetMarkerColor(kBlue-7);
 		hMassSt->SetLineColor(hMassSt->GetMarkerColor());
 		hMassSt->SetTitle("; #it{M}_{ch jet} (GeV/#it{c}^{2}); #frac{1}{#it{N}_{jets}} #frac{d#it{N}}{d#it{M}_{ch jet}} (#it{c}^{2}/GeV)");
@@ -378,13 +405,13 @@ TList* GetPythiapPbMarta(){
 	listPythia->SetOwner();
 	
 	for(Int_t ih = 0; ih<nhM ; ih++){
-		TH1D* hMassSt = (TH1D*)fMPythia502->Get(Form("%s%d", nameMSt.Data(), ih+offset));
+		TH1D* hMassSt = (TH1D*)fMPythia502->Get(TString::Format("%s%d", nameMSt.Data(), ih+offset));
 		
 		// set this nicely at some point
 		hMassSt->SetMarkerStyle(25);
 		hMassSt->SetMarkerColor(kBlack);
 		hMassSt->SetLineColor(kBlack);
-		
+		hMassSt->SetMarkerSize(2);
 		listPythia->Add(hMassSt);
 	}
 	
@@ -413,7 +440,7 @@ TList* GetJEWELpp(){
 TList* GetJEWEL(Int_t system){
 	//system: 0 = pp, 1 = 0-10% Pb-Pb, 2 = 0-10% recoils off
 	
-	TString pathJewel = "/data/Work/jets/JetMass/PbPbJEWEL/alice_jetmass_histograms.root";
+	TString pathJewel = "/data/Work/jets/JetMass/PbPbJEWEL/alice_jetmass_histograms_chargedJetsShift_withoutsys.root";
 	if(system == 2) pathJewel =	"/data/Work/jets/JetMass/PbPbJEWEL/alice_jetmass_norecoils_histograms.root";
 	TFile *fJewel = new TFile(pathJewel);
 	if(!fJewel->IsOpen()){
@@ -422,7 +449,7 @@ TList* GetJEWEL(Int_t system){
 	}
 	Int_t cent = 0;
 	if(system > 0) cent = 1;
-	TString nameMSt = Form("Mass_centbin%d_ptbin", cent);
+	TString nameMSt = TString::Format("Mass_TrackShifted_centbin%d_ptbin", cent);
 	TString nameRat = "Ratio_centbin1_ptbin";
 	const Int_t nhM = 3;
 	Int_t offset = 0;
@@ -431,8 +458,8 @@ TList* GetJEWEL(Int_t system){
 	listJewel->SetOwner();
 	
 	for(Int_t ih = 0; ih<nhM ; ih++){
-		TH1D* hMassSt = (TH1D*)fJewel->Get(Form("%s%d", nameMSt.Data(), ih+offset));
-		TH1D* hMassRa = (TH1D*)fJewel->Get(Form("%s%d", nameRat.Data(), ih+offset));
+		TH1D* hMassSt = (TH1D*)fJewel->Get(TString::Format("%s%d", nameMSt.Data(), ih+offset));
+		TH1D* hMassRa = (TH1D*)fJewel->Get(TString::Format("%s%d", nameRat.Data(), ih+offset));
 		
 		// set this nicely at some point
 		hMassSt->SetMarkerStyle(28);
@@ -447,12 +474,17 @@ TList* GetJEWEL(Int_t system){
 			hMassSt->SetMarkerColor(kRed);
 		}
 		hMassSt->SetLineColor(hMassSt->GetMarkerColor());
-		hMassRa->SetMarkerStyle(hMassSt->GetMarkerStyle());
-		hMassRa->SetMarkerColor(hMassSt->GetMarkerColor());
-		hMassRa->SetLineColor(hMassSt->GetMarkerColor());
-		
 		listJewel->Add(hMassSt);
-		listJewel->Add(hMassRa);
+		hMassSt->SetMarkerSize(2);
+		
+		if(hMassRa) {
+			hMassRa->SetMarkerStyle(hMassSt->GetMarkerStyle());
+			hMassRa->SetMarkerColor(hMassSt->GetMarkerColor());
+			hMassRa->SetLineColor(hMassSt->GetMarkerColor());
+			listJewel->Add(hMassRa);
+		}
+		
+		
 	}
 	
 	return listJewel;
@@ -501,12 +533,12 @@ TList* GetJEWELQPYTHIA(Int_t mod){
 	listModels->SetOwner();
 	
 	for(Int_t ih = 0; ih<nhM ; ih++){
-		TH1D* hMassSt = (TH1D*)fModels->Get(Form("%s%d", nameMSt.Data(), ih+offset));
-		
+		TH1D* hMassSt = (TH1D*)fModels->Get(TString::Format("%s%d", nameMSt.Data(), ih+offset));
+		hMassSt->SetTitle("; #it{M}_{ch jet} (GeV/#it{c}^{2}); #frac{1}{#it{N}_{jets}} #frac{d#it{N}}{d#it{M}_{ch jet}} (#it{c}^{2}/GeV)");
 		hMassSt->SetMarkerStyle(marker);
 		hMassSt->SetMarkerColor(color);
 		hMassSt->SetLineColor(hMassSt->GetMarkerColor());
-		
+		hMassSt->SetMarkerSize(2);
 		listModels->Add(hMassSt);
 	}
 	
@@ -548,40 +580,47 @@ void RatiopPbPbPb(Bool_t stylezero = kFALSE, Bool_t drawRaghav = kFALSE, Bool_t 
 		gStyle->SetOptTitle(0);
 		gStyle->SetTextFont(42);
 		
-		gStyle->SetLabelSize(0.05, "X");
-		gStyle->SetTitleOffset(1.1, "X");
-		gStyle->SetTitleSize(0.048, "X");
+		gStyle->SetLabelSize(0.06, "X");
+		gStyle->SetTitleOffset(1.12, "X");
+		gStyle->SetTitleSize(0.055, "X");
 		
-		gStyle->SetLabelSize(0.05, "Y");
+		gStyle->SetNdivisions(705, "X");
+		
+		gStyle->SetLabelSize(0.06, "Y");
 		gStyle->SetTitleOffset(1.34, "Y");
 		gStyle->SetTitleSize(0.048, "Y");
 		
 		gStyle->SetNdivisions(1004, "Y");
+		
+		
+		
 	}
 	
 	gStyle->SetPadBottomMargin(.13);
 	gStyle->SetPadLeftMargin(.16);
 	gStyle->SetPadRightMargin(.06);
 	
+	TLatex latext;
+	latext.SetTextSize(0.05);
 	// text for the final plots
-	TPaveText *pvgeneral = new TPaveText(0.58, 0.5, 0.83, 0.6, "NDC");
-	pvgeneral->SetFillStyle(0);
-	pvgeneral->SetBorderSize(0);
-	pvgeneral->AddText("Anti-#it{k}_{T}, #it{R} = 0.4");
-	
-	
-	TPaveText *pvSystPbPb = new TPaveText(0.22, 0.7, 0.78, 0.8, "NDC");
-	pvSystPbPb->SetFillStyle(0);
-	pvSystPbPb->SetBorderSize(0);
-	pvSystPbPb->AddText("Pb-Pb 0-10% #sqrt{#it{s}}_{NN} = 2.76 TeV");
-	TPaveText *pvSystpPb = new TPaveText(0.35, 0.6, 0.77, 0.7, "NDC");
-	pvSystpPb->SetFillStyle(0);
-	pvSystpPb->SetBorderSize(0);
-	pvSystpPb->AddText("p-Pb #sqrt{#it{s}}_{NN} = 5.02 TeV");
-	TPaveText *pvSystPyth = new TPaveText(0.35, 0.6, 0.77, 0.7, "NDC");
-	pvSystPyth->SetFillStyle(0);
-	pvSystPyth->SetBorderSize(0);
-	pvSystPyth->AddText("PYTHIA Perugia 2011");
+	//TPaveText *pvgeneral = new TPaveText(0.58, 0.5, 0.83, 0.6, "NDC");
+	//pvgeneral->SetFillStyle(0);
+	//pvgeneral->SetBorderSize(0);
+	//pvgeneral->AddText("Anti-#it{k}_{T}, #it{R} = 0.4, |#eta_{jet}| < 0.5");
+	//
+	//TPaveText *pvSystPbPb = new TPaveText(0.22, 0.7, 0.78, 0.8, "NDC");
+	//pvSystPbPb->SetFillStyle(0);
+	//pvSystPbPb->SetBorderSize(0);
+	//pvSystPbPb->AddText("Pb-Pb 0-10% #sqrt{#it{s}}_{NN} = 2.76 TeV");
+	//
+	//TPaveText *pvSystpPb = new TPaveText(0.35, 0.6, 0.77, 0.7, "NDC");
+	//pvSystpPb->SetFillStyle(0);
+	//pvSystpPb->SetBorderSize(0);
+	//pvSystpPb->AddText("p-Pb #sqrt{#it{s}}_{NN} = 5.02 TeV");
+	//TPaveText *pvSystPyth = new TPaveText(0.35, 0.6, 0.77, 0.7, "NDC");
+	//pvSystPyth->SetFillStyle(0);
+	//pvSystPyth->SetBorderSize(0);
+	//pvSystPyth->AddText("PYTHIA Perugia 2011");
 	
 	//get the PbPb results
 	TList* listPbPb = GetPbPbResultsGraph(); //GetPbPbResults();
@@ -656,7 +695,7 @@ void RatiopPbPbPb(Bool_t stylezero = kFALSE, Bool_t drawRaghav = kFALSE, Bool_t 
 	Int_t nPy502M = listPythia502M->GetEntries();
 	Int_t nPy276  = listPythia276->GetEntries();
 	Int_t nJewpp  = listJewelpp ->GetEntries()/2;
-	Int_t nJewPbPb= listJewelPbPb->GetEntries()/2;
+	Int_t nJewPbPb= listJewelPbPb->GetEntries();
 	Int_t nJewPbPbMRoff = listJewelMRecoilOff->GetEntries();
 	Int_t nqpythia= listqpythia->GetEntries();
 	
@@ -675,68 +714,75 @@ void RatiopPbPbPb(Bool_t stylezero = kFALSE, Bool_t drawRaghav = kFALSE, Bool_t 
 	const Int_t nhM = npPb;
 	
 	Int_t nx, ny, dx, dy;
-	CalculatePads(nhM, nx, ny, dx, dy);
-	TCanvas *cMass = new TCanvas(Form("cMass%s", suff.Data()), "Mass histograms", dx, dy);
+	CalculatePads(nhM, nx, ny, dx, dy, 1, 400);
+	TCanvas *cMass = new TCanvas(TString::Format("cMass%s", suff.Data()), "Mass histograms", dx, dy);
 	cMass->Divide(nx, ny);
-	TLegend *legMass = new TLegend(0.3, 0.55, 0.85, 0.75);
+	TLegend *legMass = new TLegend(0.2, 0.55, 0.9, 0.75);
 	legMass->SetBorderSize(0);
 	legMass->SetFillStyle(0);
 	
-	TCanvas *cRatioPbPbOpPb = new TCanvas(Form("cRatioPbPbOpPb%s", suff.Data()), "Ratio PbPb/pPb", dx, dy);
+	TCanvas *cRatioPbPbOpPb = new TCanvas(TString::Format("cRatioPbPbOpPb%s", suff.Data()), "Ratio PbPb/pPb", dx, dy);
 	cRatioPbPbOpPb->Divide(nx, ny);
-	TLegend *legRatioPbPbOpPb = new TLegend(0.18, 0.55, 0.9, 0.8);
+	TLegend *legRatioPbPbOpPb = new TLegend(0.2, 0.55, 0.9, 0.75);
 	legRatioPbPbOpPb->SetBorderSize(0);
 	legRatioPbPbOpPb->SetFillStyle(0);
 	
-	TCanvas *cMasspPb = new TCanvas(Form("cMasspPb%s", suff.Data()), "Mass pPb compared with Pythia", dx, dy);
+	TCanvas *cMasspPb = new TCanvas(TString::Format("cMasspPb%s", suff.Data()), "Mass pPb compared with Pythia", dx, dy);
 	cMasspPb->Divide(nx, ny);
-	TLegend *legMasspPb = new TLegend(0.4, 0.5, 0.9, 0.8);
+	TLegend *legMasspPb = new TLegend(0.2, 0.5, 0.92, 0.7);
 	legMasspPb->SetBorderSize(0);
 	legMasspPb->SetFillStyle(0);
 	
-	TCanvas *cRelUnc = new TCanvas(Form("cRelUncSys%s", suff.Data()), "Relative systematic uncertainties mass spectra", dx, dy);
+	TCanvas *cRelUnc = new TCanvas(TString::Format("cRelUncSys%s", suff.Data()), "Relative systematic uncertainties mass spectra", dx, dy);
 	cRelUnc->Divide(nx, ny);
 	TLegend *legRelUnc = new TLegend(0.4, 0.5, 0.8, 0.9);
 	legRelUnc->SetBorderSize(0);
 	legRelUnc->SetFillStyle(0);
 	
-	TCanvas *cRatiopPbOPy = new TCanvas(Form("cRatiopPbOPy%s", suff.Data()), "Ratio pPb over Pythia 5.02 TeV", dx, dy);
+	TCanvas *cRatiopPbOPy = new TCanvas(TString::Format("cRatiopPbOPy%s", suff.Data()), "Ratio pPb over Pythia 5.02 TeV", dx, dy);
 	cRatiopPbOPy->Divide(nx, ny);
 	TLegend *legRatiopPbOPy = new TLegend(0.22, 0.55, 0.9, 0.75);
 	legRatiopPbOPy->SetBorderSize(0);
 	legRatiopPbOPy->SetFillStyle(0);
 	
-	TCanvas *cMassPbPb = new TCanvas(Form("cMassPbPb%s", suff.Data()), "Mass PbPb compared with Pythia", dx, dy);
+	TCanvas *cMassPbPb = new TCanvas(TString::Format("cMassPbPb%s", suff.Data()), "Mass PbPb compared with Pythia", dx, dy);
 	cMassPbPb->Divide(nx, ny);
-	TLegend *legMassPbPb = new TLegend(0.15, 0.5, 0.9, 0.8);
-	legMassPbPb->SetBorderSize(0);
-	legMassPbPb->SetFillStyle(0);
+	TLegend *legMassPbPb1 = new TLegend(0.2, 0.55, 0.9, 0.75);
+	legMassPbPb1->SetBorderSize(0);
+	legMassPbPb1->SetFillStyle(0);
+	TLegend *legMassPbPb2 = new TLegend(0.2, 0.53, 0.8, 0.68);
+	legMassPbPb2->SetBorderSize(0);
+	legMassPbPb2->SetFillStyle(0);
 	
-	TCanvas *cMassPbPbOnly = new TCanvas(Form("cMassPbPbOnly%s", suff.Data()), "Mass PbPb", dx, dy);
+	TLegend* legdummy = new TLegend(0.2, 0.6, 0.8, 0.75);
+	legdummy->SetBorderSize(0);
+	legdummy->SetFillStyle(0);
+	
+	TCanvas *cMassPbPbOnly = new TCanvas(TString::Format("cMassPbPbOnly%s", suff.Data()), "Mass PbPb", dx, dy);
 	cMassPbPbOnly->Divide(nx, ny);
 	TLegend *legMassPbPbOnly = new TLegend(0.15, 0.55, 0.9, 0.75);
 	legMassPbPbOnly->SetBorderSize(0);
 	legMassPbPbOnly->SetFillStyle(0);
 	
-	TCanvas *cMassPbPbPy = new TCanvas(Form("cMassPbPbPy%s", suff.Data()), "Mass PbPb and Pythia", dx, dy);
+	TCanvas *cMassPbPbPy = new TCanvas(TString::Format("cMassPbPbPy%s", suff.Data()), "Mass PbPb and Pythia", dx, dy);
 	cMassPbPbPy->Divide(nx, ny);
 	TLegend *legMassPbPbPy = new TLegend(0.15, 0.55, 0.9, 0.75);
 	legMassPbPbPy->SetBorderSize(0);
 	legMassPbPbPy->SetFillStyle(0);
 	
-	TCanvas *cMassPbPbModels = new TCanvas(Form("cMassPbPbModels%s", suff.Data()), "Mass PbPb in models", dx, dy);
+	TCanvas *cMassPbPbModels = new TCanvas(TString::Format("cMassPbPbModels%s", suff.Data()), "Mass PbPb in models", dx, dy);
 	cMassPbPbModels->Divide(nx, ny);
 	TLegend *legMassPbPbModels = new TLegend(0.15, 0.55, 0.9, 0.75);
 	legMassPbPbModels->SetBorderSize(0);
 	legMassPbPbModels->SetFillStyle(0);
 	
-	TCanvas *cRatioPbPbOPy = new TCanvas(Form("cRatioPbPbOPy%s", suff.Data()), "Ratio PbPb over Pythia 2.76 TeV", dx, dy);
+	TCanvas *cRatioPbPbOPy = new TCanvas(TString::Format("cRatioPbPbOPy%s", suff.Data()), "Ratio PbPb over Pythia 2.76 TeV", dx, dy);
 	cRatioPbPbOPy->Divide(nx, ny);
 	TLegend *legRatioPbPbOPy = new TLegend(0.22, 0.63, 0.9, 0.82);
 	legRatioPbPbOPy->SetBorderSize(0);
 	legRatioPbPbOPy->SetFillStyle(0);
 	
-	TCanvas *cRatioDataOPy = new TCanvas(Form("cRatioDataOPy%s", suff.Data()), "Ratio data over Pythia", dx, dy);
+	TCanvas *cRatioDataOPy = new TCanvas(TString::Format("cRatioDataOPy%s", suff.Data()), "Ratio data over Pythia", dx, dy);
 	cRatioDataOPy->Divide(nx, ny);
 	TLegend *legRatioDataOPy = new TLegend(0.22, 0.58, 0.9, 0.78);
 	legRatioDataOPy->SetBorderSize(0);
@@ -744,14 +790,16 @@ void RatiopPbPbPb(Bool_t stylezero = kFALSE, Bool_t drawRaghav = kFALSE, Bool_t 
 	
 	Int_t n = 2;
 	
-	TPaveText **pvpt = new TPaveText*[nhM];
+	//TPaveText **pvpt = new TPaveText*[nhM];
+	
+	TFile *fOutput = new TFile("FinalResults.root", "recreate");
 	
 	for(Int_t ih = 0; ih<nhM ; ih++){
 		maxM = maxRangeMassFinal[ih];
-		pvpt[ih] = new TPaveText(0.33, 0.8, 0.83, 0.9, "NDC");
-		pvpt[ih]->SetFillStyle(0);
-		pvpt[ih]->SetBorderSize(0);
-		pvpt[ih]->AddText(Form("%.0f < #it{p}_{T, ch jet} (GeV/#it{c}) < %.0f", ptlims[ih], ptlims[ih+1]));
+		//pvpt[ih] = new TPaveText(0.33, 0.8, 0.83, 0.9, "NDC");
+		//pvpt[ih]->SetFillStyle(0);
+		//pvpt[ih]->SetBorderSize(0);
+		//pvpt[ih]->AddText(TString::Format("%.0f < #it{p}_{T, ch jet} (GeV/#it{c}) < %.0f", ptlims[ih], ptlims[ih+1]));
 		
 		//mass
 		TH1D* hMpPb     = (TH1D*)listpPb ->At(n*ih);
@@ -761,9 +809,8 @@ void RatiopPbPbPb(Bool_t stylezero = kFALSE, Bool_t drawRaghav = kFALSE, Bool_t 
 		TH1D* hMPy502   = (TH1D*)listPythia502 ->At(ih+offsetPy502 );
 		TH1D* hMPy502M  = (TH1D*)listPythia502M->At(ih+offsetPy502M);
 		TH1D* hMPy276   = (TH1D*)listPythia276 ->At(ih+offsetPy276 );
-		
-		TH1D* hMJewpp   = (TH1D*)listJewelpp  ->At(n*(ih+offsetJewpp));
-		TH1D* hMJewPbPb = (TH1D*)listJewelPbPb->At(n*(ih+offsetJewPbPb));
+		TH1D* hMJewpp   = (TH1D*)listJewelpp  ->At((ih+offsetJewpp));
+		TH1D* hMJewPbPb = (TH1D*)listJewelPbPb->At((ih+offsetJewPbPb));
 		
 		TH1D* hMJewPbPbMRoff= (TH1D*)listJewelMRecoilOff ->At(ih+offsetJewPbPbMRoff);
 		TH1D* hMQPy     = (TH1D*)listqpythia->At(ih+offsetqpythia);
@@ -778,11 +825,12 @@ void RatiopPbPbPb(Bool_t stylezero = kFALSE, Bool_t drawRaghav = kFALSE, Bool_t 
 		TH1D* hSypPbM = (TH1D*)listpPbM->At(n*(ih+offsetpPbM)+1);
 		TH1D* hSyPbPb = (TH1D*)listPbPb->At(n*(ih+offsetPbPb)+1);
 		//ratio Jewel
-		TH1D* hPbPboppJewel = (TH1D*)listJewelPbPb->At(n*(ih+offsetJewPbPb)+1);
+		//TH1D* hPbPboppJewel = (TH1D*)listJewelPbPb->At(n*(ih+offsetJewPbPb)+1);
 		
 		//Draw comparison pPb, PbPb
 		
 		cMass->cd(ih+1);
+		gPad->SetTicks(1,1);
 		Printf("Drawing %s, %s, %s, %s, %s", hSyPbPb->GetName(), hMPbPb->GetName(), hSypPb->GetName(), hSypPbM->GetName(), hMpPbM->GetName());
 		hSyPbPb->GetYaxis()->SetRangeUser(0., 0.25);
 		
@@ -795,13 +843,18 @@ void RatiopPbPbPb(Bool_t stylezero = kFALSE, Bool_t drawRaghav = kFALSE, Bool_t 
 			hSypPbM->Draw("E2sames");
 			hMpPbM ->Draw("sames");
 		}
-		if(ih == 1) pvgeneral->Draw();
-		pvpt[ih]->Draw();
+		if(ih == 1) {
+			latext.DrawLatex(4, 0.18, "Charged jets, Anti-#it{k}_{T}");
+			latext.DrawLatex(4.5, 0.15, "#it{R} = 0.4, |#eta_{jet}| < 0.5");
+			
+		}
+		latext.DrawLatex(4, 0.22, TString::Format("%.0f < #it{p}_{T, ch jet} (GeV/#it{c}) < %.0f", ptlims[ih], ptlims[ih+1]));
+		//pvpt[ih]->Draw();
 		if(ih == nhM-1){
-			legMass->AddEntry(hMPbPb , "Pb-Pb 0-10% #sqrt{#it{s}}_{NN} = 2.76 TeV", "PL");
-			legMass->AddEntry(hSyPbPb, "Systematic Pb-Pb" , "F");
-			legMass->AddEntry(hMpPb ,  "pPb #sqrt{#it{s}}_{NN} = 5.02 TeV", "PL");
-			legMass->AddEntry(hSypPb,  "Systematic p-Pb" , "F");
+			legMass->AddEntry(hSyPbPb , "Pb-Pb 0-10% #sqrt{#it{s}}_{NN} = 2.76 TeV");
+			//legMass->AddEntry(hSyPbPb, "Systematic Pb-Pb" , "F");
+			legMass->AddEntry(hSypPb ,  "pPb #sqrt{#it{s}}_{NN} = 5.02 TeV");
+			//legMass->AddEntry(hSypPb,  "Systematic p-Pb" , "F");
 			if(pPbpaperprop){
 				legMass->AddEntry(hMpPbM , "Mass p-Pb paper prop", "PL");
 				legMass->AddEntry(hSypPbM,  "Sys p-Pb paper prop" , "F");
@@ -810,13 +863,13 @@ void RatiopPbPbPb(Bool_t stylezero = kFALSE, Bool_t drawRaghav = kFALSE, Bool_t 
 		}
 		
 		//relative uncertainties
-		TH1D* hRelSysUncpPb  = (TH1D*)hMpPb->Clone(Form("hRelSysUncMpPb_Pt%.0f_%.0f", ptlims[ih],ptlims[ih+1]));
+		TH1D* hRelSysUncpPb  = (TH1D*)hMpPb->Clone(TString::Format("hRelSysUncMpPb_Pt%.0f_%.0f", ptlims[ih],ptlims[ih+1]));
 		hRelSysUncpPb->SetLineColor(kPink-9);
 		hRelSysUncpPb->SetLineWidth(2);
 		
-		TH1D* hRelSysUncpPbM = (TH1D*)hMpPbM->Clone(Form("hRelSysUncMpPbM_Pt%.0f_%.0f", ptlims[ih],ptlims[ih+1]));
+		TH1D* hRelSysUncpPbM = (TH1D*)hMpPbM->Clone(TString::Format("hRelSysUncMpPbM_Pt%.0f_%.0f", ptlims[ih],ptlims[ih+1]));
 		
-		TH1D* hRelSysUncPbPb = (TH1D*)hMPbPb->Clone(Form("hRelSysUncMPbPb_Pt%.0f_%.0f", ptlims[ih],ptlims[ih+1]));
+		TH1D* hRelSysUncPbPb = (TH1D*)hMPbPb->Clone(TString::Format("hRelSysUncMPbPb_Pt%.0f_%.0f", ptlims[ih],ptlims[ih+1]));
 		hRelSysUncPbPb->SetTitle("Relative systematic Uncertainties; #it{M} (GeV/#it{c}^2); Syst Unc / #it{M}");
 		for(Int_t ib = 0; ib<hRelSysUncpPb->GetNbinsX(); ib++){
 			hRelSysUncpPb->SetBinContent(ib+1, hSypPb->GetBinError(ib+1)/hMpPb->GetBinContent(ib+1));
@@ -834,7 +887,7 @@ void RatiopPbPbPb(Bool_t stylezero = kFALSE, Bool_t drawRaghav = kFALSE, Bool_t 
 		}
 		
 		cRelUnc->cd(ih+1);
-		
+		gPad->SetTicks(1,1);
 		hRelSysUncPbPb ->GetYaxis()->SetRangeUser(0., 1.);
 		hRelSysUncPbPb ->Draw("hist");
 		hRelSysUncpPb  ->Draw("histsames");
@@ -849,61 +902,89 @@ void RatiopPbPbPb(Bool_t stylezero = kFALSE, Bool_t drawRaghav = kFALSE, Bool_t 
 		//Draw comparison pPb Pythia 5.02 TeV
 		cMasspPb->cd(ih+1);
 		
+		gPad->SetTicks(1,1);
 		hSypPb ->GetYaxis()->SetRangeUser(0., 0.25);
+		hSypPb->SetMarkerStyle(hMpPb->GetMarkerStyle());
+		hSypPb->SetMarkerColor(hMpPb->GetMarkerColor());
 		hSypPb ->Draw("E2");
 		hMpPb  ->Draw("sames");
 		if(show1134) hMPy502->Draw("sames");
 		hMPy502M->Draw("sames");
 		//hMJewpp-> Draw("sames");
 		if(ih == nhM-1){
-			legMasspPb->AddEntry(hMpPb, "p-Pb #sqrt{s_{NN}} = 5.02 TeV", "LP");
-			legMasspPb->AddEntry(hSypPb, "Systematic p-Pb", "F");
-			if(show1134) legMasspPb->AddEntry(hMPy502, "PYTHIA Perugia 2011 #sqrt{s_{NN}} = 5.02 TeV", "LP");
+			legMasspPb->AddEntry(hSypPb, "p-Pb #sqrt{s_{NN}} = 5.02 TeV");
+			//legMasspPb->AddEntry(hSypPb, "Systematic p-Pb", "F");
+			if(show1134) legMasspPb->AddEntry(hMPy502, "PYTHIA Perugia 2011 #sqrt{s_{NN}} = 5.02 TeV");
 			legMasspPb->AddEntry(hMPy502M, "PYTHIA  Perugia 2011", "LP"); //  #sqrt{s_{NN}} = 5.02 TeV // paper prop
 			//legMasspPb->AddEntry(hMJewpp, "JEWEL+PYTHIA pp", "LP");
 			
 			legMasspPb->Draw();
 		}
-		if(ih == 1) pvgeneral->Draw();
-		pvpt[ih]->Draw();
+		if(ih == 1) {
+			latext.DrawLatex(4, 0.18, "Charged jets, Anti-#it{k}_{T}");
+			latext.DrawLatex(4.5, 0.15, "#it{R} = 0.4, |#eta_{jet}| < 0.5");
+		}
+		latext.DrawLatex(4, 0.22, TString::Format("%.0f < #it{p}_{T, ch jet} (GeV/#it{c}) < %.0f", ptlims[ih], ptlims[ih+1]));
+		//pvpt[ih]->Draw();
 		
 		
 		cMassPbPbOnly->cd(ih+1);
+		gPad->SetTicks(1,1);
 		hSyPbPb  ->Draw("E2");
 		hMPbPb   ->Draw("sames");
-		if(ih == 1) pvgeneral->Draw();
-		pvpt[ih]->Draw();
+		if(ih == 1) {
+			latext.DrawLatex(4, 0.18, "Charged jets, Anti-#it{k}_{T}");
+			latext.DrawLatex(4.5, 0.15, "#it{R} = 0.4, |#eta_{jet}| < 0.5");
+		}
+		latext.DrawLatex(4, 0.22, TString::Format("%.0f < #it{p}_{T, ch jet} (GeV/#it{c}) < %.0f", ptlims[ih], ptlims[ih+1]));
+		//pvpt[ih]->Draw();
 		
 		cMassPbPbPy->cd(ih+1);
+		
+		gPad->SetTicks(1,1);
 		hSyPbPb  ->Draw("E2");
 		hMPbPb   ->Draw("sames");
 		hMPy276  ->Draw("sames");
-		if(ih == 1) pvgeneral->Draw();
-		pvpt[ih] ->Draw();
+		if(ih == 1) {
+			latext.DrawLatex(4, 0.18, "Charged jets, Anti-#it{k}_{T}");
+			latext.DrawLatex(4.5, 0.15, "#it{R} = 0.4, |#eta_{jet}| < 0.5");
+		}
+		latext.DrawLatex(4, 0.22, TString::Format("%.0f < #it{p}_{T, ch jet} (GeV/#it{c}) < %.0f", ptlims[ih], ptlims[ih+1]));
+		//pvpt[ih] ->Draw();
 		//Draw comparison PbPb Pythia 2.76 TeV
 		cMassPbPb->cd(ih+1);
 		
+		gPad->SetTicks(1,1);
+		hSyPbPb->SetMarkerStyle(hMPbPb->GetMarkerStyle());
+		hSyPbPb->SetMarkerColor(hMPbPb->GetMarkerColor());
 		hSyPbPb  ->Draw("E2");
 		hMPbPb   ->Draw("sames");
 		hMPy276  ->Draw("sames");
 		//temporary don't draw this because wrong curve from Raghav
+		hMJewPbPb->GetXaxis()->SetRangeUser(0., 25.);
 		if(drawRaghav) hMJewPbPb->Draw("sames");
 		hMJewPbPbMRoff->Draw("sames");
 		hMQPy    ->Draw("sames");
-		pvpt[ih] ->Draw();
+		latext.DrawLatex(4, 0.22, TString::Format("%.0f < #it{p}_{T, ch jet} (GeV/#it{c}) < %.0f", ptlims[ih], ptlims[ih+1]));
+		//pvpt[ih] ->Draw();
 		
 		cMassPbPbModels->cd(ih+1);
-		hMPy276  ->GetYaxis()->SetNdivisions(1004, "Y");
-		hMPy276  ->GetYaxis()->SetRangeUser(0, 0.25);
+		
+		gPad->SetTicks(1,1);
+		hMJewPbPbMRoff  ->GetYaxis()->SetNdivisions(1004, "Y");
+		hMJewPbPbMRoff  ->GetYaxis()->SetRangeUser(0, 0.25);
+		hMJewPbPbMRoff  ->GetXaxis()->SetRangeUser(0, 25);
+		hMJewPbPbMRoff->Draw();
 		hMPy276  ->Draw("sames");
 		if(drawRaghav) hMJewPbPb->Draw("sames");
-		hMJewPbPbMRoff->Draw("sames");
+		
 		hMQPy    ->Draw("sames");
-		pvpt[ih] ->Draw();
+		latext.DrawLatex(4, 0.22, TString::Format("%.0f < #it{p}_{T, ch jet} (GeV/#it{c}) < %.0f", ptlims[ih], ptlims[ih+1]));
+		//pvpt[ih] ->Draw();
 		
 		if(ih == nhM-1){
-			legMassPbPbOnly->AddEntry(hMPbPb,    "Pb-Pb 0-10% #sqrt{s_{NN}} = 2.76 TeV", "LP");
-			legMassPbPbOnly->AddEntry(hSyPbPb,   "Systematic Pb-Pb" , "F");
+			legMassPbPbOnly->AddEntry(hSyPbPb,    "Pb-Pb 0-10% #sqrt{s_{NN}} = 2.76 TeV");
+			//legMassPbPbOnly->AddEntry(hSyPbPb,   "Systematic Pb-Pb" , "F");
 			cMassPbPbOnly->cd(ih+1); legMassPbPbOnly->Draw();
 			
 			
@@ -913,24 +994,35 @@ void RatiopPbPbPb(Bool_t stylezero = kFALSE, Bool_t drawRaghav = kFALSE, Bool_t 
 			legMassPbPbModels->AddEntry(hMQPy,      "Q-PYTHIA", "LP");
 			cMassPbPbModels->cd(ih+1); legMassPbPbModels->Draw();
 			
-			legMassPbPbPy->AddEntry(hMPbPb,    "Pb-Pb 0-10% #sqrt{s_{NN}} = 2.76 TeV", "LP");
-			legMassPbPbPy->AddEntry(hSyPbPb,   "Systematic Pb-Pb" , "F");
+			legMassPbPbPy->AddEntry(hSyPbPb,    "Pb-Pb 0-10% #sqrt{s_{NN}} = 2.76 TeV");
+			//legMassPbPbPy->AddEntry(hSyPbPb,   "Systematic Pb-Pb" , "F");
 			legMassPbPbPy->AddEntry(hMPy276,   "PYTHIA  Perugia 2011", "LP");
 			cMassPbPbPy->cd(ih+1); legMassPbPbPy->Draw();
 			
-			legMassPbPb->AddEntry(hMPbPb,    "Pb-Pb 0-10% #sqrt{s_{NN}} = 2.76 TeV", "LP");
-			legMassPbPb->AddEntry(hSyPbPb,   "Systematic Pb-Pb" , "F");
-			legMassPbPb->AddEntry(hMPy276,   "PYTHIA  Perugia 2011 #sqrt{s_{NN}} = 2.76 TeV", "LP");
-			if(drawRaghav) legMassPbPb->AddEntry(hMJewPbPb, "JEWEL+PYTHIA Recoil on 0-10% PbPb", "LP");
-			legMassPbPb->AddEntry(hMJewPbPbMRoff, "JEWEL+PYTHIA Recoil off 0-10% PbPb", "LP");
-			legMassPbPb->AddEntry(hMQPy,      "Q-PYTHIA", "LP");
-			cMassPbPb->cd(ih+1); legMassPbPb->Draw();
+			
+			if(drawRaghav) legMassPbPb2->AddEntry(hMJewPbPb, "Recoil on", "p");
+			legMassPbPb2->AddEntry(hMJewPbPbMRoff, "Recoil off", "p");
+			//latext.DrawLatex(6, 0.19, "Recoil on");
+			//latext.DrawLatex(6, 0.17, "Recoil off");
+			cMassPbPb->cd(ih+1); latext.DrawLatex(2, 0.18, "JEWEL + PYTHIA 0-10% Pb-Pb"); legMassPbPb2->Draw();
 		}
-		
+		//if(ih == 0){
+		//	legdummy->AddEntry(hMJewPbPb, "Recoil on", "P");
+		//	cMassPbPb->cd(ih+1); 
+		//	
+		//	legdummy->Draw();
+		//}
+		if(ih == nhM-2){
+			legMassPbPb1->AddEntry(hSyPbPb,    "Pb-Pb 0-10% #sqrt{s_{NN}} = 2.76 TeV");
+			//legMassPbPb->AddEntry(hSyPbPb,   "Systematic Pb-Pb" , "F");
+			legMassPbPb1->AddEntry(hMPy276,   "PYTHIA  Perugia 2011", "P"); //#sqrt{s_{NN}} = 2.76 TeV
+			legMassPbPb1->AddEntry(hMQPy,      "Q-PYTHIA", "P");
+			cMassPbPb->cd(ih+1); legMassPbPb1->Draw();
+		}
 		//ratio PbPb/pPb
 		TH1* hRatioPbPbOpPb;
 		TH1* hDividepPb;
-		UniformTH1FForDivide(hMPbPb, hMpPb, hRatioPbPbOpPb, hDividepPb, "TH1D"); hRatioPbPbOpPb->SetName(Form("hRatioPbPbOpPb_Pt%.0f_%.0f", ptlims[ih],ptlims[ih+1]));
+		UniformTH1FForDivide(hMPbPb, hMpPb, hRatioPbPbOpPb, hDividepPb, "TH1D"); hRatioPbPbOpPb->SetName(TString::Format("hRatioPbPbOpPb_Pt%.0f_%.0f", ptlims[ih],ptlims[ih+1]));
 		hRatioPbPbOpPb->GetYaxis()->SetTitleOffset(1.15);
 		
 		hRatioPbPbOpPb->SetMarkerColor(kMagenta+2);
@@ -950,14 +1042,14 @@ void RatiopPbPbPb(Bool_t stylezero = kFALSE, Bool_t drawRaghav = kFALSE, Bool_t 
 		TH1* hRatioPbPbOpPbSys;
 		TH1* hRDivpPb;
 		UniformTH1FForDivide(hSyPbPb, hSypPb, hRatioPbPbOpPbSys, hRDivpPb, "TH1D");
-		hRatioPbPbOpPbSys->SetName(Form("hRatioPbPbOpPbSys_Pt%.0f_%.0f", ptlims[ih],ptlims[ih+1]));
+		hRatioPbPbOpPbSys->SetName(TString::Format("hRatioPbPbOpPbSys_Pt%.0f_%.0f", ptlims[ih],ptlims[ih+1]));
 		hRatioPbPbOpPbSys->GetYaxis()->SetTitle("#Rgothic_{#sqrt{#it{s}}}");
 		hRatioPbPbOpPbSys->GetYaxis()->SetTitleOffset(1.15);
 		//hRatioPbPbOpPbSys->GetYaxis()->SetTitleOffset(1.7);
 		hRatioPbPbOpPbSys->Divide(hRDivpPb);
 		hRatioPbPbOpPbSys->SetFillStyle(1001);
 		hRatioPbPbOpPbSys->SetFillColor(kMagenta-10);
-		hRatioPbPbOpPbSys->SetMarkerStyle(1);
+		hRatioPbPbOpPbSys->SetMarkerStyle(hRatioPbPbOpPb->GetMarkerStyle());
 		hRatioPbPbOpPbSys->SetMarkerColor(hRatioPbPbOpPb->GetMarkerColor());
 		hRatioPbPbOpPbSys->SetLineWidth(2);
 		hRatioPbPbOpPbSys->SetLineColor(kBlack);
@@ -970,7 +1062,7 @@ void RatiopPbPbPb(Bool_t stylezero = kFALSE, Bool_t drawRaghav = kFALSE, Bool_t 
 		TH1* hRDivpPbC;
 		Printf("N bins %d and %d", hSyPbPb->GetNbinsX(), hSypPb->GetNbinsX());
 		UniformTH1FForDivide(hSyPbPb, hSypPb, hRatioPbPbOpPbSysC, hRDivpPbC, "TH1D");
-		hRatioPbPbOpPbSysC->SetName(Form("hRatioPbPbOpPbSysC_Pt%.0f_%.0f", ptlims[ih],ptlims[ih+1]));
+		hRatioPbPbOpPbSysC->SetName(TString::Format("hRatioPbPbOpPbSysC_Pt%.0f_%.0f", ptlims[ih],ptlims[ih+1]));
 		
 		Printf("BNow N bins %d and %d", hRatioPbPbOpPbSysC->GetNbinsX(), hRDivpPbC->GetNbinsX());
 		hRatioPbPbOpPbSysC->SetFillStyle(0);
@@ -989,7 +1081,7 @@ void RatiopPbPbPb(Bool_t stylezero = kFALSE, Bool_t drawRaghav = kFALSE, Bool_t 
 		TH1* hRatioPbPbOpPbM;
 		TH1* hDividepPbM;
 		UniformTH1FForDivide(hMPbPb, hMpPbM, hRatioPbPbOpPbM, hDividepPbM, "TH1D"); 
-		hRatioPbPbOpPbM->SetName(Form("hRatioPbPbOpPb_Pt%.0f_%.0f", ptlims[ih],ptlims[ih+1]));
+		hRatioPbPbOpPbM->SetName(TString::Format("hRatioPbPbOpPb_Pt%.0f_%.0f", ptlims[ih],ptlims[ih+1]));
 		
 		hRatioPbPbOpPbM->GetYaxis()->SetTitleOffset(1.15);
 		hRatioPbPbOpPbM->SetMarkerColor(kBlack);
@@ -1003,8 +1095,8 @@ void RatiopPbPbPb(Bool_t stylezero = kFALSE, Bool_t drawRaghav = kFALSE, Bool_t 
 		TH1* hRatioPbPbOpPbSysM;
 		TH1* hRDivpPbSyM;
 		UniformTH1FForDivide(hSyPbPb, hSypPbM, hRatioPbPbOpPbSysM, hRDivpPbSyM, "TH1D");
-		hRatioPbPbOpPbSysM->SetName(Form("hRatioPbPbOpPbSysM_Pt%.0f_%.0f", ptlims[ih],ptlims[ih+1]));
-		hRDivpPbSyM->SetName(Form("hRDivpPbSyM_Pt%.0f_%.0f", ptlims[ih],ptlims[ih+1]));
+		hRatioPbPbOpPbSysM->SetName(TString::Format("hRatioPbPbOpPbSysM_Pt%.0f_%.0f", ptlims[ih],ptlims[ih+1]));
+		hRDivpPbSyM->SetName(TString::Format("hRDivpPbSyM_Pt%.0f_%.0f", ptlims[ih],ptlims[ih+1]));
 		
 		hRatioPbPbOpPbSysM->GetYaxis()->SetTitleOffset(1.15);
 		//hRatioPbPbOpPbSysM->GetYaxis()->SetTitle("Ratio");
@@ -1025,6 +1117,7 @@ void RatiopPbPbPb(Bool_t stylezero = kFALSE, Bool_t drawRaghav = kFALSE, Bool_t 
 		TH1* hRatio276O502M;
 		TH1* hDividePyPy502M;
 		UniformTH1FForDivide(hMPy276, hMPy502M, hRatio276O502M, hDividePyPy502M, "TH1D");
+		hRatio276O502M->SetName(TString::Format("hRatio276O502M_Pt%d", ih));
 		hRatio276O502M->GetYaxis()->SetTitleOffset(1.15);
 		hRatio276O502M->Divide(hDividePyPy502M);
 		hRatio276O502M->SetLineColor(kRed);
@@ -1033,7 +1126,7 @@ void RatiopPbPbPb(Bool_t stylezero = kFALSE, Bool_t drawRaghav = kFALSE, Bool_t 
 		
 		cRatioPbPbOpPb->cd(ih+1);
 		
-		
+		gPad->SetTicks(1,1);
 		
 		if(pPbpaperprop){
 			//Old result paper draft
@@ -1057,19 +1150,23 @@ void RatiopPbPbPb(Bool_t stylezero = kFALSE, Bool_t drawRaghav = kFALSE, Bool_t 
 		//hPbPboppJewel->Draw("Lsames");
 		//reference line
 		lineOne->Draw();
-		if(ih == 1) pvgeneral->Draw();
-		pvpt[ih]->Draw();
+		if(ih == 1) {
+			latext.DrawLatex(4, 3, "Charged jets, Anti-#it{k}_{T}");
+			latext.DrawLatex(4.5, 2.5, "#it{R} = 0.4, |#eta_{jet}| < 0.5");
+		}
+		latext.DrawLatex(4, 3.6, TString::Format("%.0f < #it{p}_{T, ch jet} (GeV/#it{c}) < %.0f", ptlims[ih], ptlims[ih+1]));
+		//pvpt[ih]->Draw();
 		
 		if(ih == nhM-1){
-			legRatioPbPbOpPb->AddEntry(hRatioPbPbOpPb, "Pb-Pb / p-Pb", "LP");// #sqrt{s_{NN}}
-			legRatioPbPbOpPb->AddEntry(hRatioPbPbOpPbSys, "Sys Pb-Pb/p-Pb", "F");
+			legRatioPbPbOpPb->AddEntry(hRatioPbPbOpPbSys, "Data Pb-Pb / p-Pb");// #sqrt{s_{NN}}
+			//legRatioPbPbOpPb->AddEntry(hRatioPbPbOpPbSys, "Sys Pb-Pb/p-Pb", "F");
 			if(pPbpaperprop){
 				legRatioPbPbOpPb->AddEntry(hRatioPbPbOpPbM, "Ratio PbPb/pPb paper prop", "LP");
 				legRatioPbPbOpPb->AddEntry(hRatioPbPbOpPbSysM, "Sys PbPb/pPb paper prop", "F");
 			}
 			if(show1134) legRatioPbPbOpPb->AddEntry(hRatio276O502, "PYTHIA(2.76)/PYTHIA(5.02)Matched", "LP");
 			
-			legRatioPbPbOpPb->AddEntry(hRatio276O502M, "PYTHIA(2.76Tev)/PYTHIA(5.02TeV)", "LP"); // paper prop
+			legRatioPbPbOpPb->AddEntry(hRatio276O502M, "PYTHIA 2.76TeV / 5.02TeV", "LP"); // paper prop
 			//legRatioPbPbOpPb->AddEntry(hPbPboppJewel, "Ratio JEWEL", "LP");
 			legRatioPbPbOpPb->Draw();
 			
@@ -1078,7 +1175,7 @@ void RatiopPbPbPb(Bool_t stylezero = kFALSE, Bool_t drawRaghav = kFALSE, Bool_t 
 		//ratio pPb/PYTHIA
 		TH1* hRatiopPbOPyM;
 		TH1* hDividePy502M;
-		UniformTH1FForDivide(hMpPb, hMPy502M, hRatiopPbOPyM, hDividePy502M, "TH1D"); hRatiopPbOPyM->SetName(Form("hRatiopPbOPyM_Pt%.0f_%.0f", ptlims[ih],ptlims[ih+1]));
+		UniformTH1FForDivide(hMpPb, hMPy502M, hRatiopPbOPyM, hDividePy502M, "TH1D"); hRatiopPbOPyM->SetName(TString::Format("hRatiopPbOPyM_Pt%.0f_%.0f", ptlims[ih],ptlims[ih+1]));
 		hRatiopPbOPyM->GetYaxis()->SetTitle("Data/PYTHIA");
 		
 		hRatiopPbOPyM->GetYaxis()->SetTitleOffset(1.15);
@@ -1093,10 +1190,10 @@ void RatiopPbPbPb(Bool_t stylezero = kFALSE, Bool_t drawRaghav = kFALSE, Bool_t 
 		TH1* hRatiopPbOPy502SysM;
 		TH1* hDivideSysPy502M;
 		UniformTH1FForDivide(hSypPb, hMPy502M, hRatiopPbOPy502SysM, hDivideSysPy502M, "TH1D");
-		TH1* hDividePy502MNoErr = (TH1*)hDivideSysPy502M->Clone(Form("hDividePy502MNoErr_Pt%.0f_%.0f", ptlims[ih],ptlims[ih+1]));
+		TH1* hDividePy502MNoErr = (TH1*)hDivideSysPy502M->Clone(TString::Format("hDividePy502MNoErr_Pt%.0f_%.0f", ptlims[ih],ptlims[ih+1]));
 		for(Int_t ib = 0; ib<hDividePy502MNoErr->GetNbinsX(); ib++) hDividePy502MNoErr->SetBinError(ib, 0);
 		
-		hRatiopPbOPy502SysM->SetName(Form("hRatiopPbOPy502SysM_Pt%.0f_%.0f", ptlims[ih],ptlims[ih+1]));
+		hRatiopPbOPy502SysM->SetName(TString::Format("hRatiopPbOPy502SysM_Pt%.0f_%.0f", ptlims[ih],ptlims[ih+1]));
 		hRatiopPbOPy502SysM->GetYaxis()->SetTitle("Data/PYTHIA");
 		hRatiopPbOPy502SysM->GetYaxis()->SetTitleOffset(1.15);
 		
@@ -1105,11 +1202,12 @@ void RatiopPbPbPb(Bool_t stylezero = kFALSE, Bool_t drawRaghav = kFALSE, Bool_t 
 		hRatiopPbOPy502SysM->SetFillStyle(hSypPb->GetFillStyle());
 		hRatiopPbOPy502SysM->SetLineWidth(hSypPb->GetLineWidth());
 		hRatiopPbOPy502SysM->SetLineColor(hSypPb->GetLineColor());
-		
+		hRatiopPbOPy502SysM->SetMarkerColor(hSypPb->GetLineColor());
+		hRatiopPbOPy502SysM->SetMarkerStyle(hSypPb->GetMarkerStyle());
 		//ratio pPb paper prop /PYTHIA
 		TH1* hRatiopPbOPypappr;
 		TH1* hDividePy502Mbis;
-		UniformTH1FForDivide(hMpPbM, hMPy502M, hRatiopPbOPypappr, hDividePy502Mbis, "TH1D"); hRatiopPbOPypappr->SetName(Form("hRatiopPbMOPypappr_Pt%.0f_%.0f", ptlims[ih],ptlims[ih+1]));
+		UniformTH1FForDivide(hMpPbM, hMPy502M, hRatiopPbOPypappr, hDividePy502Mbis, "TH1D"); hRatiopPbOPypappr->SetName(TString::Format("hRatiopPbMOPypappr_Pt%.0f_%.0f", ptlims[ih],ptlims[ih+1]));
 		hRatiopPbOPypappr->GetYaxis()->SetTitle("Data/PYTHIA");
 		hRatiopPbOPypappr->GetYaxis()->SetTitleOffset(1.15);
 		
@@ -1126,10 +1224,10 @@ void RatiopPbPbPb(Bool_t stylezero = kFALSE, Bool_t drawRaghav = kFALSE, Bool_t 
 		TH1* hRatiopPbOPy502Syspappr;
 		TH1* hDivideSysPy502Mbis;
 		UniformTH1FForDivide(hSypPbM, hMPy502M, hRatiopPbOPy502Syspappr, hDivideSysPy502Mbis, "TH1D");
-		TH1* hDividePy502MbisNoErr = (TH1*)hDivideSysPy502Mbis->Clone(Form("hDividePy502MbisNoErr_Pt%.0f_%.0f", ptlims[ih],ptlims[ih+1]));
+		TH1* hDividePy502MbisNoErr = (TH1*)hDivideSysPy502Mbis->Clone(TString::Format("hDividePy502MbisNoErr_Pt%.0f_%.0f", ptlims[ih],ptlims[ih+1]));
 		for(Int_t ib = 0; ib<hDividePy502MbisNoErr->GetNbinsX(); ib++) hDividePy502MbisNoErr->SetBinError(ib, 0);
 		
-		hRatiopPbOPy502Syspappr->SetName(Form("hRatiopPbOPy502Syspappr_Pt%.0f_%.0f", ptlims[ih],ptlims[ih+1]));
+		hRatiopPbOPy502Syspappr->SetName(TString::Format("hRatiopPbOPy502Syspappr_Pt%.0f_%.0f", ptlims[ih],ptlims[ih+1]));
 		hRatiopPbOPy502Syspappr->GetYaxis()->SetTitle("Data/PYTHIA");
 		hRatiopPbOPy502Syspappr->GetYaxis()->SetTitleOffset(1.15);
 		
@@ -1143,6 +1241,7 @@ void RatiopPbPbPb(Bool_t stylezero = kFALSE, Bool_t drawRaghav = kFALSE, Bool_t 
 		hRatiopPbOPy502Syspappr->SetMarkerStyle(1);
 		
 		cRatiopPbOPy->cd(ih+1);
+		gPad->SetTicks(1,1);
 		hRatiopPbOPy502SysM->Draw("E2");
 		hRatiopPbOPyM->Draw("sames");
 		if(pPbpaperprop) {
@@ -1151,12 +1250,16 @@ void RatiopPbPbPb(Bool_t stylezero = kFALSE, Bool_t drawRaghav = kFALSE, Bool_t 
 			
 		}
 		lineOne->Draw();
-		if(ih == 1) pvgeneral->Draw();
-		pvpt[ih]->Draw();
+		if(ih == 1) {
+			latext.DrawLatex(4, 3, "Charged jets, Anti-#it{k}_{T}");
+			latext.DrawLatex(4.5, 2.5, "#it{R} = 0.4, |#eta_{jet}| < 0.5");
+		}
+		latext.DrawLatex(4, 3.6, TString::Format("%.0f < #it{p}_{T, ch jet} (GeV/#it{c}) < %.0f", ptlims[ih], ptlims[ih+1]));
+		//pvpt[ih]->Draw();
 		
 		if(ih == nhM-1){
-			legRatiopPbOPy->AddEntry(hRatiopPbOPyM, "p-Pb / PYTHIA(5.02TeV)", "PL");
-			legRatiopPbOPy->AddEntry(hRatiopPbOPy502SysM, "(Sys p-Pb) / PYTHIA(5.02TeV)", "F");
+			legRatiopPbOPy->AddEntry(hRatiopPbOPy502SysM, "p-Pb / PYTHIA(5.02TeV)");
+			//legRatiopPbOPy->AddEntry(hRatiopPbOPy502SysM, "(Sys p-Pb) / PYTHIA(5.02TeV)", "F");
 			if(pPbpaperprop) {
 				legRatiopPbOPy->AddEntry(hRatiopPbOPypappr, "pPb paper pr / PYTHIA(5.02TeV)", "PL");
 				legRatiopPbOPy->AddEntry(hRatiopPbOPy502Syspappr, "(Sys pPb paper pr) / PYTHIA(5.02TeV)", "F");
@@ -1167,7 +1270,7 @@ void RatiopPbPbPb(Bool_t stylezero = kFALSE, Bool_t drawRaghav = kFALSE, Bool_t 
 		//ratio PbPb/PYTHIA
 		TH1* hRatioPbPbOPy;
 		TH1* hDividePy276;
-		UniformTH1FForDivide(hMPbPb, hMPy276, hRatioPbPbOPy, hDividePy276, "TH1D"); hRatioPbPbOPy->SetName(Form("hRatiopPbOPy_Pt%.0f_%.0f", ptlims[ih],ptlims[ih+1]));
+		UniformTH1FForDivide(hMPbPb, hMPy276, hRatioPbPbOPy, hDividePy276, "TH1D"); hRatioPbPbOPy->SetName(TString::Format("hRatiopPbOPy_Pt%.0f_%.0f", ptlims[ih],ptlims[ih+1]));
 		
 		hRatioPbPbOPy->GetYaxis()->SetTitle("Data/PYTHIA");
 		hRatioPbPbOPy->GetYaxis()->SetTitleOffset(1.15);
@@ -1179,10 +1282,10 @@ void RatiopPbPbPb(Bool_t stylezero = kFALSE, Bool_t drawRaghav = kFALSE, Bool_t 
 		// sys ratio PbPb/PYTHIA
 		TH1* hRatioPbPbOPy276Sys;
 		UniformTH1FForDivide(hSyPbPb, hMPy276, hRatioPbPbOPy276Sys, hDividePy276, "TH1D");
-		TH1* hDividePy276NoErr = (TH1*)hDividePy276->Clone(Form("hDividePy276NoErr_Pt%.0f_%.0f", ptlims[ih],ptlims[ih+1]));
+		TH1* hDividePy276NoErr = (TH1*)hDividePy276->Clone(TString::Format("hDividePy276NoErr_Pt%.0f_%.0f", ptlims[ih],ptlims[ih+1]));
 		for(Int_t ib = 0; ib<hDividePy276NoErr->GetNbinsX(); ib++) hDividePy276NoErr->SetBinError(ib, 0);
 		
-		hRatioPbPbOPy276Sys->SetName(Form("hRatioPbPbOPy276Sys_Pt%.0f_%.0f", ptlims[ih],ptlims[ih+1]));
+		hRatioPbPbOPy276Sys->SetName(TString::Format("hRatioPbPbOPy276Sys_Pt%.0f_%.0f", ptlims[ih],ptlims[ih+1]));
 		hRatioPbPbOPy276Sys->GetYaxis()->SetTitle("Data/PYTHIA");
 		hRatioPbPbOPy276Sys->GetYaxis()->SetTitleOffset(1.15);
 		
@@ -1192,23 +1295,31 @@ void RatiopPbPbPb(Bool_t stylezero = kFALSE, Bool_t drawRaghav = kFALSE, Bool_t 
 		hRatioPbPbOPy276Sys->SetLineWidth(2);
 		hRatioPbPbOPy276Sys->SetLineColor(hSyPbPb->GetLineColor());
 		hRatioPbPbOPy276Sys->SetFillColor(hSyPbPb->GetFillColor());
-				
+		hRatioPbPbOPy276Sys->SetMarkerColor(hSyPbPb->GetMarkerColor());
+		hRatioPbPbOPy276Sys->SetMarkerStyle(hSyPbPb->GetMarkerStyle());
+		
 		cRatioPbPbOPy->cd(ih+1);
 		
+		gPad->SetTicks(1,1);
 		hRatioPbPbOPy276Sys->GetYaxis()->SetRangeUser(0., 4);
 		hRatioPbPbOPy276Sys->Draw("E2");
 		hRatioPbPbOPy->Draw("sames");
 		lineOne->Draw();
 		if(ih == nhM-1){
-			legRatioPbPbOPy->AddEntry(hRatioPbPbOPy, "Pb-Pb / PYTHIA(2.76TeV)", "PL");
-			legRatioPbPbOPy->AddEntry(hRatioPbPbOPy276Sys, "Sys Pb-Pb / PYTHIA(2.76TeV)", "F");
+			legRatioPbPbOPy->AddEntry(hRatioPbPbOPy276Sys, "Pb-Pb / PYTHIA(2.76TeV)");
+			//legRatioPbPbOPy->AddEntry(hRatioPbPbOPy276Sys, "Sys Pb-Pb / PYTHIA(2.76TeV)", "F");
 			legRatioPbPbOPy->Draw();
 		}
-		pvpt[ih]->Draw();
-		if(ih == 1) pvgeneral->Draw();
+		//pvpt[ih]->Draw();
+		latext.DrawLatex(4, 3.6, TString::Format("%.0f < #it{p}_{T, ch jet} (GeV/#it{c}) < %.0f", ptlims[ih], ptlims[ih+1]));
+		if(ih == 1) {
+			latext.DrawLatex(4, 3, "Charged jets, Anti-#it{k}_{T}");
+			latext.DrawLatex(4.5, 2.5, "#it{R} = 0.4, |#eta_{jet}| < 0.5");
+		}
 		// data/ PYTHIA overlapped
 		cRatioDataOPy->cd(ih+1);
 		
+		gPad->SetTicks(1,1);
 		hRatiopPbOPy502SysM->GetYaxis()->SetRangeUser(0., 4.);
 		hRatiopPbOPy502SysM->GetXaxis()->SetRangeUser(0., maxM);
 		hRatioPbPbOPy276Sys->GetYaxis()->SetRangeUser(0., 4.);
@@ -1217,60 +1328,75 @@ void RatiopPbPbPb(Bool_t stylezero = kFALSE, Bool_t drawRaghav = kFALSE, Bool_t 
 		hRatioPbPbOPy->Draw("sames");
 		hRatiopPbOPy502SysM->Draw("samesE2");
 		hRatiopPbOPyM->Draw("sames");
-		pvpt[ih]->Draw();
+		latext.DrawLatex(4, 3.6, TString::Format("%.0f < #it{p}_{T, ch jet} (GeV/#it{c}) < %.0f", ptlims[ih], ptlims[ih+1]));
+		//pvpt[ih]->Draw();
 		lineOne->Draw();
-		if(ih == 1) pvgeneral->Draw();
+		if(ih == 1) {
+			latext.DrawLatex(4, 3, "Charged jets, Anti-#it{k}_{T}");
+			latext.DrawLatex(4.5, 2.5, "#it{R} = 0.4, |#eta_{jet}| < 0.5");
+		}
 		if(ih == nhM-1){
-			legRatioDataOPy->AddEntry(hRatiopPbOPyM, "p-Pb / PYTHIA(5.02TeV)", "PL");
-			legRatioDataOPy->AddEntry(hRatiopPbOPy502SysM, "Sys p-Pb / PYTHIA(5.02TeV)", "F");
-			legRatioDataOPy->AddEntry(hRatioPbPbOPy, "Pb-Pb / PYTHIA(2.76TeV)", "PL");
-			legRatioDataOPy->AddEntry(hRatioPbPbOPy276Sys, "Sys Pb-Pb / PYTHIA(2.76TeV)", "F");
+			legRatioDataOPy->AddEntry(hRatiopPbOPy502SysM, "p-Pb / PYTHIA(5.02TeV)");
+			//legRatioDataOPy->AddEntry(hRatiopPbOPy502SysM, "Sys p-Pb / PYTHIA(5.02TeV)", "F");
+			legRatioDataOPy->AddEntry(hRatioPbPbOPy276Sys, "Pb-Pb / PYTHIA(2.76TeV)");
+			//legRatioDataOPy->AddEntry(hRatioPbPbOPy276Sys, "Sys Pb-Pb / PYTHIA(2.76TeV)", "F");
 			legRatioDataOPy->Draw();
 		}
 		
+		//write into a root file
+		fOutput->cd();
+		hRatioPbPbOpPbSys     ->Write();
+		hRatioPbPbOpPb        ->Write();
+		hRatio276O502M        ->Write();
+		hSyPbPb               ->Write();
+		hMPbPb                ->Write();
+		hMPy276               ->Write();
+		hSypPb                ->Write();
+		hMpPb                 ->Write();
+		hMPy502M              ->Write();
 	}
 	cMass->cd(1);
-	DrawLogo(1, 0.45, 0.7, 0.85, 0.8, "", 42, "");
+	DrawLogo(0, 12, 0.18, "", 42, "");
 	cMasspPb->cd(1);
-	DrawLogo(1, 0.45, 0.7, 0.85, 0.8, "", 42, "");
+	DrawLogo(0, 12, 0.18, "", 42, "");
 	cMassPbPb->cd(1);
-	DrawLogo(1, 0.45, 0.7, 0.85, 0.8, "", 42, "");
+	DrawLogo(0, 12, 0.18, "", 42, "");
 	cMassPbPbOnly->cd(1);
-	DrawLogo(1, 0.45, 0.7, 0.85, 0.8, "", 42, "");
-	cMassPbPbPy->cd(1);
-	DrawLogo(1, 0.45, 0.7, 0.85, 0.8, "", 42, "");
+	DrawLogo(0, 12, 0.18, "", 42, "");
+	cMassPbPbPy->cd(1);  
+	DrawLogo(0, 12, 0.18, "", 42, "");
 	cRatioPbPbOpPb->cd(1);
-	DrawLogo(1, 0.45, 0.7, 0.85, 0.8, "", 42, "");
+	DrawLogo(0, 4, 0.2, "", 42, "");
 	cRatioDataOPy->cd(1);
-	DrawLogo(1, 0.45, 0.7, 0.85, 0.8, "", 42, "");
+	DrawLogo(0, 4, 0.2, "", 42, "");
 	cRatioPbPbOPy->cd(1);
-	DrawLogo(1, 0.45, 0.7, 0.85, 0.8, "", 42, "");
+	DrawLogo(0, 4, 0.2, "", 42, "");
+	cRatiopPbOPy->cd(1); 
+	DrawLogo(0, 4, 0.2, "", 42, "");
+	
 	cRatiopPbOPy->cd(1);
-	DrawLogo(1, 0.45, 0.7, 0.85, 0.8, "", 42, "");
+	latext.DrawLatex(2.8, 3, "p-Pb #sqrt{#it{s}}_{NN} = 5.02 TeV");
+	//pvSystpPb->Draw();
+	//cRatiopPbOPy->cd(2);
+	latext.DrawLatex(2.8, 2.5, "PYTHIA Perugia 2011");
+	//pvSystPyth->Draw();
 	
-	cRatiopPbOPy->cd(2);
-	pvSystpPb->Draw();
-	cRatiopPbOPy->cd(1);
-	pvSystPyth->Draw();
-	
-	cRatioDataOPy->cd(2);
-	pvSystpPb->Draw();
 	cRatioDataOPy->cd(1);
-	pvSystPyth->Draw();
+	latext.DrawLatex(2.8, 3., "Pb-Pb 0-10% #sqrt{#it{s}}_{NN} = 2.76 TeV");
+	latext.DrawLatex(2.8, 2.5, "p-Pb #sqrt{#it{s}}_{NN} = 5.02 TeV");
+	//pvSystpPb->Draw();
+	latext.DrawLatex(2.8, 2, "PYTHIA Perugia 2011");
+	//pvSystPyth->Draw();
 	
-	cRatioPbPbOpPb->cd(2);
-	pvSystpPb->Draw();
+	cRatioPbPbOPy->cd(1);
+	latext.DrawLatex(2.8, 3., "Pb-Pb 0-10% #sqrt{#it{s}}_{NN} = 2.76 TeV");
+	latext.DrawLatex(2.8, 2.5, "PYTHIA Perugia 2011");
 	
-	cRatioPbPbOPy->cd(2);
-	pvSystPbPb->Draw();
-	pvSystPyth->Draw();
-	
-	cRatioDataOPy->cd(2);
-	pvSystPbPb->Draw();
-	cRatioDataOPy->cd(1);
-	pvSystPyth->Draw();
-	cRatioPbPbOpPb->cd(2);
-	pvSystPbPb->Draw();
+	cRatioPbPbOpPb->cd(1);
+	latext.DrawLatex(2.8, 3., "Pb-Pb 0-10% #sqrt{#it{s}}_{NN} = 2.76 TeV");
+	latext.DrawLatex(4.1, 2.5, "p-Pb #sqrt{#it{s}}_{NN} = 5.02 TeV");
+	latext.DrawLatex(4.1, 2, "PYTHIA Perugia 2011");
+	//pvSystPbPb->Draw();
 	
 	SaveCv(cMass);
 	SaveCv(cRelUnc);
@@ -1298,7 +1424,7 @@ TH1D* CalculateMean(Double_t **xrange, Int_t nbins, Double_t lims[], TH1D** hdis
 	TH1D* hmean = new TH1D(namehmean, "Mean;#it{p}_{T}(GeV/#it{c}); #LT M_{ch jet}#GT (GeV/#it{c}^{2})", nbins, lims);
 	hmean->Sumw2();
 	
-	hrms = new TH1D(Form("%sStdDev", namehmean), "StdDev;#it{p}_{T}(GeV/#it{c}); Std Dev(GeV/#it{c}^{2})", nbins, lims);
+	hrms = new TH1D(TString::Format("%sStdDev", namehmean), "StdDev;#it{p}_{T}(GeV/#it{c}); Std Dev(GeV/#it{c}^{2})", nbins, lims);
 	hrms->Sumw2();
 	
 	for(Int_t ib = 0; ib < nbins; ib++){
@@ -1340,7 +1466,7 @@ TH1D* CalculateSysMean(Double_t **xrange, Int_t nbins, Double_t lims[], TH1D** h
 	hSysmean->Sumw2();
 	hSysmean->SetFillStyle(3001);
 	
-	hSysrms = new TH1D(Form("%sStdDev", namehsysmean), "StdDev;#it{p}_{T}(GeV/#it{c}); Std Dev(GeV/#it{c}^{2})", nbins, lims);
+	hSysrms = new TH1D(TString::Format("%sStdDev", namehsysmean), "StdDev;#it{p}_{T}(GeV/#it{c}); Std Dev(GeV/#it{c}^{2})", nbins, lims);
 	hSysrms->Sumw2();
 	
 	for(Int_t ib = 0; ib < nbins; ib++){
@@ -1423,7 +1549,7 @@ TH1D* GetMeanSystFromFile(TString filename){
 
 TH1D* GetMeanFromFile(TFile *fin){
 	if(!fin->IsOpen()){
-		Printf("File %s not found", filename.Data());
+		Printf("File not found");
 		return 0;
 	}
 	TString hnameMas = "hMeanCentral";
@@ -1436,7 +1562,7 @@ TH1D* GetMeanFromFile(TFile *fin){
 
 TH1D* GetSystFromFile(TFile *fin){
 	if(!fin->IsOpen()){
-		Printf("File %s not found", filename.Data());
+		Printf("File not found");
 		return 0;
 	}
 	TString hnameSys = "hMeanSystTot";
@@ -1529,8 +1655,7 @@ void DrawMeanComparison(Bool_t stylezero = kTRUE){
 
 void DrawMeanComparison(Double_t **xrange, const Int_t ninputs, TString inputDistr[], TString h1names[], const Int_t ninputsSy, TString inputSyst[], TString hsysnames[], Int_t offset[], TString legtx[], Int_t mrk[], Int_t clr[], Int_t clrsy[], Int_t fillsy[]){
 	// need to add the tratment of the systematics
-	// -> then, somewhere else (e.g. CreateRooUnfoldResponse) do the prior variation ad described in the note: fill the response with a random number extracted from the projection on the reco level per each particle level bin
-	
+		
 	// text for the final plots
 	TPaveText *pvgeneral = new TPaveText(0.45, 0.7, 0.65, 0.8, "NDC");
 	pvgeneral->SetFillStyle(0);
@@ -1547,7 +1672,7 @@ void DrawMeanComparison(Double_t **xrange, const Int_t ninputs, TString inputDis
 	
 	TCanvas **cInput = new TCanvas*[ninputs];
 	for(Int_t ifi = 0; ifi< ninputs; ifi++){
-		cInput[ifi] = new TCanvas(Form("c%s", h1names[ifi].Data()), Form("%s", h1names[ifi].Data()), 800, 800);
+		cInput[ifi] = new TCanvas(TString::Format("c%s", h1names[ifi].Data()), TString::Format("%s", h1names[ifi].Data()), 800, 800);
 		cInput[ifi]->Divide(3,1);
 	}
 	TCanvas* cMean = new TCanvas("cMean", "Mean", 800, 800);
@@ -1593,8 +1718,8 @@ void DrawMeanComparison(Double_t **xrange, const Int_t ninputs, TString inputDis
 				if(!finS) continue;
 				//systematics
 				TString hnamethisloop = "", hnamedoublethisloop = "";
-				hnamethisloop =  Form("%s%d", hsysnames[ifi].Data(),  ib + offset[ifi]);
-				hnamedoublethisloop = Form("%s%.0f_%.0fb", hsysnames[ifi].Data() ,  ptlims[ib + offset[ifi]],  ptlims[ib + 1 + offset[ifi]]);
+				hnamethisloop =  TString::Format("%s%d", hsysnames[ifi].Data(),  ib + offset[ifi]);
+				hnamedoublethisloop = TString::Format("%s%.0f_%.0fb", hsysnames[ifi].Data() ,  ptlims[ib + offset[ifi]],  ptlims[ib + 1 + offset[ifi]]);
 				
 				hSysdistr[ib] = (TH1D*)finS->Get(hnamethisloop);
 				if(!hSysdistr[ib]){
@@ -1613,7 +1738,7 @@ void DrawMeanComparison(Double_t **xrange, const Int_t ninputs, TString inputDis
       	 	
 			//call the method that calculates the mean systematics
 			
-			hSysmean[ifi] = CalculateSysMean(xrange, nptbins, ptlims, hSysdistr, grSysmean[ifi], hSysrms[ifi], Form("hSysMeanMass_%d_", ifi));
+			hSysmean[ifi] = CalculateSysMean(xrange, nptbins, ptlims, hSysdistr, grSysmean[ifi], hSysrms[ifi], TString::Format("hSysMeanMass_%d_", ifi));
 			
 			hSysmean[ifi]->SetFillColor(clrsy[ifi]);
 			hSysmean[ifi]->SetMarkerStyle(1);
@@ -1631,7 +1756,7 @@ void DrawMeanComparison(Double_t **xrange, const Int_t ninputs, TString inputDis
 			hSysrms[ifi]->SetLineColor(clrsy[ifi]);
 		
 		//draw all
-		legSy->AddEntry(hSysmean[ifi], Form("Systematics"), "F");
+		legSy->AddEntry(hSysmean[ifi], TString::Format("Systematics"), "F");
 		
 		if(hSysmean[ifi] && !drawn) {
 			cMean->cd();
@@ -1682,14 +1807,14 @@ void DrawMeanComparison(Double_t **xrange, const Int_t ninputs, TString inputDis
 			TString hnamethisloop = "", hnamedoublethisloop = "";
 			if(isdifferentnamingscheme) {
 				Printf("isdifferentnamingscheme");
-				hnamethisloop = Form("%s%d%s", hnamepref.Data(),  ib + offset[ifi], hnamesuff.Data());
+				hnamethisloop = TString::Format("%s%d%s", hnamepref.Data(),  ib + offset[ifi], hnamesuff.Data());
 				
 				// for the comparison of the unfolded new
 				
 			}
 			else {
-				hnamethisloop = Form("%s%d", h1names[ifi].Data(),  ib + offset[ifi]);
-				hnamedoublethisloop = Form("%s%.0f_%.0f", h1names[ifi].Data() ,  ptlims[ib + offset[ifi]],  ptlims[ib + 1 + offset[ifi]]);
+				hnamethisloop = TString::Format("%s%d", h1names[ifi].Data(),  ib + offset[ifi]);
+				hnamedoublethisloop = TString::Format("%s%.0f_%.0f", h1names[ifi].Data() ,  ptlims[ib + offset[ifi]],  ptlims[ib + 1 + offset[ifi]]);
 			}
 			Printf("Reading %s", hnamethisloop.Data());
 			h1Mass[ib] = (TH1D*)fin->Get(hnamethisloop);
@@ -1711,7 +1836,7 @@ void DrawMeanComparison(Double_t **xrange, const Int_t ninputs, TString inputDis
 		
 		//call the method that calculates the mean
 		
-		hmean[ifi] = CalculateMean(xrange, nptbins, ptlims, h1Mass, grmean[ifi], hrms[ifi], Form("hMeanMass_%d_", ifi));
+		hmean[ifi] = CalculateMean(xrange, nptbins, ptlims, h1Mass, grmean[ifi], hrms[ifi], TString::Format("hMeanMass_%d_", ifi));
 		hmean[ifi]->SetMarkerStyle(mrk[ifi]);
 		hmean[ifi]->SetMarkerColor(clr[ifi]);
 		hmean[ifi]->SetLineColor(hmean[ifi]->GetMarkerColor());
@@ -1762,4 +1887,677 @@ void DrawMeanComparison(Double_t **xrange, const Int_t ninputs, TString inputDis
 	SaveCv(cMean);
 	SaveCv(cRms);
 }
+
+//_____________________________________________________________________________
+
+void DrawMeanFromSystOutput(Bool_t stylezero = kFALSE){
+	if(stylezero) {
+		gStyle->SetOptStat(0);
+		gStyle->SetOptTitle(0);
+		
+	}
+	gStyle->SetTextFont(42);
+	
+	gStyle->SetLabelSize(0.05, "X");
+	gStyle->SetTitleOffset(1.1, "X");
+	gStyle->SetTitleSize(0.048, "X");
+	
+	gStyle->SetLabelSize(0.05, "Y");
+	gStyle->SetTitleOffset(1.34, "Y");
+	gStyle->SetTitleSize(0.048, "Y");
+	
+	gStyle->SetNdivisions(1004, "Y");
+	
+	gStyle->SetPadBottomMargin(.13);
+	gStyle->SetPadLeftMargin(.16);
+	gStyle->SetPadRightMargin(.06);
+	
+	//gStyle->SetErrorX(.2);
+	
+	TString filenamepPb = "/data/Work/jets/JetMass/pPbJetMassAnalysis/ResultspPbJetMass/Syst20160916/MasspPbResults.root";
+	
+	// pPb mean jet mass
+	TH1D* hSystpPb = 0x0;
+	TH1D* hMeanjmpPb = GetMeanAndSystFromFile(filenamepPb, hSystpPb);
+	hSystpPb->SetMarkerStyle(hMeanjmpPb->GetMarkerStyle());
+	hSystpPb->SetMarkerColor(hMeanjmpPb->GetMarkerColor());
+	hSystpPb->SetMarkerSize(2);
+	
+	// sqrts dependence
+	TH1D* hsqrtdiff = SystEnergyDep(filenamepPb);
+	
+	TH1D** hMPbPb = new TH1D*[nptbins];
+	TH1D** hMSysPbPb = new TH1D*[nptbins];
+	TList* listPbPb = GetPbPbResults();
+	Int_t offsetPbPb = 1;
+	
+	TList* list502 = GetPythiapPbMarta();
+	TH1D** hpythia502 = new TH1D*[nptbins];
+	
+	TList* list276 = GetPythiaPbPb();
+	TH1D** hpythia276 = new TH1D*[nptbins];
+	
+	TList* listJewel = GetJEWELPbPb();
+	TH1D** hJewel = new TH1D*[nptbins];
+	
+	TList* listqpy = GetJEWELQPYTHIA(3);
+	TH1D** hQPythia = new TH1D*[nptbins];
+	Int_t offsetQPy = 2;
+	
+	Double_t **xrange = new Double_t*[nptbins];
+	for(Int_t ipt = 0; ipt < nptbins; ipt++){
+		xrange[ipt] = new Double_t[2];
+		xrange[ipt][0] = 0;
+		xrange[ipt][1] = maxRangeMassFinal[ipt];
+		
+		hMPbPb[ipt] = (TH1D*)listPbPb->At(2*(ipt+offsetPbPb));
+		//needed for style
+		hMPbPb[ipt]->SetMarkerSize(2);
+		hMSysPbPb[ipt] = (TH1D*)listPbPb->At(2*(ipt+offsetPbPb)+1);
+		hMSysPbPb[ipt]->SetMarkerSize(2);
+		
+		hpythia502[ipt] = (TH1D*)list502->At(ipt+offsetPbPb);
+		hpythia276[ipt] = (TH1D*)list276->At(ipt+offsetPbPb);
+		
+		hJewel[ipt] = (TH1D*)listJewel->At(ipt);
+		
+		hQPythia[ipt] = (TH1D*)listqpy->At(ipt+offsetQPy);
+		
+	}
+	
+	TGraphErrors *grmean = 0x0;
+	TH1D *hrms = 0x0;
+	// PbPb mean jet mass
+	TH1D* hMeanPbPb = CalculateMean(xrange, nptbins, ptlims, hMPbPb, grmean, hrms, "hMeanjmassPbPb");
+	hMeanPbPb->SetMarkerStyle(hMPbPb[0]->GetMarkerStyle());
+	hMeanPbPb->SetMarkerColor(hMPbPb[0]->GetMarkerColor());
+	hMeanPbPb->SetLineColor(hMPbPb[0]->GetLineColor());
+	hMeanPbPb->SetMarkerSize(2);
+	
+	TFile *finPbPbSys = new TFile("/data/Work/jets/JetMass/PbPbResults/MeanJetMassAllSyst_Area.root");
+	TGraphErrors *grMeanPbPbSys = (TGraphErrors*)finPbPbSys->Get("grUnfMeanSyst");
+	grMeanPbPbSys->SetFillColor(hMSysPbPb[0]->GetFillColor());
+	grMeanPbPbSys->SetLineColor(hMSysPbPb[0]->GetLineColor());
+	grMeanPbPbSys->SetMarkerStyle(hMeanPbPb->GetMarkerStyle());
+	grMeanPbPbSys->SetMarkerColor(hMeanPbPb->GetMarkerColor());
+	grMeanPbPbSys->SetMarkerSize(2);
+	
+	// PYTHIA mean jet mass
+	TH1D* hMeanPy276 = CalculateMean(xrange, nptbins, ptlims, hpythia276, grmean, hrms, "hMeanjmassPy276");
+	hMeanPy276->SetMarkerStyle(hpythia276[0]->GetMarkerStyle());
+	hMeanPy276->SetMarkerSize(2);
+	hMeanPy276->SetMarkerColor(hpythia276[0]->GetMarkerColor());
+	hMeanPy276->SetLineColor  (hpythia276[0]->GetLineColor());
+	
+	TH1D* hMeanPy502 = CalculateMean(xrange, nptbins, ptlims, hpythia502, grmean, hrms, "hMeanjmassPy502");
+	
+	// JEWEL mean jet mass
+	TH1D* hMeanJewel = CalculateMean(xrange, nptbins, ptlims, hJewel, grmean, hrms, "hMeanjmassJewel");
+	hMeanJewel->SetMarkerStyle(hJewel[0]->GetMarkerStyle());
+	hMeanJewel->SetMarkerColor(hJewel[0]->GetMarkerColor());
+	hMeanJewel->SetLineColor  (hJewel[0]->GetLineColor());
+	hMeanJewel->SetMarkerSize(2);
+	
+	// QPYTHIA mean jet mass
+	TH1D* hMeanQPythia = CalculateMean(xrange, nptbins, ptlims, hQPythia, grmean, hrms, "hMeanjmassQPythia");
+	hMeanQPythia->SetMarkerStyle(hQPythia[0]->GetMarkerStyle());
+	hMeanQPythia->SetMarkerColor(hQPythia[0]->GetMarkerColor());
+	hMeanQPythia->SetLineColor  (hQPythia[0]->GetLineColor());
+	hMeanQPythia->SetMarkerSize(2);
+	
+	TCanvas *cMeanjetmass = new TCanvas("cMeanjetmass", "Mean jet mass", 600, 600);
+	TCanvas *cMeanjetmassdata = new TCanvas("cMeanjetmassdata", "Mean jet mass", 600, 600);
+	
+	TLegend *leg = new TLegend(0.45, 0.15, 0.95, 0.4);
+	leg->SetBorderSize(0);
+	leg->SetFillStyle(0);
+	leg->AddEntry(hMeanPbPb, "Pb-Pb 0-10%");
+	leg->AddEntry(hMeanPy276, "PYTHIA Perugia11");
+	leg->AddEntry(hMeanJewel, "JEWEL+PYTHIA recoil on");
+	leg->AddEntry(hMeanQPythia, "Q-PYTHIA");
+	
+	TLegend *legda = new TLegend(0.45, 0.15, 0.95, 0.4);
+	legda->SetBorderSize(0);
+	legda->SetFillStyle(0);
+	legda->AddEntry(grMeanPbPbSys, "Pb-Pb 0-10% #sqrt{s} = 2.76 TeV");
+	legda->AddEntry(hSystpPb, "p-Pb #sqrt{s} = 5.02 TeV");
+	legda->AddEntry(hsqrtdiff, "#sqrt{s} difference");
+	
+	for(Int_t ipt = 0; ipt < nptbins; ipt++){
+		cMeanjetmass->cd();
+		gPad->SetTicks(1,1);
+		grMeanPbPbSys->GetYaxis()->SetRangeUser(0., 22.);
+		grMeanPbPbSys->GetXaxis()->SetRangeUser(ptlims[0], ptlims[nptbins]);
+		grMeanPbPbSys->SetTitle("; #it{p}_{T, ch jet} (GeV/#it{c}); #LT #it{M}_{ch jet} #GT (GeV/#it{c}^{2})");
+		grMeanPbPbSys->DrawClone("AE2");
+		hMeanPy276->Draw("sames");
+		hMeanPbPb->Draw("sames");
+		hMeanJewel->Draw("sames");
+		hMeanQPythia->Draw("sames");
+		leg->Draw();
+		
+		
+		cMeanjetmassdata->cd();
+		gPad->SetTicks(1,1);
+		grMeanPbPbSys->GetYaxis()->SetRangeUser(0., 16.);
+		grMeanPbPbSys->Draw("AE2");
+		hsqrtdiff->Draw("PE2sames");
+		hMeanjmpPb->Draw("sames");
+		hSystpPb->Draw("E2sames");
+		hMeanPbPb->Draw("sames");
+		legda->Draw();
+	}
+	
+	TLatex latext;
+	latext.SetTextSize(0.05);
+	// text for the final plots
+	TPaveText *pvgeneral = new TPaveText(0.2, 0.18, 0.4, 0.3, "NDC");
+	pvgeneral->SetFillStyle(0);
+	pvgeneral->SetBorderSize(0);
+	pvgeneral->AddText("Charged jets");
+	pvgeneral->AddText("Anti-#it{k}_{T}, #it{R} = 0.4");
+	
+	
+	cMeanjetmass->cd();
+	DrawLogo(0, 65, 2, "", 42, "");
+	latext.DrawLatex(65, 20, "Charged jets, Anti-#it{k}_{T}");
+	latext.DrawLatex(65, 18, "#it{R} = 0.4, |#eta_{jet}| < 0.5");
+	//pvgeneral->Draw();
+	cMeanjetmassdata->cd();
+	DrawLogo(0, 65, 2, "", 42, "");
+	latext.DrawLatex(65, 14, "Charged jets, Anti-#it{k}_{T}");
+	latext.DrawLatex(65, 12, "#it{R} = 0.4, |#eta_{jet}| < 0.5");
+	//pvgeneral->Draw();
+	
+	SaveCv(cMeanjetmass);
+	SaveCv(cMeanjetmassdata);
+}
+
+//_____________________________________________________________________________
+
+TH1D* SystEnergyDep(TString filenamepPb){
+	
+	// get histograms pythia at the two energies
+	TList* list502 = GetPythiapPbMarta();
+	TList* list276 = GetPythiaPbPb();
+	
+	// put the systematic for sqrt{s} on top of these points
+	TH1D* hMeanpPb = GetMeanFromFile(filenamepPb);
+	if(!hMeanpPb) return 0;
+	
+	TH1D* hMean502 = new TH1D("hMean502", "Mean jet mass vs #it{p}_{T} #sqrt{s} = 5.02 TeV; #it{p}_{T} (GeV/#it{c}); #LT #it{M} #GT (GeV/#it{c}^{2})", nptbins, ptlims);
+	
+	TH1D* hMean276 = new TH1D("hMean276", "Mean jet mass vs #it{p}_{T} #sqrt{s} = 2.76 TeV; #it{p}_{T} (GeV/#it{c}); #LT #it{M} #GT (GeV/#it{c}^{2})", nptbins, ptlims);
+	
+	//histogram syst error
+	Int_t div = 3;
+	const Int_t fakenptbins = nptbins*div;
+	
+	
+	TH1D* hDiffsqrts = new TH1D("hDiffsqrts", "Difference mean jet mass #sqrt{s} = 5.02 TeV - #sqrt{s} = 2.76 TeV vs #it{p}_{T} ; #it{p}_{T} (GeV/#it{c}); #LT #it{M} #GT (GeV/#it{c}^{2})", fakenptbins, ptlims[0], ptlims[nptbins]);
+	hDiffsqrts->SetFillStyle(1001);
+	hDiffsqrts->SetFillColor(kGray+2);
+	hDiffsqrts->SetLineColor(hDiffsqrts->GetFillColor());
+	hDiffsqrts->SetMarkerColor(hDiffsqrts->GetFillColor());
+	//calculate the average
+	for(Int_t ipt = 0; ipt< nptbins; ipt++){
+		Int_t fakebin = hDiffsqrts->FindBin((ptlims[ipt+1] + ptlims[ipt])/2.);
+		TH1D* htmpM502 = (TH1D*)list502->At(ipt);
+		TH1D* htmpM276 = (TH1D*)list276->At(ipt);
+		Double_t jetmdiff = htmpM502->GetMean()-htmpM276->GetMean();
+		
+		hDiffsqrts->SetBinContent(fakebin, hMeanpPb->GetBinContent(ipt+1)-jetmdiff/2.);
+		hDiffsqrts->SetBinError(fakebin, jetmdiff/2.);
+	
+	}
+	
+	return hDiffsqrts;
+}
+
+//_____________________________________________________________________________
+TList* TreatSystematicsPbPb(Int_t* reject, TString name){
+	TString inputfile = "/data/Work/jets/JetMass/PbPbResults/DistJetMassPriorVar_Area.root";
+	TString results = "/data/Work/jets/JetMass/PbPbResults/DistJetMassAllSyst_Area.root";
+	
+	TList *lout = new TList();
+	lout->SetOwner(kTRUE);
+	
+	
+	TFile* fsyst = new TFile(inputfile);
+	if(!fsyst->IsOpen()){
+		Printf("File %s not found", inputfile.Data());
+		return 0x0;
+	}
+	fsyst->ls();
+	
+	TString nRelDif = "grUnfMassRelDiff";
+	
+	const Int_t nsyst = 4;
+	TString sufRelD[nsyst] = {"1_PtBin", "2_PtBin", "3_PtBin", "Iter_PtBin"};
+	
+	TString lgndtxt[nsyst] = {"Prior", "Background", "TrackEff", "Iterations"};
+	
+	TFile* fRes = new TFile(results);
+	if(!fRes->IsOpen()){
+		Printf("File %s not found", results.Data());
+		return 0x0;
+	}
+	
+	TString nameSys = "grUnfMassSyst_PtBin";
+	TString nameUnf = "grUnfMass_PtBin";
+	
+	Int_t nbinspt = 4;
+	Int_t nx, ny, dx, dy;
+	CalculatePads(nbinspt, nx, ny, dx, dy);
+	
+	TCanvas *cRelDiff = new TCanvas("cRelDiff", "Raltive difference PbPb systematics", dx, dy);
+	cRelDiff->Divide(nx, ny);
+	
+	
+	TLegend *legRelD = new TLegend(0.2, 0.6, 0.5, 0.8);
+	legRelD->SetBorderSize(0);
+	legRelD->SetFillStyle(0);
+	
+	
+	
+	TH1D* hNewSum[nbinspt];
+	
+	
+	for(Int_t ipt = 0; ipt<nbinspt; ipt++){
+		
+		TH1D* hRelDiff[nsyst];
+		Printf("Running pT bin %d/%d", ipt, nbinspt);
+		TGraphErrors *gUnfMass = (TGraphErrors*)fRes->Get(TString::Format("%s%d", nameUnf.Data(),  ipt+1));
+		gUnfMass->SetName(TString::Format("%s%d", nameUnf.Data(),  ipt+1));
+		Printf("Info graph name %s, npoints = %d", gUnfMass->GetName(), gUnfMass->GetN());
+		if(!gUnfMass) {
+			Printf("--------------------%s%d not found", nameUnf.Data(), ipt+1);
+			fsyst->ls();
+			continue;
+		}
+		TGraphErrors *gSystAll = (TGraphErrors*)fRes->Get(TString::Format("%s%d", nameSys.Data(),  ipt+1));
+		gSystAll->SetName(TString::Format("%s%d", nameSys.Data(),  ipt+1));
+		
+		for(Int_t isy = 0 ; isy < nsyst; isy++){
+			if(reject[isy]) {
+				hRelDiff[isy] = 0x0; 
+				continue;
+			}
+			TGraphErrors *gRelDif = (TGraphErrors*)fsyst->Get(TString::Format("%s%s%d", nRelDif.Data(), sufRelD[isy].Data(), ipt+1));
+			gRelDif->SetName(TString::Format("%s%s%d", nRelDif.Data(), sufRelD[isy].Data(), ipt+1));
+			
+			if(!gRelDif) continue;
+			
+			
+			gRelDif->SetLineColor(colors[isy]);
+			gRelDif->SetMarkerColor(colors[isy]);
+			if(ipt == 0) legRelD->AddEntry(gRelDif, lgndtxt[isy], "lP");
+			
+			
+			cRelDiff->cd(ipt+1);
+			if(isy == 0) gRelDif->Draw("PA");
+			else gRelDif->Draw("P");
+			if(isy == nsyst-1) legRelD->Draw();
+			Int_t nbinmass = gRelDif->GetN();
+			Double_t mass, reldiff, error;
+			gRelDif->GetPoint(0, mass, reldiff);
+			gRelDif->GetPoint(1,  error, reldiff);
+			//Printf("Point 0, mass = %f, error = %f", mass, error);
+			error = (error - mass)*0.5;
+			Double_t minh, maxh;
+			minh = mass - error;
+			gRelDif->GetPoint(nbinmass-1, mass, reldiff);
+			gRelDif->GetPoint(nbinmass-2, error, reldiff);
+			//Printf("Point %d, mass = %f, error = %f", nbinmass-2, mass, error);
+			error = (mass - error)*0.5;
+			maxh = mass + error;
+			Printf("%d points, min = %f, max = %f", nbinmass, minh, maxh);
+			
+			hRelDiff[isy] = new TH1D(TString::Format("hRelDiff_sys%d_PtBin%d", isy, ipt+1), TString::Format("hRelDiff_sys%d_PtBin%d", isy, ipt+1), nbinmass, minh, maxh);
+			hRelDiff[isy]->SetLineColor(gRelDif->GetLineColor());
+			hRelDiff[isy]->SetMarkerColor(gRelDif->GetMarkerColor());
+			hRelDiff[isy]->SetMarkerStyle(gRelDif->GetMarkerStyle());
+			hRelDiff[isy]->GetYaxis()->SetRangeUser(0, 2);
+			hRelDiff[isy]->Sumw2();
+			for(Int_t ib = 0; ib<nbinmass; ib++){
+				
+				gRelDif->GetPoint(ib, mass, error);
+				hRelDiff[isy]->SetBinContent(ib+1, 1);
+				hRelDiff[isy]->SetBinError(ib+1, error);
+			
+			}
+			cRelDiff->cd(ipt+1);
+			hRelDiff[isy]->Draw("sames");
+		}
+		
+		
+		hNewSum[ipt] = AddInQuadrature(hRelDiff, nsyst,-1, TString::Format("hNewSum_PtBin%d", ipt+1));
+		hNewSum[ipt]->SetMarkerStyle(24);
+		hNewSum[ipt]->SetMarkerColor(kMagenta+10);
+		hNewSum[ipt]->SetLineColor(kMagenta+10);
+		if(ipt == 0) legRelD->AddEntry(hNewSum[ipt], "SumQ", "lP");
+		cRelDiff->cd(ipt+1);
+		hNewSum[ipt]->Draw("sames");
+		
+		TGraphErrors* gNewSyst = new TGraphErrors(hNewSum[ipt]);
+		gNewSyst->SetName(TString::Format("gSyst%s_PtBin%d", name.Data(), ipt+1));
+		lout->Add(gNewSyst);
+		lout->Add(hNewSum[ipt]);
+		lout->Add(gUnfMass);
+		lout->Add(gSystAll);
+		
+	}
+	
+	Printf("List contains:");
+	lout->ls();
+	return lout;
+}
+
+//_____________________________________________________________________________
+
+TH1D* GetpPb(TFile* finpPb, Int_t index){
+	const char* nameMpPb = "hUnfM_Itr3_Pt";
+	
+	if(!finpPb->IsOpen()){
+		Printf("GetpPb::File is not open");
+		return 0x0;
+	}
+	TString name = TString::Format("%s%.0f_%.0f", nameMpPb, ptlims[index], ptlims[index+1]);
+	Printf("Looking for %s", name.Data());
+	TH1D* hMasspPb = (TH1D*)finpPb->Get(name)->Clone();
+	
+	if(!hMasspPb){
+		Printf("%s%.0f_%.0f not found", nameMpPb, ptlims[index], ptlims[index+1]);
+		finpPb->ls();
+		
+	}
+	//debug
+	Printf("Returning %p, named %s%.0f_%.0f", hMasspPb, nameMpPb, ptlims[index], ptlims[index+1]);
+	return hMasspPb;
+}
+
+//_____________________________________________________________________________
+
+void GetpPbSystematics(Int_t* reject, TString name, TFile* finpPb, Int_t index,  TH1D*& hNewSyspPb, TH1D*& hFullSyspPb){
+	
+	if(!finpPb->IsOpen()){
+		Printf("GetpPbSystematics::File is not open");
+		return ;
+	}
+	const Int_t totsys = 6;
+	TString nameSyspPb[totsys] = {"hSyst0BkgSub_Pt", "hRespRangesmoothSysOnErr",  "hSystMxIter_Pt", "hOvlExclusionsmoothSysOnErr", "hTrkEffsmoothSysOnErr", "hSyst1Prior_Pt"};
+	Int_t usefloat[totsys] = {1, 0, 2, 0, 0, 1};
+	
+	TH1D* hSys[totsys];
+	
+	for(Int_t isy = 0; isy<totsys; isy++){
+		if(reject[isy]) {
+			hSys[isy] = 0x0;
+			continue;
+		}
+		TString nameh = nameSyspPb[isy];
+		if(!usefloat[isy]) nameh+=index;
+		if(usefloat[isy]>0) nameh+=TString::Format("%.0f_%.0f", ptlims[index], ptlims[index+1]);
+		if(usefloat[isy]==2) nameh+=TString::Format("_Pt%.0f_%.0f", ptlims[index], ptlims[index+1]);
+		
+		Printf("Reading %s", nameh.Data());
+		
+		hSys[isy] = (TH1D*)finpPb->Get(nameh);
+		if(!hSys[isy]) Printf("Problem, %s not found", nameh.Data());
+		//else Printf("Found!!!! file is %d", finpPb->IsOpen());
+		hSys[isy]->SetName(TString::Format("hSystSource%d_Pt%.0f_%.0f", isy, ptlims[index], ptlims[index+1]));
+		
+	}
+	
+	hNewSyspPb = (TH1D*)AddInQuadrature(hSys, totsys, index, TString::Format("hSyst%s_Pt%.0f_%.0f", name.Data(), ptlims[index], ptlims[index+1]))->Clone();
+	
+	TString nameTotSyst = TString::Format("hSystTot_Pt%.0f_%.0f", ptlims[index], ptlims[index+1]);
+	hFullSyspPb = (TH1D*)finpPb->Get(nameTotSyst)->Clone();
+	
+	if(!hFullSyspPb) Printf("Total syst %s not found", nameTotSyst.Data());
+	
+	
+	
+}
+//_____________________________________________________________________________
+void RunRatioReducedSyst(){
+	
+	TString name = "All";
+
+	//for the order see legend in method above ("Prior", "Background", "TrackEff", "Iterations")
+	Int_t nsysttot = 4;
+	Int_t nsysttotpPb = 6;
+	Int_t rejectPbPb[nsysttot] = {0, 0, 0, 0};
+	
+	//pPb: bkg sub, range, iter, ovl exlu, tr eff, prior
+	Int_t rejectpPb[nsysttotpPb] = {0, 0, 0, 0, 0, 0};
+	
+	RatioWithReducedSyst(rejectPbPb, rejectpPb, name);
+	
+	name = "NoTrEff";
+	rejectPbPb[2] = 1;
+	rejectpPb[4] = 1; 
+	RatioWithReducedSyst(rejectPbPb, rejectpPb, name);
+	
+	name = "NoPrior";
+	
+	rejectPbPb[3] = 1; rejectPbPb[2] = 0;
+	rejectpPb[5] = 1; rejectpPb[4] = 0; 
+	
+	RatioWithReducedSyst(rejectPbPb, rejectpPb, name);
+	
+	name = "NoPriorNoTrEff";
+	
+	rejectPbPb[3] = 1; rejectPbPb[2] = 1;
+	rejectpPb[5] = 1; rejectpPb[4] = 1; 
+	
+	RatioWithReducedSyst(rejectPbPb, rejectpPb, name);
+}
+
+//_____________________________________________________________________________
+
+void RatioWithReducedSyst(Int_t* rejectPbPb, Int_t* rejectpPb, TString name){
+	
+	
+	
+	TList* listSystPbPb = TreatSystematicsPbPb(rejectPbPb, name);
+	Int_t offsetPbPb = 2;
+	
+	TString hnewsysn = TString::Format("gSyst%s_PtBin", name.Data());
+	TString nameUnf = "grUnfMass_PtBin";
+	TString nameSys = "grUnfMassSyst_PtBin";
+	
+	Int_t nbinspt = 3;
+	Int_t nx, ny, dx, dy;
+	CalculatePads(nbinspt, nx, ny, dx, dy);
+	
+	TCanvas *cMassPbPb = new TCanvas(TString::Format("cMassPbPb_Cmp%s", name.Data()), TString::Format("cMassPbPb_Cmp%s", name.Data()), dx, dy);
+	cMassPbPb->Divide(nx, ny);
+	
+	TCanvas *cMasspPb = new TCanvas(TString::Format("cMasspPb_Cmp%s", name.Data()), TString::Format("cMasspPb_Cmp%s", name.Data()), dx, dy);
+	cMasspPb->Divide(nx, ny);
+	
+	TCanvas *cMassRatio = new TCanvas(TString::Format("ccMassRatio_Cmp%s", name.Data()), TString::Format("ccMassRatio_Cmp%s", name.Data()), dx, dy);
+	cMassRatio->Divide(nx, ny);
+	
+	TH1D *hRatio[nbinspt];
+	TH1D *hRatioSys[nbinspt];
+	//read the pPb results
+	TString filenameSyspPb = "/data/Work/jets/JetMass/pPbJetMassAnalysis/ResultspPbJetMass/SystRatio/TotalSystematicUnc.root";
+	TString filenamepPb = "/data/Work/jets/JetMass/pPbJetMassAnalysis/ResultspPbJetMass/SystRatio/MasspPbResults.root";
+	TFile *finpPb = new TFile(filenamepPb);
+	if(!finpPb->IsOpen()){
+		Printf("File %s is not open", filenamepPb.Data());
+		return;
+	}
+	finpPb->ls();
+	TFile *finpPbSy = new TFile(filenameSyspPb);
+	if(!finpPbSy->IsOpen()){
+		Printf("File %s is not open", filenameSyspPb.Data());
+		return;
+	}
+	finpPbSy->ls();
+	
+	
+	//read final results where the ratio is
+	TString nameRatioSysDef = "hRatioPbPbOpPbSys_Pt", namePbPbSys = "hUnfMassSyst_PtBin";
+	TString filenameFinal = "/data/Work/jets/JetMass/pPbJetMassAnalysis/ResultspPbJetMass/SystRatio/FinalResults.root";
+	TFile *fFinal = new TFile(filenameFinal);
+	if(!fFinal->IsOpen()){
+		Printf("file %s not found", filenameFinal.Data());
+		return;
+	}
+	
+	TLegend *legMPbPb = new TLegend(0.5, 0.5, 0.8, 0.8);
+	legMPbPb->SetFillStyle(0);
+	legMPbPb->SetBorderSize(0);
+	TLegend *legMpPb = new TLegend(0.5, 0.5, 0.8, 0.8);
+	legMpPb->SetFillStyle(0);
+	legMpPb->SetBorderSize(0);
+	
+	TLegend *legRatio = new TLegend(0.5, 0.5, 0.8, 0.8);
+	legRatio->SetFillStyle(0);
+	legRatio->SetBorderSize(0);
+	
+	for(Int_t ipt = 0; ipt < nbinspt; ipt++){
+		
+		TGraphErrors *gMassPbPb = (TGraphErrors*)listSystPbPb->FindObject(TString::Format("%s%d", nameUnf.Data(), ipt+offsetPbPb));
+		if(!gMassPbPb) {
+			Printf("%s%d not found", nameUnf.Data(), ipt+offsetPbPb);
+			listSystPbPb->ls();
+			continue;
+		}
+		gMassPbPb->SetName(TString::Format("%s%d", nameUnf.Data(), ipt+offsetPbPb));
+		
+		TGraphErrors *gMassSysO = (TGraphErrors*)listSystPbPb->FindObject(TString::Format("%s%d", nameSys.Data(), ipt+offsetPbPb));
+		if(!gMassSysO) {
+			Printf("%s%d not found", nameSys.Data(), ipt+offsetPbPb);
+			listSystPbPb->ls();
+			continue;
+		}
+		gMassSysO->SetName(TString::Format("%s%d", nameSys.Data(), ipt+offsetPbPb));
+		gMassSysO->SetFillStyle(0);
+		gMassSysO->SetLineWidth(2);
+		
+		TGraphErrors *gSysNew = (TGraphErrors*)listSystPbPb->FindObject(TString::Format("%s%d", hnewsysn.Data(), ipt+offsetPbPb));
+		if(!gSysNew) {
+			Printf("%s%d not found", hnewsysn.Data(), ipt+offsetPbPb);
+			listSystPbPb->ls();
+			continue;
+		}
+		gSysNew->SetName(TString::Format("%s%d", hnewsysn.Data(), ipt+offsetPbPb));
+		
+		TH1D *hMassPbPb = 0x0;
+		TH1D *hSystrs   = TGraphToTH1D(gSysNew, TString::Format("hSystrs_PtBin%d", ipt+offsetPbPb));
+		TH1D *hMasstrs  = TGraphToTH1D(gMassPbPb, TString::Format("hMasstrs_PtBin%d", ipt+offsetPbPb));
+		
+		TH1D *hSysNew = MinimumRange(hSystrs, hMasstrs, hMassPbPb);
+		hSysNew->  SetName(TString::Format("hSysNew_PtBin%d", ipt+offsetPbPb));
+		hMassPbPb->SetName(TString::Format("hMassPbPb_PtBin%d", ipt+offsetPbPb));
+		
+		Printf("New histograms %p, %p", hSysNew, hMassPbPb);
+		hMassPbPb->SetMarkerStyle(gMassPbPb->GetMarkerStyle());
+		hMassPbPb->SetMarkerColor(gMassPbPb->GetMarkerColor());
+		hSysNew->SetFillStyle(1001);
+		hSysNew->SetFillColor(kCyan);
+		
+		SetMassValueInSystematic(hSysNew, hMassPbPb);
+		
+		cMassPbPb->cd(ipt+1);
+		//gMassPbPb->Draw("AP");
+		hSysNew->GetYaxis()->SetRangeUser(0, 0.25);
+		hSysNew->Draw("E2");
+		hMassPbPb->Draw("sames");
+		gMassSysO->Draw("E2sames");
+		if(ipt == 0){
+			legMPbPb->AddEntry(hSysNew, TString::Format("Syst %s", name.Data()));
+			legMPbPb->AddEntry(gMassSysO, "Original Syst");
+			
+		}
+		legMPbPb->Draw();
+		
+		//pPb
+		
+		TH1D* hMasspPb = GetpPb(finpPb, ipt);
+		
+		TH1D* hSyspPbNew = 0x0;
+		TH1D* hSyspPb    = 0x0;
+		GetpPbSystematics(rejectpPb, name, finpPbSy, ipt,  hSyspPbNew, hSyspPb);
+		hSyspPbNew->SetFillStyle(0);
+		
+		if(!hMasspPb) Printf("Problem, ipt = %d hMasspPb %p", ipt, hMasspPb);
+		if(!hSyspPb)  Printf("Problem, ipt = %d hSyspPb %p", ipt, hSyspPb);
+		TH1D *hh = 0x0;
+		TH1D *hhs = 0x0;
+		
+		//relative uncertainties, can uncomment and plot for debugging
+		//cMasspPb->cd(ipt+1);
+		//hSyspPbNew->Draw("E2");
+		//hSyspPb->Draw("E2sames");
+		SetMassValueInSystematic(hSyspPbNew, hMasspPb);
+		SetMassValueInSystematic(hSyspPb, hMasspPb);
+		hSyspPbNew->GetYaxis()->SetRangeUser(0., 0.25);
+		hSyspPbNew->SetTitle("; #it{M}_{ch jet} (GeV/#it{c}^{2}); #frac{1}{#it{N}_{jets}} #frac{d#it{N}}{d#it{M}_{ch jet}} (#it{c}^{2}/GeV)");
+		cMasspPb->cd(ipt+1);
+		hSyspPbNew->Draw("E2");
+		hSyspPb->Draw("E2sames");
+		hMasspPb->Draw("sames");
+		
+		if(ipt == 0){
+			legMpPb->AddEntry(hSyspPbNew, TString::Format("Syst %s", name.Data()));
+			legMpPb->AddEntry(hSyspPb, "Original Syst");
+			
+		}
+		legMpPb->Draw();
+		
+		// reduce the range to the minimum one
+		hRatio[ipt] = MinimumRange(hMassPbPb, hMasspPb, hh);
+		hRatioSys[ipt] = MinimumRange(hSysNew, hSyspPbNew, hhs);
+		hRatio[ipt]->SetName(TString::Format("hMassPbPbOpPb_PtBin%d", ipt+1));
+		hRatioSys[ipt]->SetName(TString::Format("h%sSysPbPbOpPb_PtBin%d", name.Data(), ipt+1));
+		hRatio[ipt]->GetYaxis()->SetTitle("#Rgothic_{#sqrt{#it{s}}}");
+		hRatioSys[ipt]->GetYaxis()->SetTitle("#Rgothic_{#sqrt{#it{s}}}");
+		
+		hRatio[ipt]->Divide(hh);
+		hRatioSys[ipt]->Divide(hhs);
+		hRatioSys[ipt]->SetFillStyle(0);
+		hRatioSys[ipt]->SetFillColor(kRed);
+		hRatioSys[ipt]->SetLineColor(kRed);
+		hRatioSys[ipt]->SetLineWidth(2);
+		
+		TF1 *fpol3RatioDef = new TF1(TString::Format("fpol3RatioDef_Pt%d", ipt), "[0] + [1]*x + [2]*x*x + [3]*x*x", 0., hRatioSys[ipt]->GetBinLowEdge(hRatioSys[ipt]->GetNbinsX()+1));
+		fpol3RatioDef->SetParameters(1, 1e-2, 1e-3, 1e-3);
+		fpol3RatioDef->SetLineColor(hRatioSys[ipt]->GetLineColor());
+		
+		TH1D* hSysRatioDef = (TH1D*)fFinal->Get(TString::Format("%s%.0f_%.0f", nameRatioSysDef.Data(), ptlims[ipt], ptlims[ipt+1]));
+		
+		hSysRatioDef->Fit(fpol3RatioDef, "RL+0");
+		TH1D* hSysPbPbRes = (TH1D*)fFinal->Get(TString::Format("%s%d", namePbPbSys.Data(), ipt+offsetPbPb)); //watch out the offset!!!!
+		TH1D* hRatioPyt   = (TH1D*)fFinal->Get(TString::Format("hRatio276O502M_Pt%d", ipt));
+		
+		cMassRatio->cd(ipt+1);
+		hSysRatioDef->GetYaxis()->SetRangeUser(0., 4.);
+		hSysRatioDef->Draw("E2");
+		hRatio[ipt]->Draw("sames");
+		hRatioSys[ipt]->Draw("E2sames");
+		fpol3RatioDef->Draw("sames");
+		hRatioPyt->Draw("sames");
+		
+		if(ipt == 0){
+			legRatio->AddEntry(hRatioSys[ipt], TString::Format("Syst %s", name.Data()));
+			legRatio->AddEntry(hSysRatioDef, "Original Ratio");
+			
+		}
+		legRatio->Draw();
+		// results preliminary, uncomment to debug
+		//cMassPbPb->cd(ipt+1);
+		//hSysPbPbRes->Draw("E2sames");
+		
+	}
+	SaveCv(cMassPbPb);
+	SaveCv(cMasspPb );
+	SaveCv(cMassRatio);
+}
+
+
 #endif
