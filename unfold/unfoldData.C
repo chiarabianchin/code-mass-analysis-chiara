@@ -30,6 +30,7 @@ Double_t ptmax[nPtBins] = {80.,100.,120.};//60.,
 void Rebin2D(TH2 *hOrig, TH2 *hNew);
 Int_t CombineTriggersCorrected(const Int_t ninputs, TString files[], Int_t iteration[], TString legs[]);
 void ReturnWiderRangeHistogram(TH2D* h, TH2D* g, TH2D*& hnew, TH2D*& gnew);
+TH2D* CovarianceMatixToHisto(const TMatrixD& cov,const char* name, const char* title, Int_t na, Int_t nb, Int_t kbin);
 
 void unfold(TString str = "/data/Work/jets/JetMass/DetectorCorrections/LHC13b4_plus/Train576/unfolding/response.root", TString strDat = "../AnalysisResults.root", Int_t iterDef = 2, Int_t iterMin =1, Int_t iterMax = 3, Int_t iList = 0, Int_t varyPrior = 0, Double_t R = 0.4, Int_t colType = 1, TString suff = "", Int_t colorSeries = 1, Int_t isVarW = 0) {
 	
@@ -198,7 +199,7 @@ void unfold(TString str = "/data/Work/jets/JetMass/DetectorCorrections/LHC13b4_p
 	const Int_t nIter = nIterTmp;
 	TH2D *hReco[nIter];
 	TH2D *hFolded[nIter];
-	TMatrixD covmat[nIter];
+	TMatrixD *covmat = new TMatrixD[nIter];
 	RooUnfoldBayes unfold[nIter];
 	//for(Int_t iter = iterMin; iter<=iterMax; iter++) {
 	for(Int_t iter = iterMin; iter<iterMax; iter++) {
@@ -213,11 +214,31 @@ void unfold(TString str = "/data/Work/jets/JetMass/DetectorCorrections/LHC13b4_p
 		hFolded[iter-iterMin]->SetName(TString::Format("hFolded_Iter%d",iter));
 		hFolded[iter-iterMin]->SetTitle(TString::Format("Folded Iter%d; #it{p}_{T};#it{M}",iter));
 		Printf("Before Ereco");
-		covmat[iter-iterMin] = unfold[iter-iterMin].Ereco(RooUnfold::kCovariance);
-		Printf("After Ereco");
+		covmat[iter-iterMin] = unfold[iter-iterMin].Ereco((RooUnfold::ErrorTreatment)RooUnfold::kCovariance);
+		//Printf("This is the covariance matrix %f", covmat[iter-iterMin](0, 0));
+		
+		
 	}
 	TH2D *hPriorFolded = (TH2D*)resp->ApplyToTruth(hPrior);
 	hPriorFolded->SetName("hPriorFolded");
+	
+	Int_t nbinsPtT = hTrue->GetNbinsX();
+	Int_t nbinsMaT = hTrue->GetNbinsY();
+	Int_t nbinsPtR = hReco[iterDef-iterMin]->GetNbinsX();
+	Int_t nbinsMaR = hReco[iterDef-iterMin]->GetNbinsY();
+	
+	TCanvas *cCovar = new TCanvas("cCovar", TString::Format("Covariance matrix, iter %d", iterDef), 1000, 800);
+	cCovar->Divide(2,2);
+	
+	for(Int_t k = 0; k < nbinsPtT; k++){
+	    
+		TH2D *hCorr= CovarianceMatixToHisto(covmat[iterDef-iterMin], Form("corr%d",k), "Covariance matrix", nbinsPtT, nbinsPtR,k);
+		cCovar->cd(k+1);
+		hCorr->Draw("colztext");
+	}
+	
+	
+	
 	
 	TCanvas *c2 = new TCanvas(TString::Format("cRespSummary%s",cvsuff.Data()),"Response and Result summary",800,750);
 	c2->Divide(2,2);
@@ -886,6 +907,25 @@ void ReturnWiderRangeHistogram(TH2D* h, TH2D* g, TH2D*& hnew, TH2D*& gnew){
 	return;
 } 
 
+//_____________________________________________________________________________
+
+TH2D* CovarianceMatixToHisto(const TMatrixD& cov,const char* name, const char* title, Int_t na, Int_t nb, Int_t kbin){
+ 
+	TH2D* h= new TH2D (name, title, nb, 0, nb, nb, 0, nb);
+	
+	for(int l = 0; l < nb; l++){
+		for(int n = 0; n < nb; n++){
+			int index1 = kbin + na*l;
+			int index2 = kbin + na*n;
+   	        Double_t Vv=cov(index1,index1)*cov(index2,index2);
+   	        Printf("covariance %f", Vv);
+   	        if (Vv>0.0) h->SetBinContent(l+1,n+1,cov(index1,index2)/sqrt(Vv));
+   	        
+   	        
+   	    }
+   	}
+   	return h;
+}
 
 #endif
 
