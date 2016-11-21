@@ -70,7 +70,7 @@ void DefineRangeUnfolding(TString inputData = "/data/Work/jets/JetMass/pPbJetMas
 
 //___________________________________________________________________________
 
-void DefineRangeUnfoldingMCClosure(TString inputData = "/data/Work/jets/JetMass/pPbJetMassAnalysis/ResultspPbJetMass/Train806-807-810-811/UnfoldingNoBkgSub/ResponseWJetShapeConst_JetRhosub_AKTChargedR040_PicoTracks.root", Int_t bkgType = 2, Int_t triggerType = 1, Double_t binWPt = 10., Double_t binWMa = 2., Double_t minCounts = 10, Double_t nwidth = 1){
+void DefineRangeUnfoldingMCClosure(TString inputData = "/data/Work/jets/JetMass/pPbJetMassAnalysis/Embedding20160726/Const/analysis/NoSub/FineBinning/ResponseWJetShapeConst_JetRhosub_AKTChargedR040_PicoTracks.root", Int_t bkgType = 2, Int_t triggerType = 1, Double_t binWPt = 10., Double_t binWMa = 2., Double_t minCounts = 10, Double_t nwidth = 1){
 	
 	TString hname = "fhResponseFinal";
 	
@@ -143,6 +143,7 @@ void DefineRangeUnfolding(TH2D* hMeasured, Int_t bkgType, Int_t triggerType, Dou
 	
 	Double_t binWOrigPt = hMeasured->GetXaxis()->GetBinWidth(3);
 	Double_t binWOrigMa = hMeasured->GetYaxis()->GetBinWidth(3);
+	Printf("Bin width original Pt %f, M %f", binWOrigPt, binWOrigMa);
 	Int_t rebPt = (Int_t) (binWPt / binWOrigPt);
 	Int_t rebMa = (Int_t) (binWMa / binWOrigMa);
 	Printf("Rebin factor x axis (%s) = %d, Rebin factor y axis (%s) = %d",  hMeasured->GetXaxis()->GetTitle(), rebPt, hMeasured->GetYaxis()->GetTitle(), rebMa);

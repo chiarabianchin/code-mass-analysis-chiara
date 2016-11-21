@@ -910,7 +910,7 @@ void CompareTreeAndResp(TTree *tree, THnSparse *hresp){
 		hrati[iax] = (TH1D*)htree[iax]->Clone(TString::Format("htreeOresp_%d", iax));
 		hrati[iax]->Divide(hpjres[iax]);
 		cRatios->cd(iax+1);
-		hrati[iax]->Draw();
+		hrati[iax]->DrawClone();
 	}
 }
 
@@ -934,7 +934,7 @@ TTree* ReadTree(Long64_t& nEv,TString filetree, TString trname){
 }
 //_________________________________________________________________
 
-void SmearedResp(TString fileData = "/data/Work/jets/JetMass/pPbJetMassAnalysis/ResultspPbJetMass/Train806-807-810-811/DefineUnfRange/VarBin/MassVsPtVarWBkgNoSubTrMB.root", Double_t mTwidth = 2, Double_t minMT = 0, Double_t maxMT = 40, Double_t ptTwidth = 20, Double_t minPtT = 20., Double_t maxPtT = 140., TString strIn = "/data/Work/jets/JetMass/pPbJetMassAnalysis/ResultspPbJetMass/Train806-807-810-811/UnfoldVarBinW/ResponseWJetShapeConst_JetRhosub_AKTChargedR040_PicoTracks.root", TString suff = "", Int_t idx = 4, Bool_t fillmiss = kTRUE, Double_t frac = 0.05, TString filetree = "TreeResponse.root", TString trname = "treeresp"){
+void SmearedResp(TString fileData = "/data/Work/jets/JetMass/pPbJetMassAnalysis/ResultspPbJetMass/Train806-807-810-811/DefineUnfRange/VarBin/MassVsPtVarWBkgNoSubTrMB.root", Double_t mTwidth = 2, Double_t minMT = 0, Double_t maxMT = 40, Double_t ptTwidth = 20, Double_t minPtT = 20., Double_t maxPtT = 140., TString strIn = "/data/Work/jets/JetMass/pPbJetMassAnalysis/Embedding20160726/Const/analysis/NoSub/FineBinning/ResponseWJetShapeConst_JetRhosub_AKTChargedR040_PicoTracks.root", TString pathout = "./", TString suff = "", Int_t idx = 4, Bool_t fillmiss = kTRUE, Double_t frac = 2, TString filetree = "TreeResponse.root", TString trname = "treeresp"){
 	
 	TString namenptbins = "nbinsPt";
 	TString namenmabins = "nbinsM";
@@ -1120,7 +1120,7 @@ void SmearedResp(TString fileData = "/data/Work/jets/JetMass/pPbJetMassAnalysis/
 	else delete cMis;
 	
     //Write response + 2D histos to file
-	TFile *fout = new TFile(TString::Format("response%s.root",suff.Data()),"RECREATE");
+	TFile *fout = new TFile(TString::Format("%s/response%s.root", pathout.Data(), suff.Data()),"RECREATE");
 	hn->Write();
 	responsenew->Write("resp");
 	hParRbVarW->Write();
