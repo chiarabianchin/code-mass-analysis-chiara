@@ -1002,25 +1002,25 @@ void CompareSysRangeVarBinW(Bool_t logy = kFALSE){
 //______________________________________________________________________________
 
 void CompareDegudVarBW(Bool_t logy = kFALSE){
-	const Int_t ninputs = 4;
+	const Int_t ninputs = 5;
 	TString files[ninputs] = {
-		"/data/Work/jets/JetMass/pPbJetMassAnalysis/ResultspPbJetMass/Syst20161004VarBinW/byHand/UnfoldedDistributionsPrior0Def.root",
-		"/data/Work/jets/JetMass/pPbJetMassAnalysis/ResultspPbJetMass/Syst20161004VarBinW/byHand/UnfoldedDistributionsPrior0Sys1.root",
 		"/data/Work/jets/JetMass/pPbJetMassAnalysis/ResultspPbJetMass/Train806-807-810-811/UnfoldingNoBkgSub/MB/00resp_pt20_80or70_120_ptT10_150or50_150_m0_12or0_14_mT0_40/UnfoldedDistributionsPrior0DetFlBkgNoSub.root",
-		"/data/Work/jets/JetMass/pPbJetMassAnalysis/ResultspPbJetMass/Syst20161004VarBinW/byHand/UnfoldedDistributionsPrior0ClosResData.root"
-//UnfoldedDistributionsPrior0VarCodeFixed.root
+		"/data/Work/jets/JetMass/pPbJetMassAnalysis/ResultspPbJetMass/Syst20161004VarBinW/byHand/FixedBinW/Data/UnfoldedDistributionsPrior0.root",
+		"/data/Work/jets/JetMass/pPbJetMassAnalysis/ResultspPbJetMass/Syst20161004VarBinW/byHand/FixedBinW/MCClos/UnfoldedDistributionsPrior0.root",
+		"/data/Work/jets/JetMass/pPbJetMassAnalysis/ResultspPbJetMass/Syst20161004VarBinW/byHand/VarBinW/Data/UnfoldedDistributionsPrior0.root",
+		"/data/Work/jets/JetMass/pPbJetMassAnalysis/ResultspPbJetMass/Syst20161004VarBinW/byHand/VarBinW/MCClos/UnfoldedDistributionsPrior0.root"
 	};
 	//these below are the test that match best
 	//"/data/Work/jets/JetMass/pPbJetMassAnalysis/ResultspPbJetMass/Train806-807-810-811/UnfoldVarBinW/EJE/tests/UnfoldedDistributionsPrior010GeVpar.root",
 	//"/data/Work/jets/JetMass/pPbJetMassAnalysis/ResultspPbJetMass/Train806-807-810-811/UnfoldVarBinW/EJE/tests/UnfoldedDistributionsPrior0.root","/data/Work/jets/JetMass/pPbJetMassAnalysis/ResultspPbJetMass/Train806-807-810-811/UnfoldingNoBkgSub/EJE/00resp_pt20_80or70_120_ptT10_150or50_150_m0_12or0_14_mT0_40/UnfoldedDistributionsPrior0DetFlBkgNoSub.root"
 
-	TString hnamebase[ninputs] = {"hMUnf__Iter3", "hMUnf__Iter3", "hMUnf__Iter3", "hMUnf__Iter3"};
-	TString legs[ninputs] = {"MBDef","MBSys1", "MBFixDef", "MCClosResData"}; //"VarCodeFixed"
-	Int_t firstMatchingBin[ninputs] = {0, 0, 0, 0};
+	TString hnamebase[ninputs] = {"hMUnf__Iter3", "hMUnf__Iter3", "hMUnf__Iter3", "hMUnf__Iter3", "hMUnf__Iter3"};
+	TString legs[ninputs] = {"DefaultRes","FixedData", "FixedMCClos", "VarData", "VarMCClos"}; //
+	Int_t firstMatchingBin[ninputs] = {0, 0, 0, 0, 0};
 	Bool_t changeColor = kTRUE;
 	Bool_t writeout = kTRUE;
 	Bool_t nouniform = kFALSE;
-	Int_t base = 2;
+	Int_t base = 0;
 	Printf("Base %d is %s", base , legs[base].Data());
 	CompareResults(ninputs, files, hnamebase, legs, firstMatchingBin, changeColor, writeout, nouniform, base, "", logy);
 
