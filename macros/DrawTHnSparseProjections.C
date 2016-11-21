@@ -1,5 +1,5 @@
 #include </data/macros/LoadALICEFigures.C>
-#include </data/Work/MyCodeJetMass/utils/CommonTools.C>
+#include </data/Work/code-mass-analysis-chiara/utils/CommonTools.C>
 #include <THnSparse.h>
 #include <TString.h>
 #include <TCanvas.h>
@@ -305,9 +305,9 @@ void DrawTHnSparseProjections(Int_t axrange[], Int_t axproj[], const Int_t nbins
 	CalculatePads(nbins, nx, ny, dx, dy);
 	
 	for(Int_t i = 0; i< nfiles; i++) fullname+=legs[i];
-	TCanvas *cAnvas = new TCanvas(Form("c%s", fullname.Data()), "", 900, 700);
+	TCanvas *cAnvas = new TCanvas(TString::Format("c%s", fullname.Data()), "", 900, 700);
 	cAnvas->Divide(nx, ny);
-	TCanvas *cRatios = new TCanvas(Form("cRatios%s", fullname.Data()), "", 900, 700);
+	TCanvas *cRatios = new TCanvas(TString::Format("cRatios%s", fullname.Data()), "", 900, 700);
 	cRatios->Divide(nx, ny);
 	
 	TLegend *leg = new TLegend(0.6, 0.4, 0.8, 0.6);
@@ -407,8 +407,8 @@ void DrawTHnSparseProjections(Int_t axrange[], Int_t axproj[], const Int_t nbins
 		// - M integrated in the other axes
 		// - M in the full range defined by limits
 		
-		TCanvas *cFile = new TCanvas(Form("cDistributions%d", ifile), Form("Distributions %s", legs[ifile].Data()), 600, 600);
-		//TCanvas *cRatioFile = new TCanvas(Form("cDistributionRatios%d", ifile), Form("Ratios %s", legs[ifile].Data()), 600, 600);
+		TCanvas *cFile = new TCanvas(TString::Format("cDistributions%d", ifile), TString::Format("Distributions %s", legs[ifile].Data()), 600, 600);
+		//TCanvas *cRatioFile = new TCanvas(TString::Format("cDistributionRatios%d", ifile), TString::Format("Ratios %s", legs[ifile].Data()), 600, 600);
 		
 		TH1D *hM = 0x0;
 		TH1D *hMInLimRange = 0x0;
@@ -432,7 +432,7 @@ void DrawTHnSparseProjections(Int_t axrange[], Int_t axproj[], const Int_t nbins
 			Printf("Binning on %s, projecting on %s", hsph[ifile]->GetAxis(axrange[ifile])->GetTitle(), hsph[ifile]->GetAxis(axproj[ifile])->GetTitle());
 			
 			hM = hsph[ifile]->Projection(axproj[ifile]);
-			hM->SetName(Form("hM%d", ifile));
+			hM->SetName(TString::Format("hM%d", ifile));
 			hM->SetLineStyle(2);
 			hM->SetLineWidth(2);
 			hM->SetLineColor(kBlack);
@@ -444,13 +444,13 @@ void DrawTHnSparseProjections(Int_t axrange[], Int_t axproj[], const Int_t nbins
 			Int_t binrangeall[2] = {hsph[ifile]->GetAxis(axrange[ifile])->FindBin(binlims[0]), hsph[ifile]->GetAxis(axrange[ifile])->FindBin(binlims[nbins])};
 			hsph[ifile]->GetAxis(axrange[ifile])->SetRange(binrangeall[0], binrangeall[1]);
 			hMInLimRange = hsph[ifile]->Projection(axproj[ifile]);
-			hMInLimRange->SetName(Form("hMInLimRange%d", ifile));
+			hMInLimRange->SetName(TString::Format("hMInLimRange%d", ifile));
 			hMInLimRange->SetLineWidth(2);
 			hMInLimRange->SetLineColor(kGray+2);
 			hMInLimRange->Scale(1./hMInLimRange->Integral("width"));
 			cFile->cd();
 			hMInLimRange->Draw("sames");
-			legpt->AddEntry(hMInLimRange,  Form("%.0f < %s < %.0f", binlims[0], hsph[ifile]->GetAxis(axrange[ifile])->GetTitle(), binlims[nbins]), "LP");
+			legpt->AddEntry(hMInLimRange,  TString::Format("%.0f < %s < %.0f", binlims[0], hsph[ifile]->GetAxis(axrange[ifile])->GetTitle(), binlims[nbins]), "LP");
 			for(Int_t ipt = 0; ipt < nbins; ipt++){
 	
 				
@@ -459,7 +459,7 @@ void DrawTHnSparseProjections(Int_t axrange[], Int_t axproj[], const Int_t nbins
 					pvt = new TPaveText(0.4, 0.6, 0.9, 0.8, "NDC");
 					pvt->SetFillStyle(0);
 					pvt->SetBorderSize(0);
-					pvt->AddText(Form("%.0f < %s < %.0f", binlims[ipt], hsph[ifile]->GetAxis(axrange[ifile])->GetTitle(), binlims[ipt+1]));
+					pvt->AddText(TString::Format("%.0f < %s < %.0f", binlims[ipt], hsph[ifile]->GetAxis(axrange[ifile])->GetTitle(), binlims[ipt+1]));
 				}
 				Int_t binrange[2] = {hsph[ifile]->GetAxis(axrange[ifile])->FindBin(binlims[ipt]), hsph[ifile]->GetAxis(axrange[ifile])->FindBin(binlims[ipt+1] - 0.1)};
 				
@@ -468,7 +468,7 @@ void DrawTHnSparseProjections(Int_t axrange[], Int_t axproj[], const Int_t nbins
 				hsph[ifile]->GetAxis(axrange[ifile])->SetRange(binrange[0], binrange[1]);
 			
 				TH1D* hproj = hsph[ifile]->Projection(axproj[ifile]);
-				hproj->SetName(Form("hdM%s_%d", legs[ifile].Data(), ipt));
+				hproj->SetName(TString::Format("hdM%s_%d", legs[ifile].Data(), ipt));
 				hproj->SetLineColor(colors[ifile]);
 				hproj->SetMarkerColor(colors[ifile]);
 				hproj->SetMarkerStyle(20+ifile);
@@ -482,18 +482,18 @@ void DrawTHnSparseProjections(Int_t axrange[], Int_t axproj[], const Int_t nbins
 				else hproj->Draw("sames");
 				if(ifile == 1) pvt->Draw();
 				
-				TH1D* hprojcopy = (TH1D*)hproj->Clone(Form("%s_color", hproj->GetName()));
+				TH1D* hprojcopy = (TH1D*)hproj->Clone(TString::Format("%s_color", hproj->GetName()));
 				hprojcopy->SetMarkerColor(colors[ipt]);
-				legpt->AddEntry(hprojcopy, Form("%.0f < %s < %.0f", binlims[ipt],  hsph[ifile]->GetAxis(axrange[ifile])->GetTitle(),  binlims[ipt+1]), "LP");
+				legpt->AddEntry(hprojcopy, TString::Format("%.0f < %s < %.0f", binlims[ipt],  hsph[ifile]->GetAxis(axrange[ifile])->GetTitle(),  binlims[ipt+1]), "LP");
 				cFile->cd();
 				hprojcopy->Draw("sames");
 				
 				if(ifile == base) {
-					hRatioDenom[ipt] = (TH1D*)hprojcopy->Clone(Form("hDenom%s_%d", legs[base].Data(), ipt));
+					hRatioDenom[ipt] = (TH1D*)hprojcopy->Clone(TString::Format("hDenom%s_%d", legs[base].Data(), ipt));
 					Printf("Filling denominator with file %d, thnsparse input", ifile);
 				}
 				else{
-					if(!hRatioProj[ifile][ipt]) hRatioProj[ifile][ipt] = (TH1D*)hprojcopy->Clone(Form("h%sOver%s_%d", legs[ifile].Data(), legs[base].Data(), ipt));
+					if(!hRatioProj[ifile][ipt]) hRatioProj[ifile][ipt] = (TH1D*)hprojcopy->Clone(TString::Format("h%sOver%s_%d", legs[ifile].Data(), legs[base].Data(), ipt));
 					Printf("Filling numerator with file %d, thnsparse input", ifile);
 				}
 			}
@@ -530,7 +530,7 @@ void DrawTHnSparseProjections(Int_t axrange[], Int_t axproj[], const Int_t nbins
 				hM = h3[ifile]->ProjectionZ();
 			}
 			legpt->AddEntry(hM, "Full range", "LP");
-			hM->SetName(Form("hM%d", ifile));
+			hM->SetName(TString::Format("hM%d", ifile));
 			hM->SetLineStyle(2);
 			hM->SetLineWidth(2);
 			hM->SetLineColor(kBlack);
@@ -545,13 +545,13 @@ void DrawTHnSparseProjections(Int_t axrange[], Int_t axproj[], const Int_t nbins
 			//if(axproj[ifile] == 0) hMInLimRange = h3[ifile]->ProjectionX("_p", binrangeall[0], binrangeall[1]);
 			//if(axproj[ifile] == 0) hMInLimRange = h3[ifile]->ProjectionX("_p", binrangeall[0], binrangeall[1]);
 			//
-			//hMInLimRange->SetName(Form("hMInLimRange%d", ifile));
+			//hMInLimRange->SetName(TString::Format("hMInLimRange%d", ifile));
 			//hMInLimRange->SetLineWidth(2);
 			//hMInLimRange->SetLineColor(kGray+2);
 			//hMInLimRange->Scale(1./hMInLimRange->Integral("width"));
 			//cFile->cd();
 			//hMInLimRange->Draw("sames");
-			//legpt->AddEntry(hMInLimRange,  Form("%.0f < %s < %.0f GeV/#it{c}", binlims[0], hsph[ifile]->GetAxis(axrange[ifile])->GetTitle(), binlims[nbins]), "LP");
+			//legpt->AddEntry(hMInLimRange,  TString::Format("%.0f < %s < %.0f GeV/#it{c}", binlims[0], hsph[ifile]->GetAxis(axrange[ifile])->GetTitle(), binlims[nbins]), "LP");
 			TString titleleg = "";
 			for(Int_t ipt = 0; ipt < nbins; ipt++){
 				
@@ -582,7 +582,7 @@ void DrawTHnSparseProjections(Int_t axrange[], Int_t axproj[], const Int_t nbins
 					titleleg = h3[ifile]->GetZaxis()->GetTitle();
 				}
 				
-				TString namepj = Form("hdM%s_%d", legs[ifile].Data(), ipt);
+				TString namepj = TString::Format("hdM%s_%d", legs[ifile].Data(), ipt);
 				Printf("Ranges ax  %d (%s) %d-%d", axrange[ifile], h3[ifile]->GetYaxis()->GetTitle(), binrange[0], binrange[1]);
 				
 				if(axproj[ifile] == 0)  {
@@ -609,7 +609,7 @@ void DrawTHnSparseProjections(Int_t axrange[], Int_t axproj[], const Int_t nbins
 				hproj->SetMarkerStyle(20+ifile);
 				
 				if(ipt == 0) leg->AddEntry(hproj, legs[ifile], "LP");
-				if(ifile == 1) pvt->AddText(Form("%.0f < %s < %.0f", binlims[ipt], titleleg.Data(), binlims[ipt+1]));
+				if(ifile == 1) pvt->AddText(TString::Format("%.0f < %s < %.0f", binlims[ipt], titleleg.Data(), binlims[ipt+1]));
 				
 				cAnvas->cd(ipt+1);
 				gPad->SetLogy();
@@ -617,19 +617,19 @@ void DrawTHnSparseProjections(Int_t axrange[], Int_t axproj[], const Int_t nbins
 				else hproj->Draw("Psames");
 				if(ifile == 1) pvt->DrawClone();
 				
-				TH1D* hprojcopy = (TH1D*)hproj->Clone(Form("%s_color", hproj->GetName()));
+				TH1D* hprojcopy = (TH1D*)hproj->Clone(TString::Format("%s_color", hproj->GetName()));
 				hprojcopy->SetMarkerColor(colors[ipt]);
 				hprojcopy->SetFillColor(colors[ipt]);
-				legpt->AddEntry(hprojcopy, Form("%.0f < %s < %.0f", binlims[ipt],  titleleg.Data(), binlims[ipt+1]) , "LP");
+				legpt->AddEntry(hprojcopy, TString::Format("%.0f < %s < %.0f", binlims[ipt],  titleleg.Data(), binlims[ipt+1]) , "LP");
 				cFile->cd();
 				hprojcopy->Draw("sames");
 				
 				if(ifile == base) {
-					hRatioDenom[ipt] = (TH1D*)hprojcopy->Clone(Form("hDenom%s_%d", legs[base].Data(), ipt));
+					hRatioDenom[ipt] = (TH1D*)hprojcopy->Clone(TString::Format("hDenom%s_%d", legs[base].Data(), ipt));
 					Printf("Filling denominator with file %d, th3f input", ifile);
 				}
 				else{
-					if(!hRatioProj[ifile][ipt]) hRatioProj[ifile][ipt] = (TH1D*)hprojcopy->Clone(Form("h%sOver%s_%d", legs[ifile].Data(), legs[base].Data(), ipt));
+					if(!hRatioProj[ifile][ipt]) hRatioProj[ifile][ipt] = (TH1D*)hprojcopy->Clone(TString::Format("h%sOver%s_%d", legs[ifile].Data(), legs[base].Data(), ipt));
 					Printf("Filling numerator with file %d, th3f input", ifile);
 				}
 			}
@@ -662,7 +662,7 @@ void DrawTHnSparseProjections(Int_t axrange[], Int_t axproj[], const Int_t nbins
 			}
 			
 			legpt->AddEntry(hM, "Full range", "LP");
-			hM->SetName(Form("hM%d", ifile));
+			hM->SetName(TString::Format("hM%d", ifile));
 			hM->SetLineStyle(2);
 			hM->SetLineWidth(2);
 			hM->SetLineColor(kBlack);
@@ -696,7 +696,7 @@ void DrawTHnSparseProjections(Int_t axrange[], Int_t axproj[], const Int_t nbins
 					titleleg = h2[ifile]->GetYaxis()->GetTitle();
 				}
 				
-				TString namepj = Form("hdM%s_%d", legs[ifile].Data(), ipt);
+				TString namepj = TString::Format("hdM%s_%d", legs[ifile].Data(), ipt);
 				Printf("Ranges ax  %d (%s) %d-%d", axrange[ifile], h2[ifile]->GetYaxis()->GetTitle(), binrange[0], binrange[1]);
 				
 				if(axproj[ifile] == 0)  {
@@ -717,7 +717,7 @@ void DrawTHnSparseProjections(Int_t axrange[], Int_t axproj[], const Int_t nbins
 				hproj->SetMarkerStyle(20+ifile);
 				
 				if(ipt == 0) leg->AddEntry(hproj, legs[ifile], "LP");
-				if(ifile == 1) pvt->AddText(Form("%.0f < %s < %.0f", binlims[ipt], titleleg.Data(), binlims[ipt+1]));
+				if(ifile == 1) pvt->AddText(TString::Format("%.0f < %s < %.0f", binlims[ipt], titleleg.Data(), binlims[ipt+1]));
 				
 				cAnvas->cd(ipt+1);
 				gPad->SetLogy();
@@ -725,19 +725,19 @@ void DrawTHnSparseProjections(Int_t axrange[], Int_t axproj[], const Int_t nbins
 				else hproj->Draw("Psames");
 				if(ifile == 1) pvt->DrawClone();
 				
-				TH1D* hprojcopy = (TH1D*)hproj->Clone(Form("%s_color", hproj->GetName()));
+				TH1D* hprojcopy = (TH1D*)hproj->Clone(TString::Format("%s_color", hproj->GetName()));
 				hprojcopy->SetMarkerColor(colors[ipt]);
 				hprojcopy->SetFillColor(colors[ipt]);
-				legpt->AddEntry(hprojcopy, Form("%.0f < %s < %.0f", binlims[ipt],  titleleg.Data(), binlims[ipt+1]) , "LP");
+				legpt->AddEntry(hprojcopy, TString::Format("%.0f < %s < %.0f", binlims[ipt],  titleleg.Data(), binlims[ipt+1]) , "LP");
 				cFile->cd();
 				hprojcopy->Draw("sames");
 				
 				if(ifile == base) {
-					hRatioDenom[ipt] = (TH1D*)hprojcopy->Clone(Form("hDenom%s_%d", legs[base].Data(), ipt));
+					hRatioDenom[ipt] = (TH1D*)hprojcopy->Clone(TString::Format("hDenom%s_%d", legs[base].Data(), ipt));
 					Printf("Filling denominator with file %d, th2f input", ifile);
 				}
 				else{
-					if(!hRatioProj[ifile][ipt]) hRatioProj[ifile][ipt] = (TH1D*)hprojcopy->Clone(Form("h%sOver%s_%d", legs[ifile].Data(), legs[base].Data(), ipt));
+					if(!hRatioProj[ifile][ipt]) hRatioProj[ifile][ipt] = (TH1D*)hprojcopy->Clone(TString::Format("h%sOver%s_%d", legs[ifile].Data(), legs[base].Data(), ipt));
 					Printf("Filling numerator with file %d, th2f input", ifile);
 				}
 			}
@@ -822,18 +822,18 @@ void ReadAndProject(Int_t bkgSubMethod = 0, TString fileEmbFlucOnly = "/data/Wor
 	Int_t nx, ny, dx, dy;
 	CalculatePads(nbinsPt-1, nx, ny, dx, dy);
 	
-	TCanvas *cdMvsRhoPtBins = new TCanvas(Form("cdMvsRho%sPtBins%s", rhoOrrhoM == 2 ? "M" : "", bkgsub.Data()), "dM vs Rho (PtBins)", 900, 800);
+	TCanvas *cdMvsRhoPtBins = new TCanvas(TString::Format("cdMvsRho%sPtBins%s", rhoOrrhoM == 2 ? "M" : "", bkgsub.Data()), "dM vs Rho (PtBins)", 900, 800);
 	cdMvsRhoPtBins->Divide(nx, ny);
 	
-	TCanvas *cdPtvsRhoPtBins = new TCanvas(Form("cdPtvsRho%sPtBins%s", rhoOrrhoM == 2 ? "M" : "", bkgsub.Data()), "dPt vs Rho (PtBins)", 900, 800);
+	TCanvas *cdPtvsRhoPtBins = new TCanvas(TString::Format("cdPtvsRho%sPtBins%s", rhoOrrhoM == 2 ? "M" : "", bkgsub.Data()), "dPt vs Rho (PtBins)", 900, 800);
 	cdPtvsRhoPtBins->Divide(nx, ny);
 	
 	
 	CalculatePads(nbinsM-1, nx, ny, dx, dy);
-	TCanvas *cdMvsRhoMBins = new TCanvas(Form("cdMvsRho%sMBins%s", rhoOrrhoM == 2 ? "M" : "", bkgsub.Data()), "dM vs Rho (MBins)", 900, 800);
+	TCanvas *cdMvsRhoMBins = new TCanvas(TString::Format("cdMvsRho%sMBins%s", rhoOrrhoM == 2 ? "M" : "", bkgsub.Data()), "dM vs Rho (MBins)", 900, 800);
 	cdMvsRhoMBins->Divide(nx, ny);
 	
-	TCanvas *cdPtvsRhoMBins = new TCanvas(Form("cdPtvsRho%sMBins%s", rhoOrrhoM == 2 ? "M" : "", bkgsub.Data()), "dPt vs Rho (MBins)", 900, 800);
+	TCanvas *cdPtvsRhoMBins = new TCanvas(TString::Format("cdPtvsRho%sMBins%s", rhoOrrhoM == 2 ? "M" : "", bkgsub.Data()), "dPt vs Rho (MBins)", 900, 800);
 	cdPtvsRhoMBins->Divide(nx, ny);
 	
 	for(Int_t ipt = 0; ipt<nbinsPt-1; ipt++){
@@ -841,17 +841,17 @@ void ReadAndProject(Int_t bkgSubMethod = 0, TString fileEmbFlucOnly = "/data/Wor
 		TPaveText *pave = new TPaveText(0.35, 0.8, 0.75, 0.9, "NDC");
 		pave->SetFillStyle(0);
 		pave->SetBorderSize(0);
-		pave->AddText(Form("%.0f < #it{p}_{T} (GeV/#it{c}) < %.0f", binsPt[ipt], binsPt[ipt+1]));
+		pave->AddText(TString::Format("%.0f < #it{p}_{T} (GeV/#it{c}) < %.0f", binsPt[ipt], binsPt[ipt+1]));
 		//start with low mass region and bins of pT
 		//Double_t mincut[ndim] = {-99, -99, binsM[0], -99, binsPt[ipt], -99, -99, -99};
 		//Double_t maxcut[ndim] = {-99, -99, binsM[nbinsM-1], -99, binsPt[ipt+1]-0.01, -99, -99, -99};
 		Double_t mincut[ndim] = {-99, -99, -99, -99, -99, binsM[0], -99, binsPt[ipt], -99, -99};
 		Double_t maxcut[ndim] = {-99, -99, -99, -99, -99, binsM[nbinsM-1], -99, binsPt[ipt+1]-0.01, -99, -99};
 		
-		TH2D* hPjdMDeriv = Projections2DWithCuts(hSparse, axprojM, mincut, maxcut, Form("hdMvsrho_PtUnsub%d", ipt));
+		TH2D* hPjdMDeriv = Projections2DWithCuts(hSparse, axprojM, mincut, maxcut, TString::Format("hdMvsrho_PtUnsub%d", ipt));
 		hPjdMDeriv->GetZaxis()->SetRangeUser(10, 1e5);
 		
-		TH2D* hPjdPtDeriv = Projections2DWithCuts(hSparse, axprojPt, mincut, maxcut, Form("hdPtvsrho_PtUnsub%d", ipt));
+		TH2D* hPjdPtDeriv = Projections2DWithCuts(hSparse, axprojPt, mincut, maxcut, TString::Format("hdPtvsrho_PtUnsub%d", ipt));
 		hPjdPtDeriv->GetZaxis()->SetRangeUser(10, 1e5);
 		
 		cdMvsRhoPtBins->cd(ipt+1);
@@ -874,17 +874,17 @@ void ReadAndProject(Int_t bkgSubMethod = 0, TString fileEmbFlucOnly = "/data/Wor
 		TPaveText *pave = new TPaveText(0.35, 0.8, 0.75, 0.9, "NDC");
 		pave->SetFillStyle(0);
 		pave->SetBorderSize(0);
-		pave->AddText(Form("%.0f < #it{M} (GeV) < %.0f", binsM[ipt], binsM[ipt+1]));
+		pave->AddText(TString::Format("%.0f < #it{M} (GeV) < %.0f", binsM[ipt], binsM[ipt+1]));
 		//start with low mass region and bins of pT
 		//Double_t mincut[ndim] = {-99, -99, binsM[ipt], -99, binsPt[0], -99, -99, -99};
 		//Double_t maxcut[ndim] = {-99, -99, binsM[ipt+1]-0.01, -99, binsPt[nbinsPt-1], -99, -99, -99};
 		
 		Double_t mincut[ndim] = {-99, -99, -99, -99, -99, binsM[ipt], -99, binsPt[0], -99, -99};
 		Double_t maxcut[ndim] = {-99, -99, -99, -99, -99, binsM[ipt+1]-0.01, -99, binsPt[nbinsPt-1], -99, -99};
-		TH2D* hPjdMDeriv = Projections2DWithCuts(hSparse, axprojM, mincut, maxcut, Form("hdMvsrho_MUnsub%d", ipt));
+		TH2D* hPjdMDeriv = Projections2DWithCuts(hSparse, axprojM, mincut, maxcut, TString::Format("hdMvsrho_MUnsub%d", ipt));
 		hPjdMDeriv->GetZaxis()->SetRangeUser(10, 1e5);
 		
-		TH2D* hPjdPtDeriv = Projections2DWithCuts(hSparse, axprojPt, mincut, maxcut, Form("hdPtvsrho_MUnsub%d", ipt));
+		TH2D* hPjdPtDeriv = Projections2DWithCuts(hSparse, axprojPt, mincut, maxcut, TString::Format("hdPtvsrho_MUnsub%d", ipt));
 		hPjdPtDeriv->GetZaxis()->SetRangeUser(10, 1e5);
 		
 		cdMvsRhoMBins->cd(ipt+1);
@@ -908,6 +908,8 @@ void ReadAndProject(Int_t bkgSubMethod = 0, TString fileEmbFlucOnly = "/data/Wor
 
 void ComparisonDerivConst1D(TString fileEmbFlucOnly = "/data/Work/jets/JetMass/pPbJetMassAnalysis/Train1088/output/AnalysisResults.root", Int_t rhoOrrhoM = 1, Bool_t stylezero = kTRUE, Int_t binFig = 2){
 
+	//Int_t im = 0, Int_t nbMint = 3, possible to implement it mass integrated, now it loops on all the bins define below
+	
 	// study the correlation between the dM and dPt from fluctuation and rho
 	// bkgSubMethod: Deriv, Const Sub, no Sub
 	//rhoOrrhoM: rho = 1, rho_m =2
@@ -935,9 +937,16 @@ void ComparisonDerivConst1D(TString fileEmbFlucOnly = "/data/Work/jets/JetMass/p
 	
 	TString bkgsub[2] = {"Deriv", "Const"};
 	THnSparseF *hSparseDeriv = ReadInput(fileEmbFlucOnly, listDeriv, hnameFlucVsRho);
+	if(!hSparseDeriv){
+		Printf("Deriv meth not found!!");
+		return;
+	}
 	
 	THnSparseF *hSparseConst = ReadInput(fileEmbFlucOnly, listConst, hnameFlucVsRho);
-	
+	if(!hSparseConst){
+		Printf("Const meth not found!!");
+		return;
+	}
 	Int_t axprojM[2]  = {0, 8}; //Delta mass, rho
 	Int_t axprojPt[2] = {1, 8}; //Delta Pt, rho
 	if(rhoOrrhoM == 2) {
@@ -950,8 +959,9 @@ void ComparisonDerivConst1D(TString fileEmbFlucOnly = "/data/Work/jets/JetMass/p
 	
 	const Int_t ndim = 10;
 	// dM, dpt, #it{M}_{det}, #it{M}_{unsub}, #it{p}_{T,det}, #it{p}_{T,unsub}, #rho, #rho_m
-	Int_t nbinsM = 4;
-	Double_t binsM[nbinsM] = {0, 5, 10, 30};
+	Int_t nbinsM = 6;
+	//if(nbMint - im > nbinsM) nbMint =  nbinsM - im;
+	Double_t binsM[nbinsM+1] = {0, 2, 4, 8, 12, 16, 30};
 	Int_t nbinsPt = 9;
 	Double_t binsPt[nbinsPt] = {0, 10, 20, 30, 40, 60, 80, 100., 120};
 	Int_t nbinsrho = 6;
@@ -970,210 +980,304 @@ void ComparisonDerivConst1D(TString fileEmbFlucOnly = "/data/Work/jets/JetMass/p
 	Int_t nx, ny, dx, dy;
 	CalculatePads(nbinsrho-1, nx, ny, dx, dy, 2);
 	
-	TCanvas *cdMRhoBins = new TCanvas(Form("cdMRho%sBins", rhoOrrhoM==2 ? "M" : ""), Form("Delta M in rho %s bins", rhoOrrhoM==2 ? "M" : ""), 900, 800);
-	cdMRhoBins->Divide(nx, ny);
-	TCanvas *cdPtRhoBins = new TCanvas(Form("cdPtRho%sBins", rhoOrrhoM==2 ? "M" : ""), Form("Delta Pt in rho %s bins", rhoOrrhoM==2 ? "M" : ""), 900, 800);
-	cdPtRhoBins->Divide(nx, ny);
+	TCanvas *cdMMeanRhoBins = new TCanvas(TString::Format("cdMMean%sBins", rhoOrrhoM==2 ? "M" : ""), TString::Format("Mean value delta M in rho %s bins", rhoOrrhoM==2 ? "M" : ""), 900, 800);
+	cdMMeanRhoBins->Divide(nx, ny);
 	
-	TCanvas *cdMRatiosRhoBins = new TCanvas(Form("cdMRatiosRho%sBins", rhoOrrhoM==2 ? "M" : ""), Form("Delta M Ratio in rho %s bins", rhoOrrhoM==2 ? "M" : ""), 900, 800);
-	cdMRatiosRhoBins->Divide(nx, ny);
-	TCanvas *cdPtRatiosRhoBins = new TCanvas(Form("cdPtRatiosRho%sBins", rhoOrrhoM==2 ? "M" : ""), Form("Delta M Ratio in rho %s bins", rhoOrrhoM==2 ? "M" : ""), 900, 800);
-	cdPtRatiosRhoBins->Divide(nx, ny);
+	TH1D** hMeanDeriv = new TH1D*[nbinsrho];
+	TH1D** hMeanConst = new TH1D*[nbinsrho];
+	TH1D** hMeanNoSub = new TH1D*[nbinsrho];
 	
-	TCanvas *cdMdPtRhoBinsDeriv = new TCanvas(Form("cdMdPtRho%sBinsDeriv", rhoOrrhoM==2 ? "M" : ""), Form("Delta M vs delta Ptin rho %s bins (Deriv)", rhoOrrhoM==2 ? "M" : ""), 900, 800);
-	cdMdPtRhoBinsDeriv->Divide(nx, ny);
+	TCanvas *cdMSigmRhoBins = new TCanvas(TString::Format("cdMSigm%sBins", rhoOrrhoM==2 ? "M" : ""), TString::Format("Sigma Delta M in rho %s bins", rhoOrrhoM==2 ? "M" : ""), 900, 800);
+	cdMSigmRhoBins->Divide(nx, ny);
 	
-	TCanvas *cdMdPtRhoBinsConst = new TCanvas(Form("cdMdPtRho%sBinsConst", rhoOrrhoM==2 ? "M" : ""), Form("Delta M vs delta Ptin rho %s bins (Const)", rhoOrrhoM==2 ? "M" : ""), 900, 800);
-	cdMdPtRhoBinsConst->Divide(nx, ny);
-	TCanvas *cdMdPtRhoBinsNoBkg = new TCanvas(Form("cdMdPtRho%sBinsNoBkg", rhoOrrhoM==2 ? "M" : ""), Form("Delta M vs delta Ptin rho %s bins (NoBkg)", rhoOrrhoM==2 ? "M" : ""), 900, 800);
-	cdMdPtRhoBinsNoBkg->Divide(nx, ny);
+	TH1D** hSigmDeriv = new TH1D*[nbinsrho];
+	TH1D** hSigmConst = new TH1D*[nbinsrho];
+	TH1D** hSigmNoSub = new TH1D*[nbinsrho];
 	
-	TCanvas *cdMdPtRhoBinsDerivFig = new TCanvas(Form("cdMdPtRho%sBinsDerivFig", rhoOrrhoM==2 ? "M" : ""), Form("Delta M vs delta Ptin rho %s bins (Deriv)", rhoOrrhoM==2 ? "M" : ""), 400, 400);
+	for(Int_t ir = 0; ir < nbinsrho; ir++){
+		
+		hMeanDeriv[ir] = new TH1D(TString::Format("hMeanDerivRho%sBin%d", rhoOrrhoM==2 ? "M" : "", ir),TString::Format("Mean Rho%s Bin %d (Deriv); #it{M} (GeV/#it{c^{2}}); mean_{#delta M};", rhoOrrhoM==2 ? "M" : "", ir), nbinsM, binsM);
+		hMeanDeriv[ir]->SetLineColor(colors[0]);
+		hMeanDeriv[ir]->SetLineWidth(2);
+		hMeanDeriv[ir]->SetMarkerStyle(20);
+		hMeanDeriv[ir]->SetMarkerColor(colors[0]);
+		
+		hMeanConst[ir] = new TH1D(TString::Format("hMeanConstRho%sBin%d", rhoOrrhoM==2 ? "M" : "", ir),TString::Format("Mean Rho%s Bin %d (Const); #it{M} (GeV/#it{c^{2}}); mean_{#delta M};", rhoOrrhoM==2 ? "M" : "", ir), nbinsM, binsM);
+		hMeanConst[ir]->SetLineColor(colors[1]);
+		hMeanConst[ir]->SetLineWidth(2);
+		hMeanConst[ir]->SetMarkerStyle(21);
+		hMeanConst[ir]->SetMarkerColor(colors[1]);
+		
+		hMeanNoSub[ir] = new TH1D(TString::Format("hMeanNoSubRho%sBin%d", rhoOrrhoM==2 ? "M" : "", ir),TString::Format("Mean Rho%s Bin %d (NoSub); #it{M} (GeV/#it{c^{2}}); mean_{#delta M};", rhoOrrhoM==2 ? "M" : "", ir), nbinsM, binsM);
+		hMeanNoSub[ir]->SetLineColor(colors[2]);
+		hMeanNoSub[ir]->SetLineWidth(2);
+		hMeanNoSub[ir]->SetMarkerStyle(33);
+		hMeanNoSub[ir]->SetMarkerColor(colors[2]);
+		
+		
+		hSigmDeriv[ir] = new TH1D(TString::Format("hSigmDerivRho%sBin%d", rhoOrrhoM==2 ? "M" : "", ir),TString::Format("Sigma Rho%s Bin %d (Deriv); #it{M} (GeV/#it{c^{2}}); #sigma_{#delta M};", rhoOrrhoM==2 ? "M" : "", ir), nbinsM, binsM);
+		hSigmDeriv[ir]->SetLineColor(colors[0]);
+		hSigmDeriv[ir]->SetLineWidth(2);
+		hSigmDeriv[ir]->SetMarkerStyle(20);
+		hSigmDeriv[ir]->SetMarkerColor(colors[0]);
+		
+		hSigmConst[ir] = new TH1D(TString::Format("hSigmConstRho%sBin%d", rhoOrrhoM==2 ? "M" : "", ir),TString::Format("Sigma Rho%s Bin %d (Const); #it{M} (GeV/#it{c^{2}}); #sigma_{#delta M};", rhoOrrhoM==2 ? "M" : "", ir), nbinsM, binsM);
+		hSigmConst[ir]->SetLineColor(colors[1]);
+		hSigmConst[ir]->SetLineWidth(2);
+		hSigmConst[ir]->SetMarkerStyle(21);
+		hSigmConst[ir]->SetMarkerColor(colors[1]);
+		
+		hSigmNoSub[ir] = new TH1D(TString::Format("hSigmNoSubRho%sBin%d", rhoOrrhoM==2 ? "M" : "", ir),TString::Format("Sigma Rho%s Bin %d (NoSub); #it{M} (GeV/#it{c^{2}}); #sigma_{#delta M};", rhoOrrhoM==2 ? "M" : "", ir), nbinsM, binsM);
+		hSigmNoSub[ir]->SetLineColor(colors[2]);
+		hSigmNoSub[ir]->SetLineWidth(2);
+		hSigmNoSub[ir]->SetMarkerStyle(33);
+		hSigmNoSub[ir]->SetMarkerColor(colors[2]);
+	}
 	
-	TCanvas *cdMdPtRhoBinsConstFig = new TCanvas(Form("cdMdPtRho%sBinsConstFig", rhoOrrhoM==2 ? "M" : ""), Form("Delta M vs delta Ptin rho %s bins (Const)", rhoOrrhoM==2 ? "M" : ""), 400, 400);
-	      
-	TCanvas *cdMdPtRhoBinsNoBkgFig = new TCanvas(Form("cdMdPtRho%sBinsNoBkgFig", rhoOrrhoM==2 ? "M" : ""), Form("Delta M vs delta Ptin rho %s bins (NoBkg)", rhoOrrhoM==2 ? "M" : ""), 400, 400);
+	Int_t nbMint = 1;
 	
 	TLegend *legBkg = new TLegend(0.6, 0.4, 0.8, 0.6);
 	legBkg->SetFillStyle(0);
 	legBkg->SetBorderSize(0);
-	
-	for(Int_t ipt = 0; ipt<nbinsrho-1; ipt++){
 		
-		TPaveText *pave = new TPaveText(0.35, 0.8, 0.75, 0.9, "NDC");
-		pave->SetFillStyle(0);
-		pave->SetBorderSize(0);
-		pave->AddText(Form("%.1f < %s (GeV) < %.1f", binsrho[ipt], projtxt.Data(), binsrho[ipt+1]));
-		//start with low mass region and bins of pT
-		//Double_t mincut[ndim] = {-99, -99, binsM[0], -99, binsPt[0], -99, binsrho[ipt], -99};
-		//Double_t maxcut[ndim] = {-99, -99, binsM[nbinsM-1], -99, binsPt[nbinsPt-1], -99, binsrho[ipt+1]-0.01, -99};
-	
-		Double_t mincut[ndim] = {-99, -99, -99, -99, binsM[0], -99, binsPt[0], -99, binsrho[ipt], -99};
-		Double_t maxcut[ndim] = {-99, -99, -99, -99, binsM[nbinsM-1], -99, binsPt[nbinsPt-1], -99, binsrho[ipt+1]-0.01, -99};
-
-		//Double_t mincut[ndim] = {-99, -99, -99, -99, -99, binsM[0], -99, binsPt[0], binsrho[ipt], -99};
-		//Double_t maxcut[ndim] = {-99, -99, -99, -99, -99, binsM[nbinsM-1], -99, binsPt[nbinsPt-1], binsrho[ipt+1]-0.01, -99};
-		ClearSelections(hSparseDeriv);
-		TH1D* hPjdMDeriv = Projections1DWithCuts(hSparseDeriv, axprojM[0], mincut, maxcut, Form("hdM_Deriv_Rho%d", ipt));
-		ClearSelections(hSparseConst);
-		TH1D* hPjdMConst = Projections1DWithCuts(hSparseConst, axprojM[0], mincut, maxcut, Form("hdM_Const_Rho%d", ipt));
-		ClearSelections(hSparseDeriv);
-		TH1D* hPjdMNoBkg = Projections1DWithCuts(hSparseDeriv, axNoBkgdM, mincut, maxcut, Form("hdM_NoBkg_Rho%d", ipt));
+	for(Int_t im = 0; im < nbinsM; im+=nbMint){
+		
+		TCanvas *cdMRhoBins = new TCanvas(TString::Format("cdMRho%sBins_M%.0f_%.0f", rhoOrrhoM==2 ? "M" : "", binsM[im], binsM[im+nbMint]), TString::Format("Delta M in rho %s bins", rhoOrrhoM==2 ? "M" : ""), 900, 800);
+		cdMRhoBins->Divide(nx, ny);
+		TCanvas *cdPtRhoBins = new TCanvas(TString::Format("cdPtRho%sBins_M%.0f_%.0f", rhoOrrhoM==2 ? "M" : "", binsM[im], binsM[im+nbMint]), TString::Format("Delta Pt in rho %s bins", rhoOrrhoM==2 ? "M" : ""), 900, 800);
+		cdPtRhoBins->Divide(nx, ny);
+		
+		TCanvas *cdMRatiosRhoBins = new TCanvas(TString::Format("cdMRatiosRho%sBins_M%.0f_%.0f", rhoOrrhoM==2 ? "M" : "", binsM[im], binsM[im+nbMint]), TString::Format("Delta M Ratio in rho %s bins", rhoOrrhoM==2 ? "M" : ""), 900, 800);
+		cdMRatiosRhoBins->Divide(nx, ny);
+		TCanvas *cdPtRatiosRhoBins = new TCanvas(TString::Format("cdPtRatiosRho%sBins_M%.0f_%.0f", rhoOrrhoM==2 ? "M" : "", binsM[im], binsM[im+nbMint]), TString::Format("Delta M Ratio in rho %s bins", rhoOrrhoM==2 ? "M" : ""), 900, 800);
+		cdPtRatiosRhoBins->Divide(nx, ny);
+		
+		TCanvas *cdMdPtRhoBinsDeriv = new TCanvas(TString::Format("cdMdPtRho%sBinsDeriv_M%.0f_%.0f", rhoOrrhoM==2 ? "M" : "", binsM[im], binsM[im+nbMint]), TString::Format("Delta M vs delta Ptin rho %s bins (Deriv)", rhoOrrhoM==2 ? "M" : ""), 900, 800);
+		cdMdPtRhoBinsDeriv->Divide(nx, ny);
+		
+		TCanvas *cdMdPtRhoBinsConst = new TCanvas(TString::Format("cdMdPtRho%sBinsConst_M%.0f_%.0f", rhoOrrhoM==2 ? "M" : "", binsM[im], binsM[im+nbMint]), TString::Format("Delta M vs delta Ptin rho %s bins (Const)", rhoOrrhoM==2 ? "M" : ""), 900, 800);
+		cdMdPtRhoBinsConst->Divide(nx, ny);
+		TCanvas *cdMdPtRhoBinsNoBkg = new TCanvas(TString::Format("cdMdPtRho%sBinsNoBkg_M%.0f_%.0f", rhoOrrhoM==2 ? "M" : "", binsM[im], binsM[im+nbMint]), TString::Format("Delta M vs delta Ptin rho %s bins (NoBkg)", rhoOrrhoM==2 ? "M" : ""), 900, 800);
+		cdMdPtRhoBinsNoBkg->Divide(nx, ny);
+		
+		TCanvas *cdMdPtRhoBinsDerivFig = new TCanvas(TString::Format("cdMdPtRho%sBinsDerivFig_M%.0f_%.0f", rhoOrrhoM==2 ? "M" : "", binsM[im], binsM[im+nbMint]), TString::Format("Delta M vs delta Ptin rho %s bins (Deriv)", rhoOrrhoM==2 ? "M" : ""), 400, 400);
+		
+		TCanvas *cdMdPtRhoBinsConstFig = new TCanvas(TString::Format("cdMdPtRho%sBinsConstFig_M%.0f_%.0f", rhoOrrhoM==2 ? "M" : "", binsM[im], binsM[im+nbMint]), TString::Format("Delta M vs delta Ptin rho %s bins (Const)", rhoOrrhoM==2 ? "M" : ""), 400, 400);
+		
+		TCanvas *cdMdPtRhoBinsNoBkgFig = new TCanvas(TString::Format("cdMdPtRho%sBinsNoBkgFig_M%.0f_%.0f", rhoOrrhoM==2 ? "M" : "", binsM[im], binsM[im+nbMint]), TString::Format("Delta M vs delta Ptin rho %s bins (NoBkg)", rhoOrrhoM==2 ? "M" : ""), 400, 400);
 		
 		
-		hPjdMDeriv->SetLineColor(colors[0]);
-		hPjdMConst->SetLineColor(colors[1]);
-		hPjdMNoBkg->SetLineColor(colors[2]);
-		if(ipt == 0){
-			legBkg->AddEntry(hPjdMDeriv, bkgsub[0], "l");
-			legBkg->AddEntry(hPjdMConst, bkgsub[1], "l");
-			legBkg->AddEntry(hPjdMNoBkg, "NoBkg"  , "l");
+		
+		
+		for(Int_t ipt = 0; ipt<nbinsrho-1; ipt++){
+		
+			TPaveText *pave = new TPaveText(0.35, 0.8, 0.75, 0.9, "NDC");
+			pave->SetFillStyle(0);
+			pave->SetBorderSize(0);
+			pave->AddText(TString::Format("%.1f < %s (GeV) < %.1f", binsrho[ipt], projtxt.Data(), binsrho[ipt+1]));
+			//start with low mass region and bins of pT
+			//Double_t mincut[ndim] = {-99, -99, binsM[0], -99, binsPt[0], -99, binsrho[ipt], -99};
+			//Double_t maxcut[ndim] = {-99, -99, binsM[nbinsM-1], -99, binsPt[nbinsPt-1], -99, binsrho[ipt+1]-0.01, -99};
 			
-		}
-		ClearSelections(hSparseDeriv);
-		TH1D* hPjdPtDeriv = Projections1DWithCuts(hSparseDeriv, axprojPt[0], mincut, maxcut, Form("hdPt_Deriv_Rho%d", ipt));
-		ClearSelections(hSparseConst);
-		TH1D* hPjdPtConst = Projections1DWithCuts(hSparseConst, axprojPt[0], mincut, maxcut, Form("hdPt_Const_Rho%d", ipt));
-		ClearSelections(hSparseConst);
-		TH1D* hPjdPtNoBkg = Projections1DWithCuts(hSparseConst, axNoBkgdpT, mincut, maxcut, Form("hdPt_NoBkg_Rho%d", ipt));
-		
-		hPjdPtDeriv->SetLineColor(colors[0]);
-		hPjdPtConst->SetLineColor(colors[1]);
-		hPjdPtNoBkg->SetLineColor(colors[2]);
-		
-		cdMRhoBins->cd(ipt+1);
-		gPad->SetLogy();
-		//gPad->SetGridy();
-		hPjdMDeriv->Draw();
-		hPjdMConst->Draw("sames");
-		hPjdMNoBkg->Draw("sames");
-		pave->Draw();
-		legBkg->Draw();
-		
-		
-		cdPtRhoBins->cd(ipt+1);
-		gPad->SetLogy();
-		//gPad->SetGridy();
-		hPjdPtDeriv->Draw();
-		hPjdPtConst->Draw("sames");
-		hPjdPtNoBkg->Draw("sames");
-		pave->Draw();
-		legBkg->Draw();
-		
-		//Ratios
-		TH1D* hPjRatioPtDeriv = (TH1D*)hPjdPtDeriv->Clone("hPjRatioPtDeriv");
-		TH1D* hPjRatioPtConst = (TH1D*)hPjdPtConst->Clone("hPjRatioPtConst");
-		hPjRatioPtDeriv->Add(hPjdPtNoBkg, -1);
-		hPjRatioPtConst->Add(hPjdPtNoBkg, -1);
-		
-		TH1D* hPjRatioMDeriv = (TH1D*)hPjdMDeriv->Clone("hPjRatioMDeriv");
-		TH1D* hPjRatioMConst = (TH1D*)hPjdMConst->Clone("hPjRatioMConst");
-		hPjRatioMDeriv->Add(hPjdMNoBkg, -1);
-		hPjRatioMConst->Add(hPjdMNoBkg, -1);
-		
-		hPjRatioPtDeriv->GetXaxis()->SetRangeUser(-10, 10);
-		hPjRatioPtConst->GetXaxis()->SetRangeUser(-10, 10);
-		hPjRatioMDeriv-> GetXaxis()->SetRangeUser(-10, 10);
-		hPjRatioMConst-> GetXaxis()->SetRangeUser(-10, 10);
-		
-		hPjRatioPtDeriv->GetYaxis()->SetTitle("BkgSub-NoSub");
-		hPjRatioPtConst->GetYaxis()->SetTitle("BkgSub-NoSub");
-		hPjRatioMDeriv-> GetYaxis()->SetTitle("BkgSub-NoSub");
-		hPjRatioMConst-> GetYaxis()->SetTitle("BkgSub-NoSub");
-		
-		cdPtRatiosRhoBins->cd(ipt+1);
-		hPjRatioPtDeriv->Draw();
-		hPjRatioPtConst->Draw("sames");
-		pave->Draw();
-		legBkg->Draw();
-		
-		
-		cdMRatiosRhoBins->cd(ipt+1);
-		hPjRatioMDeriv->Draw();
-		hPjRatioMConst->Draw("sames");
-		pave->Draw();
-		legBkg->Draw();
-		
-		//2D correlation dMdpT
-		
-		ClearSelections(hSparseDeriv);
-		TH2D *hdMdPtDeriv = Projections2DWithCuts(hSparseDeriv, axprojFluc, mincut, maxcut, Form("hdMdPtDerivRho%d", ipt));
-		
-		ClearSelections(hSparseConst);
-		TH2D *hdMdPtConst = Projections2DWithCuts(hSparseConst, axprojFluc, mincut, maxcut, Form("hdMdPtConstRho%d", ipt));
-		
-		ClearSelections(hSparseConst);
-		TH2D *hdMdPtNoBkg = Projections2DWithCuts(hSparseConst, axprojFlucNoBkg, mincut, maxcut, Form("hdMdPtoBkgRho%d", ipt));
-		
-		hdMdPtDeriv->GetZaxis()->SetRangeUser(10, 1e5);
-		hdMdPtConst->GetZaxis()->SetRangeUser(10, 1e5);
-		hdMdPtNoBkg->GetZaxis()->SetRangeUser(10, 1e5);
-		
-		hdMdPtDeriv->GetXaxis()->SetRangeUser(-10, 20);
-		hdMdPtConst->GetXaxis()->SetRangeUser(-10, 20);
-		hdMdPtNoBkg->GetXaxis()->SetRangeUser(-10, 20);
-		hdMdPtDeriv->GetYaxis()->SetRangeUser(-10, 20);
-		hdMdPtConst->GetYaxis()->SetRangeUser(-10, 20);
-		hdMdPtNoBkg->GetYaxis()->SetRangeUser(-10, 20);
-		
-		cdMdPtRhoBinsDeriv->cd(ipt+1);
-		gPad->SetLogz();
-		hdMdPtDeriv-> Draw("colz");
-		pave->Draw();
-		cdMdPtRhoBinsConst->cd(ipt+1);
-		gPad->SetLogz();
-		hdMdPtConst-> Draw("colz");
-		pave->Draw();
-		cdMdPtRhoBinsNoBkg->cd(ipt+1);
-		gPad->SetLogz();
-		hdMdPtNoBkg-> Draw("colz");
-		pave->Draw();
-		
-		if(ipt == binFig){
-			TPaveText *pvDer = new TPaveText(0.48, 0.2, 0.89, 0.3, "NDC");
-			pvDer->SetFillStyle(0);
-			pvDer->SetBorderSize(0);
-			TPaveText *pvCons = (TPaveText*)pvDer->Clone("Const");
-			TPaveText *pvNoSub = (TPaveText*)pvDer->Clone("NoSub");
-			pvDer->AddText("Derivative subtraction");
-			pvCons->AddText("Constituent subtraction");
-			pvNoSub->AddText("No background subtraction");
+			Double_t mincut[ndim] = {-99, -99, -99, -99, binsM[im], -99, binsPt[5], -99, binsrho[ipt], -99};
+			Double_t maxcut[ndim] = {-99, -99, -99, -99, binsM[im+nbMint], -99, binsPt[nbinsPt-1], -99, binsrho[ipt+1]-0.01, -99};
 			
-			cdMdPtRhoBinsDerivFig->cd();
+			//Double_t mincut[ndim] = {-99, -99, -99, -99, -99, binsM[0], -99, binsPt[0], binsrho[ipt], -99};
+			//Double_t maxcut[ndim] = {-99, -99, -99, -99, -99, binsM[nbinsM-1], -99, binsPt[nbinsPt-1], binsrho[ipt+1]-0.01, -99};
+			ClearSelections(hSparseDeriv);
+			TH1D* hPjdMDeriv = Projections1DWithCuts(hSparseDeriv, axprojM[0], mincut, maxcut, TString::Format("hdM_Deriv_Rho%d_M%d", ipt, im));
+			
+			ClearSelections(hSparseConst);
+			TH1D* hPjdMConst = Projections1DWithCuts(hSparseConst, axprojM[0], mincut, maxcut, TString::Format("hdM_Const_Rho%d_M%d", ipt, im));
+			ClearSelections(hSparseDeriv);
+			TH1D* hPjdMNoBkg = Projections1DWithCuts(hSparseDeriv, axNoBkgdM, mincut, maxcut, TString::Format("hdM_NoBkg_Rho%d_M%d", ipt, im));
+			
+			hMeanDeriv[ipt]->SetBinContent(im+1, hPjdMDeriv->GetMean());
+			hMeanConst[ipt]->SetBinContent(im+1, hPjdMConst->GetMean());
+			hMeanNoSub[ipt]->SetBinContent(im+1, hPjdMNoBkg->GetMean());
+			
+			hSigmDeriv[ipt]->SetBinContent(im+1, hPjdMDeriv->GetRMS());
+			hSigmConst[ipt]->SetBinContent(im+1, hPjdMConst->GetRMS());
+			hSigmNoSub[ipt]->SetBinContent(im+1, hPjdMNoBkg->GetRMS());
+			
+			hPjdMDeriv->SetLineColor(colors[0]);
+			hPjdMConst->SetLineColor(colors[1]);
+			hPjdMNoBkg->SetLineColor(colors[2]);
+			if(ipt == 0){
+				legBkg->AddEntry(hPjdMDeriv, bkgsub[0], "l");
+				legBkg->AddEntry(hPjdMConst, bkgsub[1], "l");
+				legBkg->AddEntry(hPjdMNoBkg, "NoBkg"  , "l");
+				
+			}
+			ClearSelections(hSparseDeriv);
+			TH1D* hPjdPtDeriv = Projections1DWithCuts(hSparseDeriv, axprojPt[0], mincut, maxcut, TString::Format("hdPt_Deriv_Rho%d", ipt));
+			ClearSelections(hSparseConst);
+			TH1D* hPjdPtConst = Projections1DWithCuts(hSparseConst, axprojPt[0], mincut, maxcut, TString::Format("hdPt_Const_Rho%d", ipt));
+			ClearSelections(hSparseConst);
+			TH1D* hPjdPtNoBkg = Projections1DWithCuts(hSparseConst, axNoBkgdpT, mincut, maxcut, TString::Format("hdPt_NoBkg_Rho%d", ipt));
+			
+			hPjdPtDeriv->SetLineColor(colors[0]);
+			hPjdPtConst->SetLineColor(colors[1]);
+			hPjdPtNoBkg->SetLineColor(colors[2]);
+			
+			cdMRhoBins->cd(ipt+1);
+			gPad->SetLogy();
+			//gPad->SetGridy();
+			hPjdMDeriv->Draw("");
+			hPjdMConst->Draw("sames");
+			hPjdMNoBkg->Draw("sames");
+			pave->Draw();
+			legBkg->Draw();
+			
+			
+			cdPtRhoBins->cd(ipt+1);
+			gPad->SetLogy();
+			//gPad->SetGridy();
+			hPjdPtDeriv->Draw();
+			hPjdPtConst->Draw("sames");
+			hPjdPtNoBkg->Draw("sames");
+			pave->Draw();
+			legBkg->Draw();
+			
+			//Ratios
+			TH1D* hPjRatioPtDeriv = (TH1D*)hPjdPtDeriv->Clone("hPjRatioPtDeriv");
+			TH1D* hPjRatioPtConst = (TH1D*)hPjdPtConst->Clone("hPjRatioPtConst");
+			hPjRatioPtDeriv->Add(hPjdPtNoBkg, -1);
+			hPjRatioPtConst->Add(hPjdPtNoBkg, -1);
+			
+			TH1D* hPjRatioMDeriv = (TH1D*)hPjdMDeriv->Clone("hPjRatioMDeriv");
+			TH1D* hPjRatioMConst = (TH1D*)hPjdMConst->Clone("hPjRatioMConst");
+			hPjRatioMDeriv->Add(hPjdMNoBkg, -1);
+			hPjRatioMConst->Add(hPjdMNoBkg, -1);
+			
+			hPjRatioPtDeriv->GetXaxis()->SetRangeUser(-10, 10);
+			hPjRatioPtConst->GetXaxis()->SetRangeUser(-10, 10);
+			hPjRatioMDeriv-> GetXaxis()->SetRangeUser(-10, 10);
+			hPjRatioMConst-> GetXaxis()->SetRangeUser(-10, 10);
+			
+			hPjRatioPtDeriv->GetYaxis()->SetTitle("BkgSub-NoSub");
+			hPjRatioPtConst->GetYaxis()->SetTitle("BkgSub-NoSub");
+			hPjRatioMDeriv-> GetYaxis()->SetTitle("BkgSub-NoSub");
+			hPjRatioMConst-> GetYaxis()->SetTitle("BkgSub-NoSub");
+			
+			cdPtRatiosRhoBins->cd(ipt+1);
+			hPjRatioPtDeriv->Draw();
+			hPjRatioPtConst->Draw("sames");
+			pave->Draw();
+			legBkg->Draw();
+			
+			
+			cdMRatiosRhoBins->cd(ipt+1);
+			hPjRatioMDeriv->Draw();
+			hPjRatioMConst->Draw("sames");
+			pave->Draw();
+			legBkg->Draw();
+			
+			//2D correlation dMdpT
+			
+			ClearSelections(hSparseDeriv);
+			TH2D *hdMdPtDeriv = Projections2DWithCuts(hSparseDeriv, axprojFluc, mincut, maxcut, TString::Format("hdMdPtDerivRho%d", ipt));
+			
+			ClearSelections(hSparseConst);
+			TH2D *hdMdPtConst = Projections2DWithCuts(hSparseConst, axprojFluc, mincut, maxcut, TString::Format("hdMdPtConstRho%d", ipt));
+			
+			ClearSelections(hSparseConst);
+			TH2D *hdMdPtNoBkg = Projections2DWithCuts(hSparseConst, axprojFlucNoBkg, mincut, maxcut, TString::Format("hdMdPtoBkgRho%d", ipt));
+			
+			hdMdPtDeriv->GetZaxis()->SetRangeUser(10, 1e5);
+			hdMdPtConst->GetZaxis()->SetRangeUser(10, 1e5);
+			hdMdPtNoBkg->GetZaxis()->SetRangeUser(10, 1e5);
+			
+			hdMdPtDeriv->GetXaxis()->SetRangeUser(-10, 20);
+			hdMdPtConst->GetXaxis()->SetRangeUser(-10, 20);
+			hdMdPtNoBkg->GetXaxis()->SetRangeUser(-10, 20);
+			hdMdPtDeriv->GetYaxis()->SetRangeUser(-10, 20);
+			hdMdPtConst->GetYaxis()->SetRangeUser(-10, 20);
+			hdMdPtNoBkg->GetYaxis()->SetRangeUser(-10, 20);
+			
+			cdMdPtRhoBinsDeriv->cd(ipt+1);
 			gPad->SetLogz();
 			hdMdPtDeriv-> Draw("colz");
 			pave->Draw();
-			pvDer->Draw();
-			DrawLogo(3, 0.45, 0.7, 0.85, 0.8, "", 42, "");
-			
-			cdMdPtRhoBinsConstFig->cd();
+			cdMdPtRhoBinsConst->cd(ipt+1);
 			gPad->SetLogz();
 			hdMdPtConst-> Draw("colz");
 			pave->Draw();
-			pvCons->Draw();
-			DrawLogo(3, 0.45, 0.7, 0.85, 0.8, "", 42, "");
-			
-			cdMdPtRhoBinsNoBkgFig->cd();
+			cdMdPtRhoBinsNoBkg->cd(ipt+1);
 			gPad->SetLogz();
 			hdMdPtNoBkg-> Draw("colz");
 			pave->Draw();
-			pvNoSub->Draw();
-			DrawLogo(3, 0.45, 0.7, 0.85, 0.8, "", 42, "");
+			
+			if(ipt == binFig){
+				TPaveText *pvDer = new TPaveText(0.48, 0.2, 0.89, 0.3, "NDC");
+				pvDer->SetFillStyle(0);
+				pvDer->SetBorderSize(0);
+				TPaveText *pvCons = (TPaveText*)pvDer->Clone("Const");
+				TPaveText *pvNoSub = (TPaveText*)pvDer->Clone("NoSub");
+				pvDer->AddText("Derivative subtraction");
+				pvCons->AddText("Constituent subtraction");
+				pvNoSub->AddText("No background subtraction");
+				
+				cdMdPtRhoBinsDerivFig->cd();
+				gPad->SetLogz();
+				hdMdPtDeriv-> Draw("colz");
+				pave->Draw();
+				pvDer->Draw();
+				DrawLogo(3, 0.45, 0.7, 0.85, 0.8, "", 42, "");
+				
+				cdMdPtRhoBinsConstFig->cd();
+				gPad->SetLogz();
+				hdMdPtConst-> Draw("colz");
+				pave->Draw();
+				pvCons->Draw();
+				DrawLogo(3, 0.45, 0.7, 0.85, 0.8, "", 42, "");
+				
+				cdMdPtRhoBinsNoBkgFig->cd();
+				gPad->SetLogz();
+				hdMdPtNoBkg-> Draw("colz");
+				pave->Draw();
+				pvNoSub->Draw();
+				DrawLogo(3, 0.45, 0.7, 0.85, 0.8, "", 42, "");
+			}
 		}
+		SaveCv(cdPtRhoBins);
+		SaveCv(cdMRhoBins);
+		SaveCv(cdPtRatiosRhoBins);
+		SaveCv(cdMRatiosRhoBins);
+		SaveCv(cdMdPtRhoBinsDeriv);
+		SaveCv(cdMdPtRhoBinsConst);
+		SaveCv(cdMdPtRhoBinsNoBkg);
+		SaveCv(cdMdPtRhoBinsDerivFig);
+		SaveCv(cdMdPtRhoBinsConstFig);
+		SaveCv(cdMdPtRhoBinsNoBkgFig);
+
 	}
 	
-	
-	
-	SaveCv(cdPtRhoBins);
-	SaveCv(cdMRhoBins);
-	SaveCv(cdPtRatiosRhoBins);
-	SaveCv(cdMRatiosRhoBins);
-	SaveCv(cdMdPtRhoBinsDeriv);
-	SaveCv(cdMdPtRhoBinsConst);
-	SaveCv(cdMdPtRhoBinsNoBkg);
-	SaveCv(cdMdPtRhoBinsDerivFig);
-	SaveCv(cdMdPtRhoBinsConstFig);
-	SaveCv(cdMdPtRhoBinsNoBkgFig);
+	//draw mean and sigma
+	for(Int_t ir = 0; ir<nbinsrho; ir++){
+		TPaveText *pave = new TPaveText(0.35, 0.8, 0.75, 0.9, "NDC");
+		pave->SetFillStyle(0);
+		pave->SetBorderSize(0);
+		pave->AddText(TString::Format("%.1f < %s (GeV) < %.1f", binsrho[ir], projtxt.Data(), binsrho[ir+1]));
+		
+		cdMMeanRhoBins->cd(ir+1);
+		hMeanDeriv[ir]->GetYaxis()->SetRangeUser(0., 5.1);
+		hMeanDeriv[ir]->Draw("P");
+		hMeanConst[ir]->Draw("Psames");
+		hMeanNoSub[ir]->Draw("Psames");
+		//legBkg->Draw();
+		pave->Draw();
+		SaveCv(cdMMeanRhoBins);
+		
+		cdMSigmRhoBins->cd(ir+1);
+		hSigmDeriv[ir]->GetYaxis()->SetRangeUser(0., 2.);
+		hSigmDeriv[ir]->Draw("P");
+		hSigmConst[ir]->Draw("Psames");
+		hSigmNoSub[ir]->Draw("Psames");
+		//legBkg->Draw();
+		pave->Draw();
+		SaveCv(cdMSigmRhoBins);		
+	}
 	
 }
 
