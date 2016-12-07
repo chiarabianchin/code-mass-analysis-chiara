@@ -385,7 +385,7 @@ TList* GetPythiaPbPb(Bool_t useline){
 			hMassSt->SetFillColor(hMassSt->GetLineColor());
 			hMassSt->SetMarkerStyle(1);
 			hMassSt->SetFillStyle(0);
-			hMassSt->SetLineWidth(5);
+			hMassSt->SetLineWidth(3);
 		}
 		hMassSt->SetTitle("; #it{M}_{ch jet} (GeV/#it{c}^{2}); #frac{1}{#it{N}_{jets}} #frac{d#it{N}}{d#it{M}_{ch jet}} (#it{c}^{2}/GeV)");
 		
@@ -426,7 +426,7 @@ TList* GetPythiapPbMarta(Bool_t useline){
 			hMassSt->SetFillColor(hMassSt->GetLineColor());
 			hMassSt->SetMarkerStyle(1);
 			hMassSt->SetFillStyle(1);
-			hMassSt->SetLineWidth(5);
+			hMassSt->SetLineWidth(3);
 		}
 		hMassSt->SetMarkerSize(2);
 		listPythia->Add(hMassSt);
@@ -480,7 +480,7 @@ TList* GetJEWEL(Int_t system, Bool_t useline){
 		
 		// set this nicely at some point
 		hMassSt->SetMarkerStyle(28);
-		hMassSt->SetLineWidth(5);
+		hMassSt->SetLineWidth(3);
 		if(system == 0){
 			
 			hMassSt->SetMarkerColor(kGreen+2);
@@ -643,7 +643,7 @@ TList* GetJEWELQPYTHIA(Int_t mod, Bool_t useline){
 			hMassSt->SetFillColor(hMassSt->GetLineColor());
 			hMassSt->SetMarkerStyle(1);
 			hMassSt->SetFillStyle(fillst);
-			hMassSt->SetLineWidth(5);
+			hMassSt->SetLineWidth(3);
 		}
 		hMassSt->SetMarkerSize(2);
 		listModels->Add(hMassSt);
@@ -683,7 +683,7 @@ TList* GetHERWIG(Int_t system, Bool_t useline){
 		hMassSt->SetMarkerStyle(24);
 		if(useline) {
 			hMassSt->SetLineStyle(2);
-			hMassSt->SetLineWidth(5);
+			hMassSt->SetLineWidth(3);
 			hMassSt->SetFillColor(hMassSt->GetLineColor());
 			hMassSt->SetMarkerStyle(1);
 			hMassSt->SetFillStyle(1001);//3004
@@ -724,7 +724,7 @@ void CalculateSysRatio(TH1D* hRatioPbPbOpPbSysC, TH1D* hRDivpPbC){
 //________________________________________________________________________
 
 // mains
-void RatiopPbPbPb(Bool_t useline = kTRUE, Bool_t stylezero = kFALSE, Bool_t drawRaghav = kFALSE, Bool_t pPbpaperprop = kFALSE, Bool_t corrkine = kFALSE, Bool_t show1134 = kFALSE){
+void RatiopPbPbPb(Bool_t useline = kTRUE, Bool_t stylezero = kTRUE, Bool_t drawRaghav = kTRUE, Bool_t pPbpaperprop = kFALSE, Bool_t corrkine = kFALSE, Bool_t show1134 = kFALSE){
 	TString suff = "";
 	if(!corrkine) suff = "NoKineCor";
 	//TGaxis::SetMaxDigits(2);
@@ -761,8 +761,8 @@ void RatiopPbPbPb(Bool_t useline = kTRUE, Bool_t stylezero = kFALSE, Bool_t draw
 	TString drawsimopt = "P", drawsimoptsame = "Psames";
 	TString optlegsim  = "LP";
 	if(useline) {
-		drawsimopt = "C";
-		drawsimoptsame = "Csames";
+		drawsimopt = "LP";
+		drawsimoptsame = "LPsames";
 		optlegsim = "L";
 	}
 	//get the PbPb results
@@ -1320,7 +1320,7 @@ void RatiopPbPbPb(Bool_t useline = kTRUE, Bool_t stylezero = kFALSE, Bool_t draw
 		}
 		hRatioPbPbOpPb->Draw("sames");
 		// pythia ratio from paper draft
-		gRatio276O502M->Draw(drawsimoptsame);
+		hRatio276O502M->Draw("E3sames");//drawsimoptsame
 		// pythia ratio using 1134 output for pPb
 		if(show1134) hRatio276O502->Draw(drawsimoptsame);
 		//hPbPboppJewel->Draw("Lsames");
@@ -2097,7 +2097,10 @@ void DrawMeanComparison(Double_t **xrange, const Int_t ninputs, TString inputDis
 
 //_____________________________________________________________________________
 
-void DrawMeanFromSystOutput(Bool_t stylezero = kFALSE){
+void DrawMeanFromSystOutput(Bool_t stylezero = kTRUE){
+	
+	// this is the method to be used for the paper
+	
 	if(stylezero) {
 		gStyle->SetOptStat(0);
 		gStyle->SetOptTitle(0);
@@ -2121,7 +2124,9 @@ void DrawMeanFromSystOutput(Bool_t stylezero = kFALSE){
 	
 	//gStyle->SetErrorX(.2);
 	
-	TString filenamepPb = "/data/Work/jets/JetMass/pPbJetMassAnalysis/ResultspPbJetMass/Syst20160916/MasspPbResults.root";
+	TString filenamepPb =
+	// results first version
+	"/data/Work/jets/JetMass/pPbJetMassAnalysis/ResultspPbJetMass/Syst20160916/MasspPbResults.root";
 	
 	// pPb mean jet mass
 	TH1D* hSystpPb = 0x0;
@@ -2149,7 +2154,7 @@ void DrawMeanFromSystOutput(Bool_t stylezero = kFALSE){
 	
 	TList* listqpy = GetJEWELQPYTHIA(3);
 	TH1D** hQPythia = new TH1D*[nptbins];
-	Int_t offsetQPy = 2;
+	Int_t offsetQPy = 0; // was 2
 	
 	Double_t **xrange = new Double_t*[nptbins];
 	for(Int_t ipt = 0; ipt < nptbins; ipt++){

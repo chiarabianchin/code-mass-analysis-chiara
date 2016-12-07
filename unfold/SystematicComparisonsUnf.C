@@ -1001,22 +1001,22 @@ void CompareSysRangeVarBinW(Bool_t logy = kFALSE){
 
 //______________________________________________________________________________
 
-void CompareDegudVarBW(Bool_t logy = kFALSE){
-	const Int_t ninputs = 5;
+void CompareDegudVarBW(Bool_t logy = kFALSE){ /// DO NOT CHANGE!!!!
+	/// this is the comparison of variable and fixed binning (not the same plotting as the note, but same overall result.
+	/// the variable binning is the same as the fixed binning when the same range is used (relevant in the high pT bin)
+	const Int_t ninputs = 3;
 	TString files[ninputs] = {
-		"/data/Work/jets/JetMass/pPbJetMassAnalysis/ResultspPbJetMass/Train806-807-810-811/UnfoldingNoBkgSub/MB/00resp_pt20_80or70_120_ptT10_150or50_150_m0_12or0_14_mT0_40/UnfoldedDistributionsPrior0DetFlBkgNoSub.root",
-		"/data/Work/jets/JetMass/pPbJetMassAnalysis/ResultspPbJetMass/Syst20161004VarBinW/byHand/FixedBinW/Data/UnfoldedDistributionsPrior0.root",
-		"/data/Work/jets/JetMass/pPbJetMassAnalysis/ResultspPbJetMass/Syst20161004VarBinW/byHand/FixedBinW/MCClos/UnfoldedDistributionsPrior0.root",
-		"/data/Work/jets/JetMass/pPbJetMassAnalysis/ResultspPbJetMass/Syst20161004VarBinW/byHand/VarBinW/Data/UnfoldedDistributionsPrior0.root",
-		"/data/Work/jets/JetMass/pPbJetMassAnalysis/ResultspPbJetMass/Syst20161004VarBinW/byHand/VarBinW/MCClos/UnfoldedDistributionsPrior0.root"
+		"/data/Work/jets/JetMass/pPbJetMassAnalysis/ResultspPbJetMass/Train806-807-810-811/UnfoldingNoBkgSub/MBEJE/00resp_pt20_80or70_120_ptT10_150or50_150_m0_12or0_14_mT0_40/MassUnfSumMBEJE.root",
+		"/data/Work/jets/JetMass/pPbJetMassAnalysis/ResultspPbJetMass/Train806-807-810-811/UnfoldVarBinW/MBEJE/Def/Iter3/MassUnfSumMBEJE.root",
+		"/data/Work/jets/JetMass/pPbJetMassAnalysis/ResultspPbJetMass/Train806-807-810-811/UnfoldingNoBkgSub/MBEJE/08resp_pt20_80or70_120_ptT10_150or50_150_m0_12or0_16_mT0_40/MassUnfSumMBEJE.root"
 	};
 	//these below are the test that match best
 	//"/data/Work/jets/JetMass/pPbJetMassAnalysis/ResultspPbJetMass/Train806-807-810-811/UnfoldVarBinW/EJE/tests/UnfoldedDistributionsPrior010GeVpar.root",
 	//"/data/Work/jets/JetMass/pPbJetMassAnalysis/ResultspPbJetMass/Train806-807-810-811/UnfoldVarBinW/EJE/tests/UnfoldedDistributionsPrior0.root","/data/Work/jets/JetMass/pPbJetMassAnalysis/ResultspPbJetMass/Train806-807-810-811/UnfoldingNoBkgSub/EJE/00resp_pt20_80or70_120_ptT10_150or50_150_m0_12or0_14_mT0_40/UnfoldedDistributionsPrior0DetFlBkgNoSub.root"
 
-	TString hnamebase[ninputs] = {"hMUnf__Iter3", "hMUnf__Iter3", "hMUnf__Iter3", "hMUnf__Iter3", "hMUnf__Iter3"};
-	TString legs[ninputs] = {"DefaultRes","FixedData", "FixedMCClos", "VarData", "VarMCClos"}; //
-	Int_t firstMatchingBin[ninputs] = {0, 0, 0, 0, 0};
+	TString hnamebase[ninputs] = {"hMUnf__Iter3", "hMUnf__Iter3", "hMUnf__Iter3"};
+	TString legs[ninputs] = {"Prelim","VarBinW", "FixedSameRangeAsVar"}; //
+	Int_t firstMatchingBin[ninputs] = {0, 0, 0};
 	Bool_t changeColor = kTRUE;
 	Bool_t writeout = kTRUE;
 	Bool_t nouniform = kFALSE;
