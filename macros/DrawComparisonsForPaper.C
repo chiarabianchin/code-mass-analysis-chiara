@@ -942,6 +942,10 @@ void RatiopPbPbPb(Bool_t useline = kTRUE, Bool_t stylezero = kTRUE, Bool_t drawR
 	legRatioDataOPy->SetBorderSize(0);
 	legRatioDataOPy->SetFillStyle(0);
 	
+		
+	TCanvas *cMasspPbPyPlus = new TCanvas(TString::Format("cMasspPbPyPlus%s", suff.Data()), "Mass PbPb and Pythia", dx, dy+90);
+	cMasspPbPyPlus->Divide(nx, ny);
+	
 	Int_t n = 2;
 	
 	//TPaveText **pvpt = new TPaveText*[nhM];
@@ -1211,7 +1215,8 @@ void RatiopPbPbPb(Bool_t useline = kTRUE, Bool_t stylezero = kTRUE, Bool_t drawR
 		TH1* hRDivpPb;
 		UniformTH1FForDivide(hSyPbPb, hSypPb, hRatioPbPbOpPbSys, hRDivpPb, "TH1D");
 		hRatioPbPbOpPbSys->SetName(TString::Format("hRatioPbPbOpPbSys_Pt%.0f_%.0f", ptlims[ih],ptlims[ih+1]));
-		hRatioPbPbOpPbSys->GetYaxis()->SetTitle("#Rgothic_{#sqrt{#it{s}}}");
+		//hRatioPbPbOpPbSys->GetYaxis()->SetTitle("#Rgothic_{#sqrt{#it{s}}}");
+		hRatioPbPbOpPbSys->GetYaxis()->SetTitle("Ratio_{#sqrt{#it{s}}}");
 		hRatioPbPbOpPbSys->GetYaxis()->SetTitleOffset(1.15);
 		//hRatioPbPbOpPbSys->GetYaxis()->SetTitleOffset(1.7);
 		hRatioPbPbOpPbSys->Divide(hRDivpPb);
@@ -1352,12 +1357,16 @@ void RatiopPbPbPb(Bool_t useline = kTRUE, Bool_t stylezero = kTRUE, Bool_t drawR
 		TH1* hRatiopPbOPyM;
 		TH1* hDividePy502M;
 		UniformTH1FForDivide(hMpPb, hMPy502M, hRatiopPbOPyM, hDividePy502M, "TH1D"); hRatiopPbOPyM->SetName(TString::Format("hRatiopPbOPyM_Pt%.0f_%.0f", ptlims[ih],ptlims[ih+1]));
-		hRatiopPbOPyM->GetYaxis()->SetTitle("Data/PYTHIA");
+		hRatiopPbOPyM->GetYaxis()->SetTitle("Data/MC");
+		hRatiopPbOPyM->GetXaxis()->SetTitle(hSypPb->GetXaxis()->GetTitle());
 		
 		hRatiopPbOPyM->GetYaxis()->SetTitleOffset(1.15);
-		hRatiopPbOPyM->SetMarkerColor(hMpPb->GetMarkerColor());
-		hRatiopPbOPyM->SetLineColor(hMpPb->GetLineColor());
-		            
+		hRatiopPbOPyM->SetMarkerColor(hMPy502M->GetMarkerColor());
+		hRatiopPbOPyM->SetLineColor(hMPy502M->GetLineColor());
+		hRatiopPbOPyM->SetMarkerStyle(hMPy502M->GetMarkerStyle());
+		hRatiopPbOPyM->SetLineStyle(hMPy502M->GetLineStyle());
+		hRatiopPbOPyM->SetLineWidth(hMPy502M->GetLineWidth());
+		
 		hRatiopPbOPyM->Divide(hDividePy502M);
 		hRatiopPbOPyM->GetXaxis()->SetRangeUser(0., maxRangeMassFinal[ih]);
 		hRatiopPbOPyM->GetYaxis()->SetRangeUser(0., 4);
@@ -1371,7 +1380,7 @@ void RatiopPbPbPb(Bool_t useline = kTRUE, Bool_t stylezero = kTRUE, Bool_t drawR
 		
 		hRatiopPbOPy502SysM->SetName(TString::Format("hRatiopPbOPy502SysM_Pt%.0f_%.0f", ptlims[ih],ptlims[ih+1]));
 		hRatiopPbOPy502SysM->GetYaxis()->SetTitle("Data/PYTHIA");
-		hRatiopPbOPy502SysM->GetYaxis()->SetTitleOffset(1.15);
+		hRatiopPbOPy502SysM->GetYaxis()->SetTitleOffset(0.50);
 		
 		//hRatiopPbOPy502SysM->GetYaxis()->SetTitleOffset(1.7);
 		hRatiopPbOPy502SysM->Divide(hDividePy502MNoErr);
@@ -1379,7 +1388,38 @@ void RatiopPbPbPb(Bool_t useline = kTRUE, Bool_t stylezero = kTRUE, Bool_t drawR
 		hRatiopPbOPy502SysM->SetLineWidth(hSypPb->GetLineWidth());
 		hRatiopPbOPy502SysM->SetLineColor(hSypPb->GetLineColor());
 		hRatiopPbOPy502SysM->SetMarkerColor(hSypPb->GetLineColor());
-		hRatiopPbOPy502SysM->SetMarkerStyle(hSypPb->GetMarkerStyle());
+		//hRatiopPbOPy502SysM->SetMarkerStyle(hSypPb->GetMarkerStyle());
+		
+		Int_t nbinsRat = 1, nbinsAllRat = hRatiopPbOPy502SysM->GetNbinsX();
+		
+		for(Int_t ib = 0; ib < nbinsAllRat; ib++) {
+			if(hRatiopPbOPy502SysM->GetBinCenter(ib+2) > maxRangeMassFinal[ih]) {
+				nbinsRat = ib+1;
+				break;
+			}
+		}
+		Printf("Nbins pt bin %d = %d", ih, nbinsRat);
+		Double_t xmass[nbinsRat], ratPy[nbinsRat], errX[nbinsRat], errY[nbinsRat];
+		for(Int_t ib = 0; ib < nbinsRat; ib++){
+			ratPy[ib] = hRatiopPbOPy502SysM->GetBinContent(ib+1);
+			xmass[ib] = hRatiopPbOPy502SysM->GetBinCenter(ib+1);
+			errX[ib]  = hRatiopPbOPy502SysM->GetBinWidth(ib+1)/2.;
+			errY[ib]  = hRatiopPbOPy502SysM->GetBinError(ib+1);
+			Printf("EEEEEERRRRRRR ====== %f", errY[ib]);
+		}
+		TGraphErrors* gRatiopPbOPyM = new TGraphErrors(nbinsRat, xmass, ratPy, errX, errY);
+		gRatiopPbOPyM->SetName(TString::Format("gRatiopPbOPyM%d", ih));
+		
+		gRatiopPbOPyM->SetTitle(TString::Format("%s;%s;%s", "", hRatiopPbOPyM->GetXaxis()->GetTitle(), hRatiopPbOPyM->GetYaxis()->GetTitle()));
+		
+		gRatiopPbOPyM->SetMarkerColor(hMPy502M->GetMarkerColor());
+		gRatiopPbOPyM->SetFillColor(hMPy502M->GetMarkerColor());
+		gRatiopPbOPyM->SetFillStyle(0);
+		gRatiopPbOPyM->SetLineColor(hMPy502M->GetLineColor());
+		gRatiopPbOPyM->SetMarkerStyle(hMPy502M->GetMarkerStyle());
+		gRatiopPbOPyM->SetLineStyle(hMPy502M->GetLineStyle());
+		gRatiopPbOPyM->SetLineWidth(hMPy502M->GetLineWidth());
+		
 		//ratio pPb paper prop /PYTHIA
 		TH1* hRatiopPbOPypappr;
 		TH1* hDividePy502Mbis;
@@ -1417,6 +1457,8 @@ void RatiopPbPbPb(Bool_t useline = kTRUE, Bool_t stylezero = kTRUE, Bool_t drawR
 		hRatiopPbOPy502Syspappr->SetMarkerStyle(1);
 		
 		
+		
+		
 		// ratio pPb/Herwig
 		
 		TH1* hRatiopPbOHerwig;
@@ -1428,7 +1470,8 @@ void RatiopPbPbPb(Bool_t useline = kTRUE, Bool_t stylezero = kTRUE, Bool_t drawR
 		hRatiopPbOHerwig->SetMarkerStyle(hMHwpPb->GetMarkerStyle());
 		hRatiopPbOHerwig->SetMarkerColor(hMHwpPb->GetMarkerColor());
 		hRatiopPbOHerwig->SetLineColor(hMHwpPb->GetLineColor());
-		hRatiopPbOHerwig->SetLineWidth(hMpPb->GetLineWidth());
+		hRatiopPbOHerwig->SetLineStyle(hMHwpPb->GetLineStyle());
+		hRatiopPbOHerwig->SetLineWidth(hMHwpPb->GetLineWidth());
 		// systematics ratio pPb/Herwig
 		TH1* hRatiopPbOHerwigSy;
 		TH1* hDivideHerwigSy;
@@ -1442,6 +1485,26 @@ void RatiopPbPbPb(Bool_t useline = kTRUE, Bool_t stylezero = kTRUE, Bool_t drawR
 		hRatiopPbOHerwigSy->SetFillColor(hMHwpPb->GetLineColor());
 		hRatiopPbOHerwigSy->SetMarkerStyle(hMHwpPb->GetMarkerStyle());
 		hRatiopPbOHerwigSy->SetMarkerColor(hMHwpPb->GetMarkerColor());
+		
+		//Int_t nbinsRat = hRatiopPbOHerwig->GetNbinsX();
+		//Printf("Nbins pt bin %d = %d", ipt, nbinsRat);
+		Double_t ratHw[nbinsRat]; 
+		for(Int_t ib = 0; ib < nbinsRat; ib++){
+			ratHw[ib] = hRatiopPbOHerwig->GetBinContent(ib+1);
+			errY[ib] = hRatiopPbOHerwigSy->GetBinError(ib+1);
+		}
+		TGraphErrors* gRatiopPbOHerwig = new TGraphErrors(nbinsRat, xmass, ratHw, errX, errY);
+		gRatiopPbOHerwig->SetName(TString::Format("gRatiopPbOHerwig%d", ih));
+		
+		gRatiopPbOHerwig->SetMarkerStyle(hMHwpPb->GetMarkerStyle());
+		gRatiopPbOHerwig->SetMarkerColor(hMHwpPb->GetMarkerColor());
+		gRatiopPbOHerwig->SetLineColor(hMHwpPb->GetLineColor());
+		gRatiopPbOHerwig->SetLineStyle(hMHwpPb->GetLineStyle());
+		gRatiopPbOHerwig->SetFillStyle(1001);
+		gRatiopPbOHerwig->SetFillColor(kBlue-10);
+		gRatiopPbOHerwig->SetLineWidth(hMHwpPb->GetLineWidth());
+		
+		
 		
 		cRatiopPbOPy->cd(ih+1);
 		gPad->SetTicks(1,1);
@@ -1473,7 +1536,85 @@ void RatiopPbPbPb(Bool_t useline = kTRUE, Bool_t stylezero = kTRUE, Bool_t drawR
 			}
 			legRatiopPbOPy->Draw();
 		}
-		if(show1134) {}
+		
+		//padMasspPb->Modified();
+		cMasspPbPyPlus->cd(ih+1);
+		
+		TPad* padMasspPb = new TPad(TString::Format("padMasspPb%d", ih), "padMasspPb", 0., 0.3, 1, 1);
+		// first draw and the cd!!
+		padMasspPb->Draw();
+		padMasspPb->cd();
+		gPad->SetTicks(1,1);
+		gPad->SetLeftMargin(0.16);
+		gPad->SetRightMargin(0.05);
+		gPad->SetBottomMargin(0.003);
+		
+		
+		hSypPb->GetYaxis()->SetTitleOffset(1.53);
+		
+		hSypPb ->Draw("E2");
+		hMpPb  ->Draw("sames");
+		gMPy502M->Draw(drawsimoptsame);
+		gMHwpPb->Draw(drawsimoptsame);
+		if(ih == nhM-1){
+			legMasspPb->Draw();
+		}
+		if(ih == 1) {
+			latext.DrawLatex(4, 0.18, "Charged jets, Anti-#it{k}_{T}");
+			latext.DrawLatex(4.5, 0.15, "#it{R} = 0.4, |#eta_{jet}| < 0.5");
+		}
+		
+		latext.DrawLatex(4, 0.22, TString::Format("%.0f < #it{p}_{T, ch jet} (GeV/#it{c}) < %.0f", ptlims[ih], ptlims[ih+1]));
+		
+		cMasspPbPyPlus->cd(ih+1);
+		
+		TPad* padRatpPbMC= new TPad(TString::Format("padRatpPbMC%d", ih), "padRatpPbMC", 0, 0., 1, 0.3);
+		
+		padRatpPbMC->Draw();
+		padRatpPbMC->cd();
+		gPad->SetTicks(1,1);
+		gPad->SetLeftMargin(0.16);
+		gPad->SetRightMargin(0.05);
+		gPad->SetTopMargin(0.003);
+		gPad->SetBottomMargin(0.25);
+		
+		//padRatpPbMC->Draw();
+		
+		//hRatiopPbOPy502SysM->GetXaxis()->SetTickLength(0.08);
+		//hRatiopPbOPy502SysM->GetXaxis()->SetLabelSize(0.13);
+		//hRatiopPbOPy502SysM->GetXaxis()->SetTitleOffset(0.95);
+		//hRatiopPbOPy502SysM->GetXaxis()->SetTitleSize(0.12);
+		//
+		//hRatiopPbOPy502SysM->GetYaxis()->SetNdivisions(304);
+		//hRatiopPbOPy502SysM->GetYaxis()->SetTitleSize(0.12);
+		//hRatiopPbOPy502SysM->GetYaxis()->SetLabelSize(0.13);
+		//hRatiopPbOPy502SysM->GetYaxis()->SetTitleOffset(0.95);
+		//hRatiopPbOPy502SysM->GetYaxis()->SetTitle("Data/MC");
+		//hRatiopPbOPy502SysM->GetYaxis()->SetRangeUser(0, 3.5);
+		
+		gRatiopPbOPyM->GetXaxis()->SetTickLength(0.08);
+		gRatiopPbOPyM->GetXaxis()->SetLabelSize(0.13);
+		gRatiopPbOPyM->GetXaxis()->SetTitleOffset(0.95);
+		gRatiopPbOPyM->GetXaxis()->SetTitleSize(0.12);
+		//Printf("%f ----- %f", hSypPb ->GetBinLowEdge(1), hSypPb ->GetBinLowEdge(hSypPb ->GetNbinsX()+1));
+		gRatiopPbOPyM->GetXaxis()->SetRangeUser(hSypPb ->GetBinLowEdge(1), hSypPb ->GetBinLowEdge(hSypPb ->GetNbinsX()+1)); //-hSypPb ->GetBinWidth(1)*0.05
+		
+		gRatiopPbOPyM->GetYaxis()->SetNdivisions(304);
+		gRatiopPbOPyM->GetYaxis()->SetTitleSize(0.12);
+		gRatiopPbOPyM->GetYaxis()->SetLabelSize(0.13);
+		gRatiopPbOPyM->GetYaxis()->SetTitleOffset(0.5);
+		gRatiopPbOPyM->GetYaxis()->SetRangeUser(0, 3.5);
+		
+		//gRatiopPbOPyM->Draw("AP3"); 
+		gRatiopPbOPyM->Draw(TString::Format("A3%s", drawsimopt.Data()));
+		//hRatiopPbOPy502SysM->Draw("E2");
+		//hRatiopPbOPyM->Draw("sames");
+		gRatiopPbOHerwig->Draw(TString::Format("3%s", drawsimopt.Data()));
+		gRatiopPbOHerwig->Draw("LX");
+		//hRatiopPbOHerwigSy->Draw("E2sames");
+		//hRatiopPbOHerwig->Draw("sames");
+		lineOne->Draw();
+		
 		//ratio PbPb/PYTHIA
 		TH1* hRatioPbPbOPy;
 		TH1* hDividePy276;
@@ -1615,6 +1756,7 @@ void RatiopPbPbPb(Bool_t useline = kTRUE, Bool_t stylezero = kTRUE, Bool_t drawR
 	SaveCv(cRatioPbPbOpPb);
 	SaveCv(cRatioPbPbOPy);
 	SaveCv(cRatiopPbOPy);
+	SaveCv(cMasspPbPyPlus);
 	SaveCv(cRatioDataOPy);
 }
 
