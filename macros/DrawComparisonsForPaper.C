@@ -248,7 +248,8 @@ TList* GetpPbResults(Bool_t kinecorr){
 		}
 		
 		// set this nicely at some point
-		hMassSt->SetMarkerStyle(hMtmp->GetMarkerStyle());
+		//hMassSt->SetMarkerStyle(hMtmp->GetMarkerStyle());
+		hMassSt->SetMarkerStyle(34);
 		hMassSt->SetMarkerColor(hMtmp->GetMarkerColor());
 		hMassSt->SetLineColor(hMtmp->GetLineColor());
 		hMassSt->SetMarkerSize(2);
@@ -1015,20 +1016,20 @@ void RatiopPbPbPb(Bool_t useline = kTRUE, Bool_t stylezero = kTRUE, Bool_t drawR
 			hMpPbM ->Draw("sames");
 		}
 		if(ih == 1) {
-			latext.DrawLatex(4, 0.18, "Charged jets, Anti-#it{k}_{T}");
-			latext.DrawLatex(4.5, 0.15, "#it{R} = 0.4, |#eta_{jet}| < 0.5");
+			latext.DrawLatex(4, 0.18, "Charged jets, anti-#it{k}_{T}");
+			latext.DrawLatex(4.5, 0.15, "#it{R} = 0.4, |#it{#eta}_{jet}| < 0.5");
 			
 		}
 		latext.DrawLatex(4, 0.22, TString::Format("%.0f < #it{p}_{T, ch jet} (GeV/#it{c}) < %.0f", ptlims[ih], ptlims[ih+1]));
 		//pvpt[ih]->Draw();
 		if(ih == nhM-1){
-			legMass->AddEntry(hSyPbPb , "Pb-Pb 0-10% #sqrt{#it{s}}_{NN} = 2.76 TeV");
-			//legMass->AddEntry(hSyPbPb, "Systematic Pb-Pb" , "F");
-			legMass->AddEntry(hSypPb ,  "pPb #sqrt{#it{s}}_{NN} = 5.02 TeV");
-			//legMass->AddEntry(hSypPb,  "Systematic p-Pb" , "F");
+			legMass->AddEntry(hSyPbPb , "0-10% Pb#font[122]{-}Pb #sqrt{#it{s}_{NN}} = 2.76 TeV");
+			//legMass->AddEntry(hSyPbPb, "Systematic Pb#font[122]{-}Pb" , "F");
+			legMass->AddEntry(hSypPb ,  "pPb #sqrt{#it{s}_{NN}} = 5.02 TeV");
+			//legMass->AddEntry(hSypPb,  "Systematic p#font[122]{-}Pb" , "F");
 			if(pPbpaperprop){
-				legMass->AddEntry(hMpPbM , "Mass p-Pb paper prop", "PL");
-				legMass->AddEntry(hSypPbM,  "Sys p-Pb paper prop" , "F");
+				legMass->AddEntry(hMpPbM , "Mass p#font[122]{-}Pb paper prop", "PL");
+				legMass->AddEntry(hSypPbM,  "Sys p#font[122]{-}Pb paper prop" , "F");
 			}
 			legMass->Draw();
 		}
@@ -1064,9 +1065,9 @@ void RatiopPbPbPb(Bool_t useline = kTRUE, Bool_t stylezero = kTRUE, Bool_t drawR
 		hRelSysUncpPb  ->Draw("histsames");
 		hRelSysUncpPbM ->Draw("histsames");
 		if(ih == nhM-1){
-			legRelUnc->AddEntry(hRelSysUncpPb, "p-Pb", "L");
-			legRelUnc->AddEntry(hRelSysUncpPbM, "p-Pb paper prop", "L");
-			legRelUnc->AddEntry(hRelSysUncPbPb, "Pb-Pb", "L");
+			legRelUnc->AddEntry(hRelSysUncpPb, "p#font[122]{-}Pb", "L");
+			legRelUnc->AddEntry(hRelSysUncpPbM, "p#font[122]{-}Pb paper prop", "L");
+			legRelUnc->AddEntry(hRelSysUncPbPb, "Pb#font[122]{-}Pb", "L");
 			legRelUnc->Draw();
 		}
 		
@@ -1084,17 +1085,17 @@ void RatiopPbPbPb(Bool_t useline = kTRUE, Bool_t stylezero = kTRUE, Bool_t drawR
 		gMHwpPb->Draw(drawsimoptsame);
 		//hMJewpp-> Draw("sames");
 		if(ih == nhM-1){
-			legMasspPb->AddEntry(hSypPb, "p-Pb #sqrt{s_{NN}} = 5.02 TeV");
-			//legMasspPb->AddEntry(hSypPb, "Systematic p-Pb", "F");
-			if(show1134) legMasspPb->AddEntry(hMPy502, "PYTHIA Perugia 2011 #sqrt{s_{NN}} = 5.02 TeV", optlegsim);
+			legMasspPb->AddEntry(hSypPb, "p#font[122]{-}Pb #sqrt{s_{NN}} = 5.02 TeV");
+			//legMasspPb->AddEntry(hSypPb, "Systematic p#font[122]{-}Pb", "F");
+			if(show1134) legMasspPb->AddEntry(hMPy502, "PYTHIA Perugia 2011", optlegsim); //#sqrt{s_{NN}} = 5.02 TeV
 			legMasspPb->AddEntry(hMPy502M, "PYTHIA Perugia 2011 #sqrt{s_{NN}} = 5.02 TeV", optlegsim); //  #sqrt{s_{NN}} = 5.02 TeV // paper prop
 			//legMasspPb->AddEntry(hMJewpp, "JEWEL+PYTHIA pp", "LP");
-			legMasspPb->AddEntry(hMHwpPb, "HERWIG EE5C #sqrt{s_{NN}} = 5.02 TeV", optlegsim);
+			legMasspPb->AddEntry(hMHwpPb, "HERWIG EE5C", optlegsim); //#sqrt{s_{NN}} = 5.02 TeV
 			legMasspPb->Draw();
 		}
 		if(ih == 1) {
-			latext.DrawLatex(4, 0.18, "Charged jets, Anti-#it{k}_{T}");
-			latext.DrawLatex(4.5, 0.15, "#it{R} = 0.4, |#eta_{jet}| < 0.5");
+			latext.DrawLatex(4, 0.18, "Charged jets, anti-#it{k}_{T}");
+			latext.DrawLatex(4.5, 0.15, "#it{R} = 0.4, |#it{#eta}_{jet}| < 0.5");
 		}
 		latext.DrawLatex(4, 0.22, TString::Format("%.0f < #it{p}_{T, ch jet} (GeV/#it{c}) < %.0f", ptlims[ih], ptlims[ih+1]));
 		//pvpt[ih]->Draw();
@@ -1105,8 +1106,8 @@ void RatiopPbPbPb(Bool_t useline = kTRUE, Bool_t stylezero = kTRUE, Bool_t drawR
 		hSyPbPb  ->Draw("E2");
 		hMPbPb   ->Draw("sames");
 		if(ih == 1) {
-			latext.DrawLatex(4, 0.18, "Charged jets, Anti-#it{k}_{T}");
-			latext.DrawLatex(4.5, 0.15, "#it{R} = 0.4, |#eta_{jet}| < 0.5");
+			latext.DrawLatex(4, 0.18, "Charged jets, anti-#it{k}_{T}");
+			latext.DrawLatex(4.5, 0.15, "#it{R} = 0.4, |#it{#eta}_{jet}| < 0.5");
 		}
 		latext.DrawLatex(4, 0.22, TString::Format("%.0f < #it{p}_{T, ch jet} (GeV/#it{c}) < %.0f", ptlims[ih], ptlims[ih+1]));
 		//pvpt[ih]->Draw();
@@ -1118,8 +1119,8 @@ void RatiopPbPbPb(Bool_t useline = kTRUE, Bool_t stylezero = kTRUE, Bool_t drawR
 		hMPbPb   ->Draw("sames");
 		gMPy276  ->Draw(drawsimoptsame);
 		if(ih == 1) {
-			latext.DrawLatex(4, 0.18, "Charged jets, Anti-#it{k}_{T}");
-			latext.DrawLatex(4.5, 0.15, "#it{R} = 0.4, |#eta_{jet}| < 0.5");
+			latext.DrawLatex(4, 0.18, "Charged jets, anti-#it{k}_{T}");
+			latext.DrawLatex(4.5, 0.15, "#it{R} = 0.4, |#it{#eta}_{jet}| < 0.5");
 		}
 		latext.DrawLatex(4, 0.22, TString::Format("%.0f < #it{p}_{T, ch jet} (GeV/#it{c}) < %.0f", ptlims[ih], ptlims[ih+1]));
 		//pvpt[ih] ->Draw();
@@ -1155,8 +1156,8 @@ void RatiopPbPbPb(Bool_t useline = kTRUE, Bool_t stylezero = kTRUE, Bool_t drawR
 		//pvpt[ih] ->Draw();
 		
 		if(ih == nhM-1){
-			legMassPbPbOnly->AddEntry(hSyPbPb,    "Pb-Pb 0-10% #sqrt{s_{NN}} = 2.76 TeV");
-			//legMassPbPbOnly->AddEntry(hSyPbPb,   "Systematic Pb-Pb" , "F");
+			legMassPbPbOnly->AddEntry(hSyPbPb,    "0-10% Pb#font[122]{-}Pb #sqrt{s_{NN}} = 2.76 TeV");
+			//legMassPbPbOnly->AddEntry(hSyPbPb,   "Systematic Pb#font[122]{-}Pb" , "F");
 			cMassPbPbOnly->cd(ih+1); legMassPbPbOnly->Draw();
 			
 			
@@ -1166,8 +1167,8 @@ void RatiopPbPbPb(Bool_t useline = kTRUE, Bool_t stylezero = kTRUE, Bool_t drawR
 			legMassPbPbModels->AddEntry(hMQPy,      "Q-PYTHIA", optlegsim);
 			cMassPbPbModels->cd(ih+1); legMassPbPbModels->Draw();
 			
-			legMassPbPbPy->AddEntry(hSyPbPb,    "Pb-Pb 0-10% #sqrt{s_{NN}} = 2.76 TeV");
-			//legMassPbPbPy->AddEntry(hSyPbPb,   "Systematic Pb-Pb" , "F");
+			legMassPbPbPy->AddEntry(hSyPbPb,    "0-10% Pb#font[122]{-}Pb #sqrt{s_{NN}} = 2.76 TeV");
+			//legMassPbPbPy->AddEntry(hSyPbPb,   "Systematic Pb#font[122]{-}Pb" , "F");
 			legMassPbPbPy->AddEntry(hMPy276,   "PYTHIA  Perugia 2011", optlegsim);
 			cMassPbPbPy->cd(ih+1); legMassPbPbPy->Draw();
 			
@@ -1176,7 +1177,7 @@ void RatiopPbPbPb(Bool_t useline = kTRUE, Bool_t stylezero = kTRUE, Bool_t drawR
 			legMassPbPb2->AddEntry(hMJewPbPbMRoff, "Recoil off", optlegsim);
 			//latext.DrawLatex(6, 0.19, "Recoil on");
 			//latext.DrawLatex(6, 0.17, "Recoil off");
-			cMassPbPb->cd(ih+1); latext.DrawLatex(2, 0.18, "JEWEL + PYTHIA 0-10% Pb-Pb"); legMassPbPb2->Draw();
+			cMassPbPb->cd(ih+1); latext.DrawLatex(2, 0.18, "JEWEL + PYTHIA 0-10% Pb#font[122]{-}Pb"); legMassPbPb2->Draw();
 		}
 		//if(ih == 0){
 		//	legdummy->AddEntry(hMJewPbPb, "Recoil on", "P");
@@ -1185,8 +1186,8 @@ void RatiopPbPbPb(Bool_t useline = kTRUE, Bool_t stylezero = kTRUE, Bool_t drawR
 		//	legdummy->Draw();
 		//}
 		if(ih == nhM-2){
-			legMassPbPb1->AddEntry(hSyPbPb,    "Pb-Pb 0-10% #sqrt{s_{NN}} = 2.76 TeV");
-			//legMassPbPb->AddEntry(hSyPbPb,   "Systematic Pb-Pb" , "F");
+			legMassPbPb1->AddEntry(hSyPbPb,    "0-10% Pb#font[122]{-}Pb #sqrt{s_{NN}} = 2.76 TeV");
+			//legMassPbPb->AddEntry(hSyPbPb,   "Systematic Pb#font[122]{-}Pb" , "F");
 			legMassPbPb1->AddEntry(hMPy276,   "PYTHIA  Perugia 2011", optlegsim); //#sqrt{s_{NN}} = 2.76 TeV
 			legMassPbPb1->AddEntry(hMQPy,      "Q-PYTHIA", optlegsim);
 			cMassPbPb->cd(ih+1); legMassPbPb1->Draw();
@@ -1332,22 +1333,22 @@ void RatiopPbPbPb(Bool_t useline = kTRUE, Bool_t stylezero = kTRUE, Bool_t drawR
 		//reference line
 		lineOne->Draw();
 		if(ih == 1) {
-			latext.DrawLatex(4, 3, "Charged jets, Anti-#it{k}_{T}");
-			latext.DrawLatex(4.5, 2.5, "#it{R} = 0.4, |#eta_{jet}| < 0.5");
+			latext.DrawLatex(4, 3, "Charged jets, anti-#it{k}_{T}");
+			latext.DrawLatex(4.5, 2.5, "#it{R} = 0.4, |#it{#eta}_{jet}| < 0.5");
 		}
 		latext.DrawLatex(4, 3.6, TString::Format("%.0f < #it{p}_{T, ch jet} (GeV/#it{c}) < %.0f", ptlims[ih], ptlims[ih+1]));
 		//pvpt[ih]->Draw();
 		
 		if(ih == nhM-1){
-			legRatioPbPbOpPb->AddEntry(hRatioPbPbOpPbSys, "Data Pb-Pb / p-Pb");// #sqrt{s_{NN}}
-			//legRatioPbPbOpPb->AddEntry(hRatioPbPbOpPbSys, "Sys Pb-Pb/p-Pb", "F");
+			legRatioPbPbOpPb->AddEntry(hRatioPbPbOpPbSys, "Data Pb#font[122]{-}Pb / p#font[122]{-}Pb");// #sqrt{s_{NN}}
+			//legRatioPbPbOpPb->AddEntry(hRatioPbPbOpPbSys, "Sys Pb#font[122]{-}Pb/p#font[122]{-}Pb", "F");
 			if(pPbpaperprop){
 				legRatioPbPbOpPb->AddEntry(hRatioPbPbOpPbM, "Ratio PbPb/pPb paper prop", "LP");
 				legRatioPbPbOpPb->AddEntry(hRatioPbPbOpPbSysM, "Sys PbPb/pPb paper prop", optlegsim);
 			}
 			if(show1134) legRatioPbPbOpPb->AddEntry(hRatio276O502, "PYTHIA(2.76)/PYTHIA(5.02)Matched", optlegsim);
 			
-			legRatioPbPbOpPb->AddEntry(hRatio276O502M, "PYTHIA 2.76TeV / 5.02TeV", optlegsim); // paper prop
+			legRatioPbPbOpPb->AddEntry(hRatio276O502M, "PYTHIA 2.76 TeV / 5.02 TeV", optlegsim); // paper prop
 			//legRatioPbPbOpPb->AddEntry(hPbPboppJewel, "Ratio JEWEL", "LP");
 			legRatioPbPbOpPb->Draw();
 			
@@ -1520,16 +1521,16 @@ void RatiopPbPbPb(Bool_t useline = kTRUE, Bool_t stylezero = kTRUE, Bool_t drawR
 		}
 		lineOne->Draw();
 		if(ih == 1) {
-			latext.DrawLatex(4, 3, "Charged jets, Anti-#it{k}_{T}");
-			latext.DrawLatex(4.5, 2.5, "#it{R} = 0.4, |#eta_{jet}| < 0.5");
+			latext.DrawLatex(4, 3, "Charged jets, anti-#it{k}_{T}");
+			latext.DrawLatex(4.5, 2.5, "#it{R} = 0.4, |#it{#eta}_{jet}| < 0.5");
 		}
 		latext.DrawLatex(4, 3.6, TString::Format("%.0f < #it{p}_{T, ch jet} (GeV/#it{c}) < %.0f", ptlims[ih], ptlims[ih+1]));
 		//pvpt[ih]->Draw();
 		
 		if(ih == nhM-1){
-			legRatiopPbOPy->AddEntry(hRatiopPbOPy502SysM, "p-Pb / PYTHIA(5.02TeV)");
-			//legRatiopPbOPy->AddEntry(hRatiopPbOPy502SysM, "(Sys p-Pb) / PYTHIA(5.02TeV)", "F");
-			legRatiopPbOPy->AddEntry(hRatiopPbOHerwigSy, "p-Pb / HERWIG(5.02TeV)");
+			legRatiopPbOPy->AddEntry(hRatiopPbOPy502SysM, "p#font[122]{-}Pb / PYTHIA(5.02TeV)");
+			//legRatiopPbOPy->AddEntry(hRatiopPbOPy502SysM, "(Sys p#font[122]{-}Pb) / PYTHIA(5.02TeV)", "F");
+			legRatiopPbOPy->AddEntry(hRatiopPbOHerwigSy, "p#font[122]{-}Pb / HERWIG(5.02TeV)");
 			if(pPbpaperprop) {
 				legRatiopPbOPy->AddEntry(hRatiopPbOPypappr, "pPb paper pr / PYTHIA(5.02TeV)", "PL");
 				legRatiopPbOPy->AddEntry(hRatiopPbOPy502Syspappr, "(Sys pPb paper pr) / PYTHIA(5.02TeV)", optlegsim);
@@ -1559,12 +1560,16 @@ void RatiopPbPbPb(Bool_t useline = kTRUE, Bool_t stylezero = kTRUE, Bool_t drawR
 		if(ih == nhM-1){
 			legMasspPb->Draw();
 		}
+		if(ih == 0) {
+			DrawLogo(0, 4, 0.17, "", 42, "");
+		}
 		if(ih == 1) {
-			latext.DrawLatex(4, 0.18, "Charged jets, Anti-#it{k}_{T}");
-			latext.DrawLatex(4.5, 0.15, "#it{R} = 0.4, |#eta_{jet}| < 0.5");
+			latext.DrawLatex(4, 0.18, "Charged jets, anti-#it{k}_{T}");
+			latext.DrawLatex(4.5, 0.15, "#it{R} = 0.4, |#it{#eta}_{jet}| < 0.5");
 		}
 		
 		latext.DrawLatex(4, 0.22, TString::Format("%.0f < #it{p}_{T, ch jet} (GeV/#it{c}) < %.0f", ptlims[ih], ptlims[ih+1]));
+		
 		
 		cMasspPbPyPlus->cd(ih+1);
 		
@@ -1592,25 +1597,27 @@ void RatiopPbPbPb(Bool_t useline = kTRUE, Bool_t stylezero = kTRUE, Bool_t drawR
 		//hRatiopPbOPy502SysM->GetYaxis()->SetTitle("Data/MC");
 		//hRatiopPbOPy502SysM->GetYaxis()->SetRangeUser(0, 3.5);
 		
-		gRatiopPbOPyM->GetXaxis()->SetTickLength(0.08);
-		gRatiopPbOPyM->GetXaxis()->SetLabelSize(0.13);
-		gRatiopPbOPyM->GetXaxis()->SetTitleOffset(0.95);
-		gRatiopPbOPyM->GetXaxis()->SetTitleSize(0.12);
+		gRatiopPbOHerwig->GetXaxis()->SetTickLength(0.08);
+		gRatiopPbOHerwig->GetXaxis()->SetLabelSize(0.13);
+		gRatiopPbOHerwig->GetXaxis()->SetTitleOffset(0.95);
+		gRatiopPbOHerwig->GetXaxis()->SetTitleSize(0.12);
 		//Printf("%f ----- %f", hSypPb ->GetBinLowEdge(1), hSypPb ->GetBinLowEdge(hSypPb ->GetNbinsX()+1));
-		gRatiopPbOPyM->GetXaxis()->SetRangeUser(hSypPb ->GetBinLowEdge(1), hSypPb ->GetBinLowEdge(hSypPb ->GetNbinsX()+1)); //-hSypPb ->GetBinWidth(1)*0.05
+		gRatiopPbOHerwig->GetXaxis()->SetRangeUser(hSypPb ->GetBinLowEdge(1), hSypPb ->GetBinLowEdge(hSypPb ->GetNbinsX()+1)); //-hSypPb ->GetBinWidth(1)*0.05
 		
-		gRatiopPbOPyM->GetYaxis()->SetNdivisions(304);
-		gRatiopPbOPyM->GetYaxis()->SetTitleSize(0.12);
-		gRatiopPbOPyM->GetYaxis()->SetLabelSize(0.13);
-		gRatiopPbOPyM->GetYaxis()->SetTitleOffset(0.5);
-		gRatiopPbOPyM->GetYaxis()->SetRangeUser(0, 3.5);
+		gRatiopPbOHerwig->GetYaxis()->SetNdivisions(304);
+		gRatiopPbOHerwig->GetYaxis()->SetTitleSize(0.12);
+		gRatiopPbOHerwig->GetYaxis()->SetLabelSize(0.13);
+		gRatiopPbOHerwig->GetYaxis()->SetTitleOffset(0.5);
+		gRatiopPbOHerwig->GetYaxis()->SetRangeUser(0, 3.5);
 		
 		//gRatiopPbOPyM->Draw("AP3"); 
-		gRatiopPbOPyM->Draw(TString::Format("A3%s", drawsimopt.Data()));
+		
 		//hRatiopPbOPy502SysM->Draw("E2");
 		//hRatiopPbOPyM->Draw("sames");
-		gRatiopPbOHerwig->Draw(TString::Format("3%s", drawsimopt.Data()));
+		gRatiopPbOHerwig->Draw(TString::Format("A3%s", drawsimopt.Data()));
 		gRatiopPbOHerwig->Draw("LX");
+		gRatiopPbOPyM->Draw(TString::Format("3%s", drawsimopt.Data()));
+		
 		//hRatiopPbOHerwigSy->Draw("E2sames");
 		//hRatiopPbOHerwig->Draw("sames");
 		lineOne->Draw();
@@ -1654,15 +1661,15 @@ void RatiopPbPbPb(Bool_t useline = kTRUE, Bool_t stylezero = kTRUE, Bool_t drawR
 		hRatioPbPbOPy->Draw("sames");
 		lineOne->Draw();
 		if(ih == nhM-1){
-			legRatioPbPbOPy->AddEntry(hRatioPbPbOPy276Sys, "Pb-Pb / PYTHIA(2.76TeV)");
-			//legRatioPbPbOPy->AddEntry(hRatioPbPbOPy276Sys, "Sys Pb-Pb / PYTHIA(2.76TeV)", "F");
+			legRatioPbPbOPy->AddEntry(hRatioPbPbOPy276Sys, "Pb#font[122]{-}Pb / PYTHIA(2.76TeV)");
+			//legRatioPbPbOPy->AddEntry(hRatioPbPbOPy276Sys, "Sys Pb#font[122]{-}Pb / PYTHIA(2.76TeV)", "F");
 			legRatioPbPbOPy->Draw();
 		}
 		//pvpt[ih]->Draw();
 		latext.DrawLatex(4, 3.6, TString::Format("%.0f < #it{p}_{T, ch jet} (GeV/#it{c}) < %.0f", ptlims[ih], ptlims[ih+1]));
 		if(ih == 1) {
-			latext.DrawLatex(4, 3, "Charged jets, Anti-#it{k}_{T}");
-			latext.DrawLatex(4.5, 2.5, "#it{R} = 0.4, |#eta_{jet}| < 0.5");
+			latext.DrawLatex(4, 3, "Charged jets, anti-#it{k}_{T}");
+			latext.DrawLatex(4.5, 2.5, "#it{R} = 0.4, |#it{#eta}_{jet}| < 0.5");
 		}
 		// data/ PYTHIA overlapped
 		cRatioDataOPy->cd(ih+1);
@@ -1680,14 +1687,14 @@ void RatiopPbPbPb(Bool_t useline = kTRUE, Bool_t stylezero = kTRUE, Bool_t drawR
 		//pvpt[ih]->Draw();
 		lineOne->Draw();
 		if(ih == 1) {
-			latext.DrawLatex(4, 3, "Charged jets, Anti-#it{k}_{T}");
-			latext.DrawLatex(4.5, 2.5, "#it{R} = 0.4, |#eta_{jet}| < 0.5");
+			latext.DrawLatex(4, 3, "Charged jets, anti-#it{k}_{T}");
+			latext.DrawLatex(4.5, 2.5, "#it{R} = 0.4, |#it{#eta}_{jet}| < 0.5");
 		}
 		if(ih == nhM-1){
-			legRatioDataOPy->AddEntry(hRatiopPbOPy502SysM, "p-Pb / PYTHIA(5.02TeV)");
-			//legRatioDataOPy->AddEntry(hRatiopPbOPy502SysM, "Sys p-Pb / PYTHIA(5.02TeV)", "F");
-			legRatioDataOPy->AddEntry(hRatioPbPbOPy276Sys, "Pb-Pb / PYTHIA(2.76TeV)");
-			//legRatioDataOPy->AddEntry(hRatioPbPbOPy276Sys, "Sys Pb-Pb / PYTHIA(2.76TeV)", "F");
+			legRatioDataOPy->AddEntry(hRatiopPbOPy502SysM, "p#font[122]{-}Pb / PYTHIA(5.02TeV)");
+			//legRatioDataOPy->AddEntry(hRatiopPbOPy502SysM, "Sys p#font[122]{-}Pb / PYTHIA(5.02TeV)", "F");
+			legRatioDataOPy->AddEntry(hRatioPbPbOPy276Sys, "Pb#font[122]{-}Pb / PYTHIA(2.76TeV)");
+			//legRatioDataOPy->AddEntry(hRatioPbPbOPy276Sys, "Sys Pb#font[122]{-}Pb / PYTHIA(2.76TeV)", "F");
 			legRatioDataOPy->Draw();
 		}
 		
@@ -1723,26 +1730,26 @@ void RatiopPbPbPb(Bool_t useline = kTRUE, Bool_t stylezero = kTRUE, Bool_t drawR
 	DrawLogo(0, 4, 0.2, "", 42, "");
 	
 	cRatiopPbOPy->cd(1);
-	latext.DrawLatex(2.8, 3, "p-Pb #sqrt{#it{s}}_{NN} = 5.02 TeV");
+	latext.DrawLatex(2.8, 3, "p#font[122]{-}Pb #sqrt{#it{s}_{NN}} = 5.02 TeV");
 	//pvSystpPb->Draw();
 	//cRatiopPbOPy->cd(2);
 	latext.DrawLatex(2.8, 2.5, "PYTHIA Perugia 2011");
 	//pvSystPyth->Draw();
 	
 	cRatioDataOPy->cd(1);
-	latext.DrawLatex(2.8, 3., "Pb-Pb 0-10% #sqrt{#it{s}}_{NN} = 2.76 TeV");
-	latext.DrawLatex(2.8, 2.5, "p-Pb #sqrt{#it{s}}_{NN} = 5.02 TeV");
+	latext.DrawLatex(2.8, 3., "0-10% Pb#font[122]{-}Pb #sqrt{#it{s}_{NN}} = 2.76 TeV");
+	latext.DrawLatex(2.8, 2.5, "p#font[122]{-}Pb #sqrt{#it{s}_{NN}} = 5.02 TeV");
 	//pvSystpPb->Draw();
 	latext.DrawLatex(2.8, 2, "PYTHIA Perugia 2011");
 	//pvSystPyth->Draw();
 	
 	cRatioPbPbOPy->cd(1);
-	latext.DrawLatex(2.8, 3., "Pb-Pb 0-10% #sqrt{#it{s}}_{NN} = 2.76 TeV");
+	latext.DrawLatex(2.8, 3., "0-10% Pb#font[122]{-}Pb #sqrt{#it{s}_{NN}} = 2.76 TeV");
 	latext.DrawLatex(2.8, 2.5, "PYTHIA Perugia 2011");
 	
 	cRatioPbPbOpPb->cd(1);
-	latext.DrawLatex(2.8, 3., "Pb-Pb 0-10% #sqrt{#it{s}}_{NN} = 2.76 TeV");
-	latext.DrawLatex(4.1, 2.5, "p-Pb #sqrt{#it{s}}_{NN} = 5.02 TeV");
+	latext.DrawLatex(2.8, 3., "0-10% Pb#font[122]{-}Pb #sqrt{#it{s}_{NN}} = 2.76 TeV");
+	latext.DrawLatex(4.1, 2.5, "p#font[122]{-}Pb #sqrt{#it{s}_{NN}} = 5.02 TeV");
 	latext.DrawLatex(4.1, 2, "PYTHIA Perugia 2011");
 	//pvSystPbPb->Draw();
 	
@@ -1961,10 +1968,10 @@ void DrawMeanComparison(Bool_t stylezero = kTRUE){
 		0
 	};
 	TString leg[ninputs] = {
-		"Pb-Pb 0-10\% #sqrt{#it{s}_{NN}} = 2.76 TeV",
-		"p-Pb #sqrt{#it{s}_{NN}} = 5.02 TeV",
+		"Pb#font[122]{-}Pb 0-10\% #sqrt{#it{s}_{NN}} = 2.76 TeV",
+		"p#font[122]{-}Pb #sqrt{#it{s}_{NN}} = 5.02 TeV",
 		"PYTHIA #sqrt{#it{s}_{NN}} = 2.76 TeV",
-		"JEWEL+PYTHIA, Pb-Pb 0-10\% #sqrt{#it{s}_{NN}} = 2.76 TeV"
+		"JEWEL+PYTHIA, Pb#font[122]{-}Pb 0-10\% #sqrt{#it{s}_{NN}} = 2.76 TeV"
 	};
 	Int_t  mrk[ninputs] = {
 		20,
@@ -2009,7 +2016,7 @@ void DrawMeanComparison(Double_t **xrange, const Int_t ninputs, TString inputDis
 	TPaveText *pvgeneral = new TPaveText(0.45, 0.7, 0.65, 0.8, "NDC");
 	pvgeneral->SetFillStyle(0);
 	pvgeneral->SetBorderSize(0);
-	pvgeneral->AddText("Anti-#it{k}_{T}, #it{R} = 0.4");
+	pvgeneral->AddText("anti-#it{k}_{T}, #it{R} = 0.4");
    	   
 	TH1D* hmean[ninputs];
 	TGraphErrors *grmean[ninputs];
@@ -2273,6 +2280,7 @@ void DrawMeanFromSystOutput(Bool_t stylezero = kTRUE){
 	// pPb mean jet mass
 	TH1D* hSystpPb = 0x0;
 	TH1D* hMeanjmpPb = GetMeanAndSystFromFile(filenamepPb, hSystpPb);
+	hMeanjmpPb->SetMarkerStyle(34);
 	hSystpPb->SetMarkerStyle(hMeanjmpPb->GetMarkerStyle());
 	hSystpPb->SetMarkerColor(hMeanjmpPb->GetMarkerColor());
 	hSystpPb->SetMarkerSize(2);
@@ -2357,7 +2365,7 @@ void DrawMeanFromSystOutput(Bool_t stylezero = kTRUE){
 	hMeanQPythia->SetMarkerStyle(hQPythia[0]->GetMarkerStyle());
 	hMeanQPythia->SetMarkerColor(hQPythia[0]->GetMarkerColor());
 	hMeanQPythia->SetLineColor  (hQPythia[0]->GetLineColor());
-	hMeanQPythia->SetMarkerSize(2);
+	hMeanQPythia->SetMarkerSize(2.3);
 	
 	TCanvas *cMeanjetmass = new TCanvas("cMeanjetmass", "Mean jet mass", 600, 600);
 	TCanvas *cMeanjetmassdata = new TCanvas("cMeanjetmassdata", "Mean jet mass", 600, 600);
@@ -2365,17 +2373,17 @@ void DrawMeanFromSystOutput(Bool_t stylezero = kTRUE){
 	TLegend *leg = new TLegend(0.45, 0.15, 0.95, 0.4);
 	leg->SetBorderSize(0);
 	leg->SetFillStyle(0);
-	leg->AddEntry(hMeanPbPb, "Pb-Pb 0-10%");
-	leg->AddEntry(hMeanPy276, "PYTHIA Perugia11");
+	leg->AddEntry(hMeanPbPb, "0-10% Pb#font[122]{-}Pb");
+	leg->AddEntry(hMeanPy276, "PYTHIA Perugia 2011");
 	leg->AddEntry(hMeanJewel, "JEWEL+PYTHIA recoil on");
 	leg->AddEntry(hMeanQPythia, "Q-PYTHIA");
 	
-	TLegend *legda = new TLegend(0.45, 0.15, 0.95, 0.4);
+	TLegend *legda = new TLegend(0.42, 0.15, 0.92, 0.4);
 	legda->SetBorderSize(0);
 	legda->SetFillStyle(0);
-	legda->AddEntry(grMeanPbPbSys, "Pb-Pb 0-10% #sqrt{s} = 2.76 TeV");
-	legda->AddEntry(hSystpPb, "p-Pb #sqrt{s} = 5.02 TeV");
-	legda->AddEntry(hsqrtdiff, "#sqrt{s} difference");
+	legda->AddEntry(grMeanPbPbSys, "0-10% Pb#font[122]{-}Pb #sqrt{#it{s}_{NN}} = 2.76 TeV");
+	legda->AddEntry(hSystpPb, "p#font[122]{-}Pb #sqrt{#it{s}_{NN}} = 5.02 TeV");
+	legda->AddEntry(hsqrtdiff, "#sqrt{#it{s}_{NN}} difference");
 	
 	for(Int_t ipt = 0; ipt < nptbins; ipt++){
 		cMeanjetmass->cd();
@@ -2409,18 +2417,18 @@ void DrawMeanFromSystOutput(Bool_t stylezero = kTRUE){
 	pvgeneral->SetFillStyle(0);
 	pvgeneral->SetBorderSize(0);
 	pvgeneral->AddText("Charged jets");
-	pvgeneral->AddText("Anti-#it{k}_{T}, #it{R} = 0.4");
+	pvgeneral->AddText("anti-#it{k}_{T}, #it{R} = 0.4");
 	
 	
 	cMeanjetmass->cd();
 	DrawLogo(0, 65, 2, "", 42, "");
-	latext.DrawLatex(65, 20, "Charged jets, Anti-#it{k}_{T}");
-	latext.DrawLatex(65, 18, "#it{R} = 0.4, |#eta_{jet}| < 0.5");
+	latext.DrawLatex(65, 20, "Charged jets, anti-#it{k}_{T}");
+	latext.DrawLatex(65, 18, "#it{R} = 0.4, |#it{#eta}_{jet}| < 0.5");
 	//pvgeneral->Draw();
 	cMeanjetmassdata->cd();
 	DrawLogo(0, 65, 2, "", 42, "");
-	latext.DrawLatex(65, 14, "Charged jets, Anti-#it{k}_{T}");
-	latext.DrawLatex(65, 12, "#it{R} = 0.4, |#eta_{jet}| < 0.5");
+	latext.DrawLatex(65, 14, "Charged jets, anti-#it{k}_{T}");
+	latext.DrawLatex(65, 12, "#it{R} = 0.4, |#it{#eta}_{jet}| < 0.5");
 	//pvgeneral->Draw();
 	
 	SaveCv(cMeanjetmass);
@@ -2439,16 +2447,16 @@ TH1D* SystEnergyDep(TString filenamepPb){
 	TH1D* hMeanpPb = GetMeanFromFile(filenamepPb);
 	if(!hMeanpPb) return 0;
 	
-	TH1D* hMean502 = new TH1D("hMean502", "Mean jet mass vs #it{p}_{T} #sqrt{s} = 5.02 TeV; #it{p}_{T} (GeV/#it{c}); #LT #it{M} #GT (GeV/#it{c}^{2})", nptbins, ptlims);
+	TH1D* hMean502 = new TH1D("hMean502", "Mean jet mass vs #it{p}_{T} #sqrt{#it{s}_{NN}} = 5.02 TeV; #it{p}_{T} (GeV/#it{c}); #LT #it{M} #GT (GeV/#it{c}^{2})", nptbins, ptlims);
 	
-	TH1D* hMean276 = new TH1D("hMean276", "Mean jet mass vs #it{p}_{T} #sqrt{s} = 2.76 TeV; #it{p}_{T} (GeV/#it{c}); #LT #it{M} #GT (GeV/#it{c}^{2})", nptbins, ptlims);
+	TH1D* hMean276 = new TH1D("hMean276", "Mean jet mass vs #it{p}_{T} #sqrt{#it{s}_{NN}} = 2.76 TeV; #it{p}_{T} (GeV/#it{c}); #LT #it{M} #GT (GeV/#it{c}^{2})", nptbins, ptlims);
 	
 	//histogram syst error
 	Int_t div = 3;
 	const Int_t fakenptbins = nptbins*div;
 	
 	
-	TH1D* hDiffsqrts = new TH1D("hDiffsqrts", "Difference mean jet mass #sqrt{s} = 5.02 TeV - #sqrt{s} = 2.76 TeV vs #it{p}_{T} ; #it{p}_{T} (GeV/#it{c}); #LT #it{M} #GT (GeV/#it{c}^{2})", fakenptbins, ptlims[0], ptlims[nptbins]);
+	TH1D* hDiffsqrts = new TH1D("hDiffsqrts", "Difference mean jet mass #sqrt{#it{s}_{NN}} = 5.02 TeV - #sqrt{#it{s}_{NN}} = 2.76 TeV vs #it{p}_{T} ; #it{p}_{T} (GeV/#it{c}); #LT #it{M} #GT (GeV/#it{c}^{2})", fakenptbins, ptlims[0], ptlims[nptbins]);
 	hDiffsqrts->SetFillStyle(1001);
 	hDiffsqrts->SetFillColor(kGray+2);
 	hDiffsqrts->SetLineColor(hDiffsqrts->GetFillColor());
