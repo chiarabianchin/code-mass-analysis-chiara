@@ -174,7 +174,7 @@ TList* GetPbPbResultsGraph(){
 
 TList* GetpPbResults(Bool_t kinecorr){
 	
-	if(!kinecorr) Printf("DOESN'T WORK PROPERLY YET");
+	if(kinecorr) Printf("IT'S WRONG!!!");
 	
 	TString pathResults = 
 	//"/data/Work/jets/JetMass/pPbJetMassAnalysis/ResultspPbJetMass/AllSyst20160819/MasspPbResults.root";
@@ -411,7 +411,8 @@ TList* GetPythiapPbMarta(Bool_t useline){
 	TString nameMSt = "hM_";
 	const Int_t nhM = 4;
 	Int_t offset = 1;
-	
+	// the file contains 5 bins, 20-40, 40-60, 60-80, 80-100, 100-120
+	// Here I read 4 bins, starting from bin number "offset" (i.e. 40-60)
 	TList *listPythia = new TList();
 	listPythia->SetOwner();
 	
@@ -1088,7 +1089,7 @@ void RatiopPbPbPb(Bool_t useline = kTRUE, Bool_t stylezero = kTRUE, Bool_t drawR
 			legMasspPb->AddEntry(hSypPb, "p#font[122]{-}Pb #sqrt{s_{NN}} = 5.02 TeV");
 			//legMasspPb->AddEntry(hSypPb, "Systematic p#font[122]{-}Pb", "F");
 			if(show1134) legMasspPb->AddEntry(hMPy502, "PYTHIA Perugia 2011", optlegsim); //#sqrt{s_{NN}} = 5.02 TeV
-			legMasspPb->AddEntry(hMPy502M, "PYTHIA Perugia 2011 #sqrt{s_{NN}} = 5.02 TeV", optlegsim); //  #sqrt{s_{NN}} = 5.02 TeV // paper prop
+			legMasspPb->AddEntry(hMPy502M, "PYTHIA Perugia 2011", optlegsim); //  #sqrt{s_{NN}} = 5.02 TeV // paper prop
 			//legMasspPb->AddEntry(hMJewpp, "JEWEL+PYTHIA pp", "LP");
 			legMasspPb->AddEntry(hMHwpPb, "HERWIG EE5C", optlegsim); //#sqrt{s_{NN}} = 5.02 TeV
 			legMasspPb->Draw();
@@ -1496,7 +1497,8 @@ void RatiopPbPbPb(Bool_t useline = kTRUE, Bool_t stylezero = kTRUE, Bool_t drawR
 		}
 		TGraphErrors* gRatiopPbOHerwig = new TGraphErrors(nbinsRat, xmass, ratHw, errX, errY);
 		gRatiopPbOHerwig->SetName(TString::Format("gRatiopPbOHerwig%d", ih));
-		
+		gRatiopPbOHerwig->GetYaxis()->SetTitle("Data/PYTHIA");
+		gRatiopPbOHerwig->GetXaxis()->SetTitle("#it{M}_{jet ch} (GeV/#it{c}^{2})");
 		gRatiopPbOHerwig->SetMarkerStyle(hMHwpPb->GetMarkerStyle());
 		gRatiopPbOHerwig->SetMarkerColor(hMHwpPb->GetMarkerColor());
 		gRatiopPbOHerwig->SetLineColor(hMHwpPb->GetLineColor());
@@ -1551,7 +1553,7 @@ void RatiopPbPbPb(Bool_t useline = kTRUE, Bool_t stylezero = kTRUE, Bool_t drawR
 		gPad->SetBottomMargin(0.003);
 		
 		
-		hSypPb->GetYaxis()->SetTitleOffset(1.53);
+		//hSypPb->GetYaxis()->SetTitleOffset(1.53);
 		
 		hSypPb ->Draw("E2");
 		hMpPb  ->Draw("sames");
@@ -2319,12 +2321,13 @@ void DrawMeanFromSystOutput(Bool_t stylezero = kTRUE){
 		hMSysPbPb[ipt]->SetMarkerSize(2);
 		
 		hpythia502[ipt] = (TH1D*)list502->At(ipt+offsetPbPb);
+		Printf("pPb PYTHIA %s", hpythia502[ipt]->GetName());
 		hpythia276[ipt] = (TH1D*)list276->At(ipt+offsetPbPb);
-		
+		Printf("PbPb PYTHIA %s", hpythia276[ipt]->GetName());
 		hJewel[ipt] = (TH1D*)listJewel->At(ipt);
-		
+		Printf("PbPb JEWEL %s", hJewel[ipt]->GetName());
 		hQPythia[ipt] = (TH1D*)listqpy->At(ipt+offsetQPy);
-		
+		Printf("PbPb QPYTHIA %s", hQPythia[ipt]->GetName());
 	}
 	
 	TGraphErrors *grmean = 0x0;
@@ -2383,7 +2386,7 @@ void DrawMeanFromSystOutput(Bool_t stylezero = kTRUE){
 	legda->SetFillStyle(0);
 	legda->AddEntry(grMeanPbPbSys, "0-10% Pb#font[122]{-}Pb #sqrt{#it{s}_{NN}} = 2.76 TeV");
 	legda->AddEntry(hSystpPb, "p#font[122]{-}Pb #sqrt{#it{s}_{NN}} = 5.02 TeV");
-	legda->AddEntry(hsqrtdiff, "#sqrt{#it{s}_{NN}} difference");
+	legda->AddEntry(hsqrtdiff, "#sqrt{#it{s}} difference");
 	
 	for(Int_t ipt = 0; ipt < nptbins; ipt++){
 		cMeanjetmass->cd();
@@ -2442,21 +2445,25 @@ TH1D* SystEnergyDep(TString filenamepPb){
 	// get histograms pythia at the two energies
 	TList* list502 = GetPythiapPbMarta();
 	TList* list276 = GetPythiaPbPb();
+	UInt_t entries502 =  list502->GetEntries(), entries276 = list276->GetEntries();
+	Printf("Info: list 502 contains %d entries, list 276 contains %d entries", entries502, entries276);
 	
+	Int_t offset502 = entries502 - nptbins, offset276 = entries276 - nptbins;
+	Printf("Info: setting offset list 502 = %d, setting offset list 276 = %d", offset502, offset276);
 	// put the systematic for sqrt{s} on top of these points
 	TH1D* hMeanpPb = GetMeanFromFile(filenamepPb);
 	if(!hMeanpPb) return 0;
 	
-	TH1D* hMean502 = new TH1D("hMean502", "Mean jet mass vs #it{p}_{T} #sqrt{#it{s}_{NN}} = 5.02 TeV; #it{p}_{T} (GeV/#it{c}); #LT #it{M} #GT (GeV/#it{c}^{2})", nptbins, ptlims);
+	TH1D* hMean502 = new TH1D("hMean502", "Mean jet mass vs #it{p}_{T} #sqrt{#it{s}} = 5.02 TeV; #it{p}_{T} (GeV/#it{c}); #LT #it{M} #GT (GeV/#it{c}^{2})", nptbins, ptlims);
 	
-	TH1D* hMean276 = new TH1D("hMean276", "Mean jet mass vs #it{p}_{T} #sqrt{#it{s}_{NN}} = 2.76 TeV; #it{p}_{T} (GeV/#it{c}); #LT #it{M} #GT (GeV/#it{c}^{2})", nptbins, ptlims);
+	TH1D* hMean276 = new TH1D("hMean276", "Mean jet mass vs #it{p}_{T} #sqrt{#it{s}} = 2.76 TeV; #it{p}_{T} (GeV/#it{c}); #LT #it{M} #GT (GeV/#it{c}^{2})", nptbins, ptlims);
 	
 	//histogram syst error
 	Int_t div = 3;
 	const Int_t fakenptbins = nptbins*div;
 	
 	
-	TH1D* hDiffsqrts = new TH1D("hDiffsqrts", "Difference mean jet mass #sqrt{#it{s}_{NN}} = 5.02 TeV - #sqrt{#it{s}_{NN}} = 2.76 TeV vs #it{p}_{T} ; #it{p}_{T} (GeV/#it{c}); #LT #it{M} #GT (GeV/#it{c}^{2})", fakenptbins, ptlims[0], ptlims[nptbins]);
+	TH1D* hDiffsqrts = new TH1D("hDiffsqrts", "Difference mean jet mass #sqrt{#it{s}} = 5.02 TeV - #sqrt{#it{s}} = 2.76 TeV vs #it{p}_{T} ; #it{p}_{T} (GeV/#it{c}); #LT #it{M} #GT (GeV/#it{c}^{2})", fakenptbins, ptlims[0], ptlims[nptbins]);
 	hDiffsqrts->SetFillStyle(1001);
 	hDiffsqrts->SetFillColor(kGray+2);
 	hDiffsqrts->SetLineColor(hDiffsqrts->GetFillColor());
@@ -2464,8 +2471,9 @@ TH1D* SystEnergyDep(TString filenamepPb){
 	//calculate the average
 	for(Int_t ipt = 0; ipt< nptbins; ipt++){
 		Int_t fakebin = hDiffsqrts->FindBin((ptlims[ipt+1] + ptlims[ipt])/2.);
-		TH1D* htmpM502 = (TH1D*)list502->At(ipt);
-		TH1D* htmpM276 = (TH1D*)list276->At(ipt);
+		TH1D* htmpM502 = (TH1D*)list502->At(ipt + offset502);
+		TH1D* htmpM276 = (TH1D*)list276->At(ipt + offset276);
+		Printf("Info: read %s and %s", htmpM502->GetName(), htmpM276->GetName());
 		Double_t jetmdiff = htmpM502->GetMean()-htmpM276->GetMean();
 		
 		hDiffsqrts->SetBinContent(fakebin, hMeanpPb->GetBinContent(ipt+1)-jetmdiff/2.);
