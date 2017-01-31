@@ -12,6 +12,10 @@
 
 Double_t maxM = 26.;
 //definitions
+
+TPad* CreatePadInCanvas(TString padbasename, Int_t ih, Double_t minpadih, Double_t maxpadih, Bool_t ismostright);
+TH1F* GetTransparentHistogram(Int_t nbins, Double_t min, Double_t max, Double_t content = 0.25);
+TH1F* GetTransparentHistogram(Int_t nbins, Double_t *bins, Double_t content = 0.25);
 TList* GetPbPbResults();
 TList* GetPbPbResultsGraph();
 TList* GetpPbResults(Bool_t kinecorr = kTRUE);
@@ -49,6 +53,52 @@ void RatioWithReducedSyst(Int_t* rejectPbPb, Int_t* rejectpPb, TString name);
 void CalculateSysRatio(TH1D* hRatioPbPbOpPbSys, TH1D* hRDivpPbC);
 
 //implementations
+
+TPad* CreatePadInCanvas(TString padbasename, Int_t ih, Double_t minpadih, Double_t maxpadih, Bool_t ismostright){
+	
+	//before calling this method, cd into the canvas
+	// min and max x are settable, while y is fixed to the full height of the canvas
+	
+	TPad* ppadMasspPb = new TPad(TString::Format("%s%d", padbasename.Data(), ih), padbasename, minpadih, 0, maxpadih, 1);
+	
+	ppadMasspPb->Draw();
+	ppadMasspPb->cd();
+	if(ih == 0) {
+		gPad->SetRightMargin(0.);
+	}
+	if(ih > 0){
+		gPad->SetLeftMargin(0.);
+		gPad->SetRightMargin(0.);
+		if(ismostright) gPad->SetRightMargin(0.1);
+		//gPad->SetBottomMargin(0.003);
+	}
+	return ppadMasspPb;
+}
+
+TH1F* GetTransparentHistogram(Int_t nbins, Double_t *bins, Double_t content){
+	TH1F* htransp = new TH1F("htransp", "", nbins, bins);
+	
+	htransp->SetMarkerStyle(1);
+	htransp->SetMarkerColor(kWhite);
+	htransp->SetLineColor(kWhite);
+	htransp->SetBinContent(1, content);
+	htransp->GetYaxis()->SetRangeUser(0, content);
+	return htransp;
+
+}
+
+TH1F* GetTransparentHistogram(Int_t nbins, Double_t min, Double_t max, Double_t content){
+	
+	Double_t bins[nbins+1];
+	Double_t delta = (max- min)/(Double_t)nbins;
+	for(Int_t i = 0; i <= nbins; i++){
+		bins[i] = min + i*delta;
+	}
+	
+	return GetTransparentHistogram(nbins, bins, content);
+
+}
+
 TList* GetPbPbResults(){
 	TString pathMartaPbPb = "/data/Work/jets/JetMass/PbPbResults/TranformedIntoTH1.root";
 	
@@ -73,6 +123,7 @@ TList* GetPbPbResults(){
 		hMassSt->SetMarkerColor(kBlue+2);
 		hMassSt->SetMarkerSize(2);
 		hMassSt->SetLineColor(kBlue+2);
+		hMassSt->GetXaxis()->SetRangeUser(0., maxM);
 		
 		hMassSy->SetFillColor(kBlue-10);
 		hMassSy->SetMarkerStyle(1);
@@ -105,6 +156,7 @@ TList* GetPbPbResultsGraph(){
 	TString nameMSy = "grUnfMassSyst_PtBin";
 	const Int_t nhM = 4;
 	Int_t offset = 1;
+	Double_t massbinW = 2.;
 	
 	TList *listPbPb = new TList();
 	listPbPb->SetOwner();
@@ -114,14 +166,15 @@ TList* GetPbPbResultsGraph(){
 		TGraphErrors* gMassSt = (TGraphErrors*)fResPbPbM->Get(TString::Format("%s%d", nameMSt.Data(), ih+offset));
 		TGraphErrors* gMassSy = (TGraphErrors*)fResPbPbM->Get(TString::Format("%s%d", nameMSy.Data(),ih+offset));
 		
+		Int_t nmaxpoints = (Int_t)maxM/massbinW;
 		Int_t npoints = gMassSt->GetN();
 		if(gMassSy->GetN() != npoints) Printf("Number of points in syst = %d != %d",gMassSy->GetN(), npoints);
-		Double_t binlimits[npoints+1];
-		Double_t yvalue[npoints];
-		Double_t yerror[npoints];
-		Double_t ysyste[npoints];
+		Double_t binlimits[nmaxpoints+1];
+		Double_t yvalue[nmaxpoints];
+		Double_t yerror[nmaxpoints];
+		Double_t ysyste[nmaxpoints];
 		Double_t last = 0;
-		for(Int_t j = 0; j<npoints; j++){
+		for(Int_t j = 0; j<nmaxpoints; j++){
 			Double_t x;
 			gMassSt->GetPoint(j, x, yvalue[j]);
 			binlimits[j] = x - gMassSt->GetErrorXlow(j);
@@ -132,7 +185,7 @@ TList* GetPbPbResultsGraph(){
 			//Printf("binlims[%d] = %.1f, y = %f+-%f+-%f", j, binlimits[j], yvalue[j], yerror[j], ysyste[j]);
 		
 		}
-		binlimits[npoints] = last;
+		binlimits[nmaxpoints] = last;
 		
 		TH1D* hMassSt = new TH1D(TString::Format("hUnfMass_PtBin%d", ih+offset), TString::Format("hUnfMass_PtBin%d", ih+offset), npoints, binlimits);
 		hMassSt->Sumw2();
@@ -143,6 +196,7 @@ TList* GetPbPbResultsGraph(){
 		hMassSt->SetMarkerStyle(20);
 		hMassSt->SetMarkerSize(2);
 		hMassSt->SetLineColor(kBlue+2);
+		hMassSt->GetXaxis()->SetRangeUser(0., maxM);
 		
 		hMassSy->SetFillColor(kBlue-10);
 		hMassSy->SetMarkerStyle(1);
@@ -256,10 +310,12 @@ TList* GetpPbResults(Bool_t kinecorr){
 		//hMassSt->GetYaxis()->SetTitleOffset(1.7);
 		
 		//hMassSt->GetXaxis()->SetRangeUser(0., maxRangeMassFinal[ih]);
+		hMassSy->SetMarkerStyle(hMassSt->GetMarkerStyle());
+		hMassSy->SetMarkerColor(hMassSt->GetMarkerColor());
 		hMassSy->SetFillStyle(hSytmp->GetFillStyle());
 		hMassSy->SetLineWidth(hSytmp->GetLineWidth());
 		hMassSy->SetLineColor(hSytmp->GetLineColor());
-		hMassSy->SetMarkerSize(2);
+		//hMassSy->SetMarkerSize(2);
 		//hMassSy->GetYaxis()->SetTitleOffset(1.7);
 		//hMassSy->GetXaxis()->SetRangeUser(0., maxRangeMassFinal[ih]);
 		
@@ -296,6 +352,7 @@ TList* GetpPbMarta(){
 		hMassSt->SetLineColor(kOrange+1);
 		hMassSt->SetMarkerColor(kOrange+1);
 		hMassSt->SetMarkerSize(2);
+		hMassSt->GetXaxis()->SetRangeUser(0., maxM);
 		
 		hMassSy->SetLineColor(kOrange+1);
 		hMassSy->SetFillColor(kOrange+1);
@@ -348,6 +405,7 @@ TList* GetPythiapPb(Int_t input){
 		hMassPythia[ih]->SetMarkerSize(2);
 		hMassPythia[ih]->SetMarkerColor(kGreen-3);
 		hMassPythia[ih]->SetLineColor(kGreen-3);
+		hMassPythia[ih]->GetXaxis()->SetRangeUser(0., maxM);
 		listPythia->Add(hMassPythia[ih]);
 	}
 	return listPythia;
@@ -389,7 +447,7 @@ TList* GetPythiaPbPb(Bool_t useline){
 			hMassSt->SetLineWidth(3);
 		}
 		hMassSt->SetTitle("; #it{M}_{ch jet} (GeV/#it{c}^{2}); #frac{1}{#it{N}_{jets}} #frac{d#it{N}}{d#it{M}_{ch jet}} (#it{c}^{2}/GeV)");
-		
+		hMassSt->GetXaxis()->SetRangeUser(0., maxM);
 		listPythia->Add(hMassSt);
 	}
 	
@@ -431,6 +489,7 @@ TList* GetPythiapPbMarta(Bool_t useline){
 			hMassSt->SetLineWidth(3);
 		}
 		hMassSt->SetMarkerSize(2);
+		hMassSt->GetXaxis()->SetRangeUser(0., maxM);
 		listPythia->Add(hMassSt);
 	}
 	
@@ -512,6 +571,8 @@ TList* GetJEWEL(Int_t system, Bool_t useline){
 		}
 		hMassSt->SetLineColor(hMassSt->GetMarkerColor());
 		hMassSt->SetFillColor(hMassSt->GetLineColor());
+		hMassSt->GetXaxis()->SetRangeUser(0., maxM);
+		
 		listJewel->Add(hMassSt);
 		hMassSt->SetMarkerSize(2);
 		
@@ -519,6 +580,7 @@ TList* GetJEWEL(Int_t system, Bool_t useline){
 			hMassRa->SetMarkerStyle(hMassSt->GetMarkerStyle());
 			hMassRa->SetMarkerColor(hMassSt->GetMarkerColor());
 			hMassRa->SetLineColor(hMassSt->GetMarkerColor());
+			hMassRa->GetXaxis()->SetRangeUser(0., maxM);
 			listJewel->Add(hMassRa);
 		}
 		
@@ -648,6 +710,7 @@ TList* GetJEWELQPYTHIA(Int_t mod, Bool_t useline){
 			hMassSt->SetLineWidth(3);
 		}
 		hMassSt->SetMarkerSize(2);
+		hMassSt->GetXaxis()->SetRangeUser(0., maxM);
 		listModels->Add(hMassSt);
 	}
 	
@@ -726,7 +789,7 @@ void CalculateSysRatio(TH1D* hRatioPbPbOpPbSysC, TH1D* hRDivpPbC){
 //________________________________________________________________________
 
 // mains
-void RatiopPbPbPb(Bool_t useline = kTRUE, Bool_t stylezero = kTRUE, Bool_t drawRaghav = kTRUE, Bool_t pPbpaperprop = kFALSE, Bool_t corrkine = kFALSE, Bool_t show1134 = kFALSE){
+void RatiopPbPbPb(Bool_t useline = kTRUE, Bool_t stylezero = kTRUE, Bool_t drawRaghav = kTRUE, Bool_t pPbpaperprop = kFALSE, Bool_t corrkine = kFALSE, Bool_t show1134 = kFALSE, Bool_t samexrange = kFALSE){
 	TString suff = "";
 	if(!corrkine) suff = "NoKineCor";
 	//TGaxis::SetMaxDigits(2);
@@ -872,19 +935,19 @@ void RatiopPbPbPb(Bool_t useline = kTRUE, Bool_t stylezero = kTRUE, Bool_t drawR
 	Int_t nx, ny, dx, dy;
 	CalculatePads(nhM, nx, ny, dx, dy, 1, 400);
 	TCanvas *cMass = new TCanvas(TString::Format("cMass%s", suff.Data()), "Mass histograms", dx, dy);
-	cMass->Divide(nx, ny);
+	//cMass->Divide(nx, ny);
 	TLegend *legMass = new TLegend(0.2, 0.55, 0.9, 0.75);
 	legMass->SetBorderSize(0);
 	legMass->SetFillStyle(0);
 	
 	TCanvas *cRatioPbPbOpPb = new TCanvas(TString::Format("cRatioPbPbOpPb%s", suff.Data()), "Ratio PbPb/pPb", dx, dy);
-	cRatioPbPbOpPb->Divide(nx, ny);
+	//cRatioPbPbOpPb->Divide(nx, ny);
 	TLegend *legRatioPbPbOpPb = new TLegend(0.2, 0.55, 0.9, 0.75);
 	legRatioPbPbOpPb->SetBorderSize(0);
 	legRatioPbPbOpPb->SetFillStyle(0);
 	
 	TCanvas *cMasspPb = new TCanvas(TString::Format("cMasspPb%s", suff.Data()), "Mass pPb compared with Pythia", dx, dy);
-	cMasspPb->Divide(nx, ny);
+	//cMasspPb->Divide(nx, ny);
 	TLegend *legMasspPb = new TLegend(0.2, 0.5, 0.92, 0.7);
 	legMasspPb->SetBorderSize(0);
 	legMasspPb->SetFillStyle(0);
@@ -902,7 +965,7 @@ void RatiopPbPbPb(Bool_t useline = kTRUE, Bool_t stylezero = kTRUE, Bool_t drawR
 	legRatiopPbOPy->SetFillStyle(0);
 	
 	TCanvas *cMassPbPb = new TCanvas(TString::Format("cMassPbPb%s", suff.Data()), "Mass PbPb compared with Pythia", dx, dy);
-	cMassPbPb->Divide(nx, ny);
+	//cMassPbPb->Divide(nx, ny);
 	TLegend *legMassPbPb1 = new TLegend(0.2, 0.55, 0.9, 0.75);
 	legMassPbPb1->SetBorderSize(0);
 	legMassPbPb1->SetFillStyle(0);
@@ -915,13 +978,13 @@ void RatiopPbPbPb(Bool_t useline = kTRUE, Bool_t stylezero = kTRUE, Bool_t drawR
 	legdummy->SetFillStyle(0);
 	
 	TCanvas *cMassPbPbOnly = new TCanvas(TString::Format("cMassPbPbOnly%s", suff.Data()), "Mass PbPb", dx, dy);
-	cMassPbPbOnly->Divide(nx, ny);
+	//cMassPbPbOnly->Divide(nx, ny);
 	TLegend *legMassPbPbOnly = new TLegend(0.15, 0.55, 0.9, 0.75);
 	legMassPbPbOnly->SetBorderSize(0);
 	legMassPbPbOnly->SetFillStyle(0);
 	
 	TCanvas *cMassPbPbPy = new TCanvas(TString::Format("cMassPbPbPy%s", suff.Data()), "Mass PbPb and Pythia", dx, dy);
-	cMassPbPbPy->Divide(nx, ny);
+	//cMassPbPbPy->Divide(nx, ny);
 	TLegend *legMassPbPbPy = new TLegend(0.15, 0.55, 0.9, 0.75);
 	legMassPbPbPy->SetBorderSize(0);
 	legMassPbPbPy->SetFillStyle(0);
@@ -950,16 +1013,25 @@ void RatiopPbPbPb(Bool_t useline = kTRUE, Bool_t stylezero = kTRUE, Bool_t drawR
 	
 	Int_t n = 2;
 	
+	Int_t nb = (Int_t)maxM/2.;
+	TH1F *hdummy = GetTransparentHistogram(nb, 0, maxM, 0.25);
+	Printf("Created dummy h %p", hdummy);
+	TH1F *hrummy = GetTransparentHistogram(nb, 0, maxM, 4.);
+	Printf("Created dummy ratio %p", hrummy);
 	//TPaveText **pvpt = new TPaveText*[nhM];
 	
 	TFile *fOutput = new TFile("FinalResults.root", "recreate");
 	
+	Double_t minpadih = 0., maxpadih = 0.35;
+	
 	for(Int_t ih = 0; ih<nhM ; ih++){
-		maxM = maxRangeMassFinal[ih];
+		//maxM = maxRangeMassFinal[ih];
+		maxM = maxRangeMass[ih];
+		//maxRangeMassFinal[ih] = maxRangeMass[ih];
 		//pvpt[ih] = new TPaveText(0.33, 0.8, 0.83, 0.9, "NDC");
 		//pvpt[ih]->SetFillStyle(0);
 		//pvpt[ih]->SetBorderSize(0);
-		//pvpt[ih]->AddText(TString::Format("%.0f < #it{p}_{T, ch jet} (GeV/#it{c}) < %.0f", ptlims[ih], ptlims[ih+1]));
+		//pvpt[ih]->AddText(TString::Format("%.0f < #it{p}_{T, ch jet} < %.0f GeV/#it{c}", ptlims[ih], ptlims[ih+1]));
 		
 		//mass
 		TH1D* hMpPb     = (TH1D*)listpPb ->At(n*ih);
@@ -1000,15 +1072,32 @@ void RatiopPbPbPb(Bool_t useline = kTRUE, Bool_t stylezero = kTRUE, Bool_t drawR
 		TGraph* gMHwpPb   =      new TGraph(hMHwpPb);
 		
 		
+		// settings for pads
+		if(ih != 0) {
+			minpadih = maxpadih;
+			maxpadih = 0.33*(ih+1);
+		}
+		Bool_t ismostright = kFALSE;
+		if(ih == nhM-1) ismostright = kTRUE;
+		
 		//Draw comparison pPb, PbPb
 		
-		cMass->cd(ih+1);
-		gPad->SetTicks(1,1);
-		Printf("Drawing %s, %s, %s, %s, %s", hSyPbPb->GetName(), hMPbPb->GetName(), hSypPb->GetName(), hSypPbM->GetName(), hMpPbM->GetName());
-		hSyPbPb->GetYaxis()->SetRangeUser(0., 0.25);
+		hSypPb ->GetYaxis()->SetRangeUser(0., 0.25);
 		
+		cMass->cd();
+		
+		TPad *ppadMass = CreatePadInCanvas("ppadMass", ih, minpadih, maxpadih, ismostright);
+		
+		gPad->SetTicks(1,1);
+		Printf("Drawing %s (max %f), %s, %s, %s, %s", hSyPbPb->GetName(), hSyPbPb->GetXaxis()->GetBinLowEdge(hSyPbPb->GetNbinsX()), hMPbPb->GetName(), hSypPb->GetName(), hSypPbM->GetName(), hMpPbM->GetName());
+		hSyPbPb->GetYaxis()->SetRangeUser(0., 0.25);
 		hSyPbPb->GetXaxis()->SetRangeUser(0., maxM);
-		hSyPbPb->Draw("E2");
+		
+		hSypPb->SetMarkerStyle(hMpPb->GetMarkerStyle());
+		if(samexrange) {
+			hdummy->DrawClone();
+			hSyPbPb->Draw("E2sames");
+		} else hSyPbPb->Draw("E2");
 		hMPbPb ->Draw("sames");
 		hSypPb ->Draw("E2sames");
 		hMpPb  ->Draw("sames");
@@ -1021,8 +1110,9 @@ void RatiopPbPbPb(Bool_t useline = kTRUE, Bool_t stylezero = kTRUE, Bool_t drawR
 			latext.DrawLatex(4.5, 0.15, "#it{R} = 0.4, |#it{#eta}_{jet}| < 0.5");
 			
 		}
-		latext.DrawLatex(4, 0.22, TString::Format("%.0f < #it{p}_{T, ch jet} (GeV/#it{c}) < %.0f", ptlims[ih], ptlims[ih+1]));
+		latext.DrawLatex(4, 0.22, TString::Format("%.0f < #it{p}_{T, ch jet} < %.0f GeV/#it{c}", ptlims[ih], ptlims[ih+1]));
 		//pvpt[ih]->Draw();
+		if(ih == 0) DrawLogo(0, 12, 0.18, "", 42, "");
 		if(ih == nhM-1){
 			legMass->AddEntry(hSyPbPb , "0-10% Pb#font[122]{-}Pb #sqrt{#it{s}_{NN}} = 2.76 TeV");
 			//legMass->AddEntry(hSyPbPb, "Systematic Pb#font[122]{-}Pb" , "F");
@@ -1073,18 +1163,28 @@ void RatiopPbPbPb(Bool_t useline = kTRUE, Bool_t stylezero = kTRUE, Bool_t drawR
 		}
 		
 		//Draw comparison pPb Pythia 5.02 TeV
-		cMasspPb->cd(ih+1);
+		cMasspPb->cd();
+		
+		TPad *ppadMasspPb = CreatePadInCanvas("ppadMasspPb", ih, minpadih, maxpadih, ismostright);
 		
 		gPad->SetTicks(1,1);
-		hSypPb ->GetYaxis()->SetRangeUser(0., 0.25);
-		hSypPb->SetMarkerStyle(hMpPb->GetMarkerStyle());
-		hSypPb->SetMarkerColor(hMpPb->GetMarkerColor());
-		hSypPb ->Draw("E2");
+		
+		
+		if(samexrange) {
+			hdummy->SetTitle(TString::Format("%s;%s;%s", hSyPbPb  ->GetTitle(), hSyPbPb->GetXaxis()->GetTitle(), hSyPbPb->GetYaxis()->GetTitle()));
+			hdummy->DrawClone();
+			hSypPb ->Draw("E2sames");
+		} else hSypPb ->Draw("E2");
+		
 		hMpPb  ->Draw("sames");
-		if(show1134) hMPy502->Draw(drawsimopt);
+		if(show1134) hMPy502->Draw(drawsimoptsame);
 		gMPy502M->Draw(drawsimoptsame);
 		gMHwpPb->Draw(drawsimoptsame);
 		//hMJewpp-> Draw("sames");
+		if(ih == 0){
+			ppadMasspPb->cd();
+			DrawLogo(0, 12, 0.18, "", 42, "");
+		}
 		if(ih == nhM-1){
 			legMasspPb->AddEntry(hSypPb, "p#font[122]{-}Pb #sqrt{s_{NN}} = 5.02 TeV");
 			//legMasspPb->AddEntry(hSypPb, "Systematic p#font[122]{-}Pb", "F");
@@ -1098,40 +1198,57 @@ void RatiopPbPbPb(Bool_t useline = kTRUE, Bool_t stylezero = kTRUE, Bool_t drawR
 			latext.DrawLatex(4, 0.18, "Charged jets, anti-#it{k}_{T}");
 			latext.DrawLatex(4.5, 0.15, "#it{R} = 0.4, |#it{#eta}_{jet}| < 0.5");
 		}
-		latext.DrawLatex(4, 0.22, TString::Format("%.0f < #it{p}_{T, ch jet} (GeV/#it{c}) < %.0f", ptlims[ih], ptlims[ih+1]));
+		latext.DrawLatex(4, 0.22, TString::Format("%.0f < #it{p}_{T, ch jet} < %.0f GeV/#it{c}", ptlims[ih], ptlims[ih+1]));
 		//pvpt[ih]->Draw();
 		
-		
-		cMassPbPbOnly->cd(ih+1);
+		cMassPbPbOnly->cd();
+		CreatePadInCanvas("ppadMassPbPbOnly", ih, minpadih, maxpadih, ismostright);
 		gPad->SetTicks(1,1);
-		hSyPbPb  ->Draw("E2");
+		if(samexrange) {
+			hdummy->DrawClone();
+		
+			hSyPbPb  ->Draw("E2sames");
+		} else hSyPbPb  ->Draw("E2");
 		hMPbPb   ->Draw("sames");
 		if(ih == 1) {
 			latext.DrawLatex(4, 0.18, "Charged jets, anti-#it{k}_{T}");
 			latext.DrawLatex(4.5, 0.15, "#it{R} = 0.4, |#it{#eta}_{jet}| < 0.5");
 		}
-		latext.DrawLatex(4, 0.22, TString::Format("%.0f < #it{p}_{T, ch jet} (GeV/#it{c}) < %.0f", ptlims[ih], ptlims[ih+1]));
+		latext.DrawLatex(4, 0.22, TString::Format("%.0f < #it{p}_{T, ch jet} < %.0f GeV/#it{c}", ptlims[ih], ptlims[ih+1]));
 		//pvpt[ih]->Draw();
 		
-		cMassPbPbPy->cd(ih+1);
-		
+		cMassPbPbPy->cd();
+		TPad* ppadMassPbPbPy = CreatePadInCanvas("ppadMassPbPbPy", ih, minpadih, maxpadih, ismostright);
 		gPad->SetTicks(1,1);
-		hSyPbPb  ->Draw("E2");
+		if(samexrange) {
+			
+			hdummy->DrawClone();
+			hSyPbPb  ->Draw("E2sames");
+		} else hSyPbPb  ->Draw("E2");
+		
 		hMPbPb   ->Draw("sames");
 		gMPy276  ->Draw(drawsimoptsame);
+		if(ih == 0) DrawLogo(0, 12, 0.18, "", 42, "");
 		if(ih == 1) {
 			latext.DrawLatex(4, 0.18, "Charged jets, anti-#it{k}_{T}");
 			latext.DrawLatex(4.5, 0.15, "#it{R} = 0.4, |#it{#eta}_{jet}| < 0.5");
 		}
-		latext.DrawLatex(4, 0.22, TString::Format("%.0f < #it{p}_{T, ch jet} (GeV/#it{c}) < %.0f", ptlims[ih], ptlims[ih+1]));
+		latext.DrawLatex(4, 0.22, TString::Format("%.0f < #it{p}_{T, ch jet} < %.0f GeV/#it{c}", ptlims[ih], ptlims[ih+1]));
 		//pvpt[ih] ->Draw();
 		//Draw comparison PbPb Pythia 2.76 TeV
-		cMassPbPb->cd(ih+1);
 		
-		gPad->SetTicks(1,1);
 		hSyPbPb->SetMarkerStyle(hMPbPb->GetMarkerStyle());
 		hSyPbPb->SetMarkerColor(hMPbPb->GetMarkerColor());
-		hSyPbPb  ->Draw("E2");
+		
+		cMassPbPb->cd();
+		TPad* padMassPbPb = CreatePadInCanvas("ppadMassPbPb", ih, minpadih, maxpadih, ismostright);
+		gPad->SetTicks(1,1);
+		if(samexrange) {
+		hdummy->DrawClone();
+		
+		hSyPbPb  ->Draw("E2sames");
+		} else hSyPbPb  ->Draw("E2");
+		
 		hMPbPb   ->Draw("sames");
 		gMPy276  ->Draw(drawsimoptsame);
 		//temporary don't draw this because wrong curve from Raghav
@@ -1139,7 +1256,7 @@ void RatiopPbPbPb(Bool_t useline = kTRUE, Bool_t stylezero = kTRUE, Bool_t drawR
 		if(drawRaghav) gMJewPbPb->Draw(drawsimoptsame);
 		gMJewPbPbMRoff->Draw(drawsimoptsame);
 		gMQPy    ->Draw(drawsimoptsame);
-		latext.DrawLatex(4, 0.22, TString::Format("%.0f < #it{p}_{T, ch jet} (GeV/#it{c}) < %.0f", ptlims[ih], ptlims[ih+1]));
+		latext.DrawLatex(4, 0.22, TString::Format("%.0f < #it{p}_{T, ch jet} < %.0f GeV/#it{c}", ptlims[ih], ptlims[ih+1]));
 		//pvpt[ih] ->Draw();
 		
 		cMassPbPbModels->cd(ih+1);
@@ -1153,7 +1270,7 @@ void RatiopPbPbPb(Bool_t useline = kTRUE, Bool_t stylezero = kTRUE, Bool_t drawR
 		if(drawRaghav) gMJewPbPb->Draw(drawsimoptsame);
 		
 		gMQPy    ->Draw(drawsimoptsame);
-		latext.DrawLatex(4, 0.22, TString::Format("%.0f < #it{p}_{T, ch jet} (GeV/#it{c}) < %.0f", ptlims[ih], ptlims[ih+1]));
+		latext.DrawLatex(4, 0.22, TString::Format("%.0f < #it{p}_{T, ch jet} < %.0f GeV/#it{c}", ptlims[ih], ptlims[ih+1]));
 		//pvpt[ih] ->Draw();
 		
 		if(ih == nhM-1){
@@ -1171,14 +1288,14 @@ void RatiopPbPbPb(Bool_t useline = kTRUE, Bool_t stylezero = kTRUE, Bool_t drawR
 			legMassPbPbPy->AddEntry(hSyPbPb,    "0-10% Pb#font[122]{-}Pb #sqrt{s_{NN}} = 2.76 TeV");
 			//legMassPbPbPy->AddEntry(hSyPbPb,   "Systematic Pb#font[122]{-}Pb" , "F");
 			legMassPbPbPy->AddEntry(hMPy276,   "PYTHIA  Perugia 2011", optlegsim);
-			cMassPbPbPy->cd(ih+1); legMassPbPbPy->Draw();
+			ppadMassPbPbPy->cd(); legMassPbPbPy->Draw();
 			
 			
 			if(drawRaghav) legMassPbPb2->AddEntry(hMJewPbPb, "Recoil on", optlegsim);
 			legMassPbPb2->AddEntry(hMJewPbPbMRoff, "Recoil off", optlegsim);
 			//latext.DrawLatex(6, 0.19, "Recoil on");
 			//latext.DrawLatex(6, 0.17, "Recoil off");
-			cMassPbPb->cd(ih+1); latext.DrawLatex(2, 0.18, "JEWEL + PYTHIA 0-10% Pb#font[122]{-}Pb"); legMassPbPb2->Draw();
+			padMassPbPb->cd(); latext.DrawLatex(2, 0.18, "JEWEL + PYTHIA 0-10% Pb#font[122]{-}Pb"); legMassPbPb2->Draw();
 		}
 		//if(ih == 0){
 		//	legdummy->AddEntry(hMJewPbPb, "Recoil on", "P");
@@ -1191,8 +1308,13 @@ void RatiopPbPbPb(Bool_t useline = kTRUE, Bool_t stylezero = kTRUE, Bool_t drawR
 			//legMassPbPb->AddEntry(hSyPbPb,   "Systematic Pb#font[122]{-}Pb" , "F");
 			legMassPbPb1->AddEntry(hMPy276,   "PYTHIA  Perugia 2011", optlegsim); //#sqrt{s_{NN}} = 2.76 TeV
 			legMassPbPb1->AddEntry(hMQPy,      "Q-PYTHIA", optlegsim);
-			cMassPbPb->cd(ih+1); legMassPbPb1->Draw();
+			padMassPbPb->cd(); legMassPbPb1->Draw();
 		}
+		if(ih == 0) {
+			padMassPbPb->cd();
+			DrawLogo(0, 12, 0.18, "", 42, "");
+		}
+		
 		//ratio PbPb/pPb
 		TH1* hRatioPbPbOpPb;
 		TH1* hDividepPb;
@@ -1202,7 +1324,8 @@ void RatiopPbPbPb(Bool_t useline = kTRUE, Bool_t stylezero = kTRUE, Bool_t drawR
 		hRatioPbPbOpPb->SetMarkerColor(kMagenta+2);
 		hRatioPbPbOpPb->SetLineColor(hRatioPbPbOpPb->GetMarkerColor());
 		hRatioPbPbOpPb->Divide(hDividepPb);
-		hRatioPbPbOpPb->GetXaxis()->SetRangeUser(0., maxRangeMassFinal[ih]);
+		//hRatioPbPbOpPb->GetXaxis()->SetRangeUser(0., maxRangeMassFinal[ih]);
+		hRatioPbPbOpPb->GetXaxis()->SetRangeUser(0., maxRangeMass[ih]);
 		
 		//line for reference 
 		TLine *lineOne = new TLine(0, 1., maxRangeMassFinal[ih], 1.);
@@ -1307,14 +1430,15 @@ void RatiopPbPbPb(Bool_t useline = kTRUE, Bool_t stylezero = kTRUE, Bool_t drawR
 		//for drawing
 		TGraph *gRatio276O502M = new TGraph(hRatio276O502M);
 		
-		cRatioPbPbOpPb->cd(ih+1);
+		cRatioPbPbOpPb->cd();
+		TPad *ppadRatioPbPbOpPb = CreatePadInCanvas("ppadRatioPbPbOpPb", ih, minpadih, maxpadih, ismostright);
 		
 		gPad->SetTicks(1,1);
 		
 		if(pPbpaperprop){
 			//Old result paper draft
 			hRatioPbPbOpPbSysM->GetYaxis()->SetRangeUser(0., 4);
-			hRatioPbPbOpPbSysM->GetXaxis()->SetRangeUser(0., maxM);
+			hRatioPbPbOpPbSysM->GetXaxis()->SetRangeUser(0., maxRangeMassFinal[ih]);
 			hRatioPbPbOpPbSysM->Draw("E2");
 			hRatioPbPbOpPbM->Draw("sames");
 			hRatioPbPbOpPbSys->Draw("E2sames");
@@ -1322,9 +1446,14 @@ void RatiopPbPbPb(Bool_t useline = kTRUE, Bool_t stylezero = kTRUE, Bool_t drawR
 		//new result
 		if(!pPbpaperprop) {
 			hRatioPbPbOpPbSys->GetYaxis()->SetRangeUser(0., 4);
-			hRatioPbPbOpPbSys->GetXaxis()->SetRangeUser(0., maxM);
-			hRatioPbPbOpPbSys->Draw("E2");
+			hRatioPbPbOpPbSys->GetXaxis()->SetRangeUser(0., maxRangeMassFinal[ih]);
+			if(samexrange) {
+				hrummy->SetTitle(TString::Format("%s;%s;%s", hRatioPbPbOpPbSys  ->GetTitle(), hRatioPbPbOpPbSys->GetXaxis()->GetTitle(), hRatioPbPbOpPbSys->GetYaxis()->GetTitle()));
+				hrummy->DrawClone();
+				hRatioPbPbOpPbSys->Draw("E2sames");
+			} else hRatioPbPbOpPbSys->Draw("E2");
 		}
+		hRatioPbPbOpPb->GetXaxis()->SetRangeUser(0., maxRangeMassFinal[ih]);
 		hRatioPbPbOpPb->Draw("sames");
 		// pythia ratio from paper draft
 		hRatio276O502M->Draw("E3sames");//drawsimoptsame
@@ -1333,11 +1462,18 @@ void RatiopPbPbPb(Bool_t useline = kTRUE, Bool_t stylezero = kTRUE, Bool_t drawR
 		//hPbPboppJewel->Draw("Lsames");
 		//reference line
 		lineOne->Draw();
+		if(ih == 0) {
+			ppadRatioPbPbOpPb->cd();
+			latext.DrawLatex(2.8, 3., "0-10% Pb#font[122]{-}Pb #sqrt{#it{s}_{NN}} = 2.76 TeV");
+			latext.DrawLatex(4.1, 2.5, "p#font[122]{-}Pb #sqrt{#it{s}_{NN}} = 5.02 TeV");
+			latext.DrawLatex(4.1, 2, "PYTHIA Perugia 2011");
+			DrawLogo(0, 4, 0.2, "", 42, "");
+		}
 		if(ih == 1) {
 			latext.DrawLatex(4, 3, "Charged jets, anti-#it{k}_{T}");
 			latext.DrawLatex(4.5, 2.5, "#it{R} = 0.4, |#it{#eta}_{jet}| < 0.5");
 		}
-		latext.DrawLatex(4, 3.6, TString::Format("%.0f < #it{p}_{T, ch jet} (GeV/#it{c}) < %.0f", ptlims[ih], ptlims[ih+1]));
+		latext.DrawLatex(4, 3.6, TString::Format("%.0f < #it{p}_{T, ch jet} < %.0f GeV/#it{c}", ptlims[ih], ptlims[ih+1]));
 		//pvpt[ih]->Draw();
 		
 		if(ih == nhM-1){
@@ -1526,7 +1662,7 @@ void RatiopPbPbPb(Bool_t useline = kTRUE, Bool_t stylezero = kTRUE, Bool_t drawR
 			latext.DrawLatex(4, 3, "Charged jets, anti-#it{k}_{T}");
 			latext.DrawLatex(4.5, 2.5, "#it{R} = 0.4, |#it{#eta}_{jet}| < 0.5");
 		}
-		latext.DrawLatex(4, 3.6, TString::Format("%.0f < #it{p}_{T, ch jet} (GeV/#it{c}) < %.0f", ptlims[ih], ptlims[ih+1]));
+		latext.DrawLatex(4, 3.6, TString::Format("%.0f < #it{p}_{T, ch jet} < %.0f GeV/#it{c}", ptlims[ih], ptlims[ih+1]));
 		//pvpt[ih]->Draw();
 		
 		if(ih == nhM-1){
@@ -1570,7 +1706,7 @@ void RatiopPbPbPb(Bool_t useline = kTRUE, Bool_t stylezero = kTRUE, Bool_t drawR
 			latext.DrawLatex(4.5, 0.15, "#it{R} = 0.4, |#it{#eta}_{jet}| < 0.5");
 		}
 		
-		latext.DrawLatex(4, 0.22, TString::Format("%.0f < #it{p}_{T, ch jet} (GeV/#it{c}) < %.0f", ptlims[ih], ptlims[ih+1]));
+		latext.DrawLatex(4, 0.22, TString::Format("%.0f < #it{p}_{T, ch jet} < %.0f GeV/#it{c}", ptlims[ih], ptlims[ih+1]));
 		
 		
 		cMasspPbPyPlus->cd(ih+1);
@@ -1668,7 +1804,7 @@ void RatiopPbPbPb(Bool_t useline = kTRUE, Bool_t stylezero = kTRUE, Bool_t drawR
 			legRatioPbPbOPy->Draw();
 		}
 		//pvpt[ih]->Draw();
-		latext.DrawLatex(4, 3.6, TString::Format("%.0f < #it{p}_{T, ch jet} (GeV/#it{c}) < %.0f", ptlims[ih], ptlims[ih+1]));
+		latext.DrawLatex(4, 3.6, TString::Format("%.0f < #it{p}_{T, ch jet} < %.0f GeV/#it{c}", ptlims[ih], ptlims[ih+1]));
 		if(ih == 1) {
 			latext.DrawLatex(4, 3, "Charged jets, anti-#it{k}_{T}");
 			latext.DrawLatex(4.5, 2.5, "#it{R} = 0.4, |#it{#eta}_{jet}| < 0.5");
@@ -1685,7 +1821,7 @@ void RatiopPbPbPb(Bool_t useline = kTRUE, Bool_t stylezero = kTRUE, Bool_t drawR
 		hRatioPbPbOPy->Draw("sames");
 		hRatiopPbOPy502SysM->Draw("samesE2");
 		hRatiopPbOPyM->Draw("sames");
-		latext.DrawLatex(4, 3.6, TString::Format("%.0f < #it{p}_{T, ch jet} (GeV/#it{c}) < %.0f", ptlims[ih], ptlims[ih+1]));
+		latext.DrawLatex(4, 3.6, TString::Format("%.0f < #it{p}_{T, ch jet} < %.0f GeV/#it{c}", ptlims[ih], ptlims[ih+1]));
 		//pvpt[ih]->Draw();
 		lineOne->Draw();
 		if(ih == 1) {
@@ -1712,18 +1848,11 @@ void RatiopPbPbPb(Bool_t useline = kTRUE, Bool_t stylezero = kTRUE, Bool_t drawR
 		hMpPb                 ->Write();
 		hMPy502M              ->Write();
 	}
-	cMass->cd(1);
-	DrawLogo(0, 12, 0.18, "", 42, "");
-	cMasspPb->cd(1);
-	DrawLogo(0, 12, 0.18, "", 42, "");
-	cMassPbPb->cd(1);
-	DrawLogo(0, 12, 0.18, "", 42, "");
+	
 	cMassPbPbOnly->cd(1);
 	DrawLogo(0, 12, 0.18, "", 42, "");
 	cMassPbPbPy->cd(1);  
 	DrawLogo(0, 12, 0.18, "", 42, "");
-	cRatioPbPbOpPb->cd(1);
-	DrawLogo(0, 4, 0.2, "", 42, "");
 	cRatioDataOPy->cd(1);
 	DrawLogo(0, 4, 0.2, "", 42, "");
 	cRatioPbPbOPy->cd(1);
@@ -1749,11 +1878,6 @@ void RatiopPbPbPb(Bool_t useline = kTRUE, Bool_t stylezero = kTRUE, Bool_t drawR
 	latext.DrawLatex(2.8, 3., "0-10% Pb#font[122]{-}Pb #sqrt{#it{s}_{NN}} = 2.76 TeV");
 	latext.DrawLatex(2.8, 2.5, "PYTHIA Perugia 2011");
 	
-	cRatioPbPbOpPb->cd(1);
-	latext.DrawLatex(2.8, 3., "0-10% Pb#font[122]{-}Pb #sqrt{#it{s}_{NN}} = 2.76 TeV");
-	latext.DrawLatex(4.1, 2.5, "p#font[122]{-}Pb #sqrt{#it{s}_{NN}} = 5.02 TeV");
-	latext.DrawLatex(4.1, 2, "PYTHIA Perugia 2011");
-	//pvSystPbPb->Draw();
 	
 	SaveCv(cMass);
 	SaveCv(cRelUnc);
