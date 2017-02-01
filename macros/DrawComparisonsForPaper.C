@@ -2514,30 +2514,40 @@ void DrawMeanFromSystOutput(Bool_t stylezero = kTRUE){
 	legda->AddEntry(hSystpPb, "p#font[122]{-}Pb #sqrt{#it{s}_{NN}} = 5.02 TeV");
 	legda->AddEntry(hsqrtdiff, "#sqrt{#it{s}} difference");
 	
-	for(Int_t ipt = 0; ipt < nptbins; ipt++){
-		cMeanjetmass->cd();
-		gPad->SetTicks(1,1);
-		grMeanPbPbSys->GetYaxis()->SetRangeUser(0., 22.);
-		grMeanPbPbSys->GetXaxis()->SetRangeUser(ptlims[0], ptlims[nptbins]);
-		grMeanPbPbSys->SetTitle("; #it{p}_{T, ch jet} (GeV/#it{c}); #LT #it{M}_{ch jet} #GT (GeV/#it{c}^{2})");
-		grMeanPbPbSys->DrawClone("AE2");
-		hMeanPy276->Draw("sames");
-		hMeanPbPb->Draw("sames");
-		hMeanJewel->Draw("sames");
-		hMeanQPythia->Draw("sames");
-		leg->Draw();
-		
-		
-		cMeanjetmassdata->cd();
-		gPad->SetTicks(1,1);
-		grMeanPbPbSys->GetYaxis()->SetRangeUser(0., 16.);
-		grMeanPbPbSys->Draw("AE2");
-		hsqrtdiff->Draw("PE2sames");
-		hMeanjmpPb->Draw("sames");
-		hSystpPb->Draw("E2sames");
-		hMeanPbPb->Draw("sames");
-		legda->Draw();
-	}
+	TFile *fout = new TFile("MeanJetMassFinal.root", "recreate");
+	
+	cMeanjetmass->cd();
+	gPad->SetTicks(1,1);
+	grMeanPbPbSys->GetYaxis()->SetRangeUser(0., 22.);
+	grMeanPbPbSys->GetXaxis()->SetRangeUser(ptlims[0], ptlims[nptbins]);
+	grMeanPbPbSys->SetTitle("; #it{p}_{T, ch jet} (GeV/#it{c}); #LT #it{M}_{ch jet} #GT (GeV/#it{c}^{2})");
+	grMeanPbPbSys->DrawClone("AE2");
+	hMeanPy276->Draw("sames");
+	hMeanPbPb->Draw("sames");
+	hMeanJewel->Draw("sames");
+	hMeanQPythia->Draw("sames");
+	leg->Draw();
+	
+	
+	cMeanjetmassdata->cd();
+	gPad->SetTicks(1,1);
+	grMeanPbPbSys->GetYaxis()->SetRangeUser(0., 16.);
+	grMeanPbPbSys->Draw("AE2");
+	hsqrtdiff->Draw("PE2sames");
+	hMeanjmpPb->Draw("sames");
+	hSystpPb->Draw("E2sames");
+	hMeanPbPb->Draw("sames");
+	legda->Draw();
+	
+	fout->cd();
+	grMeanPbPbSys->Write();
+	hMeanPbPb    ->Write();
+	hSystpPb     ->Write();
+	hMeanjmpPb   ->Write();
+	
+	hMeanPy276   ->Write();
+	hMeanJewel   ->Write();
+	hMeanQPythia ->Write();
 	
 	TLatex latext;
 	latext.SetTextSize(0.05);
@@ -3055,8 +3065,9 @@ void RatioWithReducedSyst(Int_t* rejectPbPb, Int_t* rejectpPb, TString name){
 	SaveCv(cMassRatio);
 }
 
-void WriteHEPDataTable(TString filenamein, TString filenameout){
+void WriteHEPDataTable(TString filepathin, TString filenameout){
 	
+	TString filenamein = TString::Format("%s/FinalResults.root", filepathin.Data());
 	TFile* fres = new TFile(filenamein);
 	
 	if(!fres){
@@ -3070,11 +3081,11 @@ void WriteHEPDataTable(TString filenamein, TString filenameout){
 	TString hMPbPbname = "hUnfMass_PtBin", hMSysPbPbname = "hUnfMassSyst_PtBin", labelPbPb = "MassPbPb";
 	TString hRationame = "hRatioPbPbOpPb_Pt", hRatioSysname = "hRatioPbPbOpPbSys_Pt", labelRatio = "RatioPbPbpPb";
 	
-	TString massVar = "LIGHT-JET-MASS", ptVar = "PT", ratioVar = "RATIO", yieldVar = "N";
+	TString massVar = "LIGHT-JET-MASS", ptVar = "PT", ratioVar = "RATIO", yieldVar = "DN/DLIGHT-JET-MASS";
 	TString errorStat = "Error", errorSyst = "SYSE";
 	
-	TString massUni = "GEVC2", ptUni = "GEVC";
-	TString yieldUni = "C2GEV", ratioUni = "";
+	TString massUni = "GEV/C2", ptUni = "GEV/C";
+	TString yieldUni = "C2/GEV", ratioUni = "none";
 	
 	const Int_t nsets = 3;
 	TString hname[nsets] = {hMpPbname, hMPbPbname, hRationame};
@@ -3131,14 +3142,88 @@ void WriteHEPDataTable(TString filenamein, TString filenameout){
 				erry = h->GetBinError(iM+1);
 				syst = hSys->GetBinError(iM+1);
 				
+				if(y == 0 || erry == 0) break; // value set to zero -> meaningless (it doesn't continue)
+				
 				out << x << "\t" << y << "\t" << erry << "\t" << syst << endl;
+				double nextx = h->GetBinCenter(iM+2);
+				
+				if((iM < h->GetNbinsX()-2) && nextx < x ) break; //next x value > current x value -> meaningless
+				
 			}
-			//out << endl;
-			out << endl;
+			
 			Printf("Written file %s", curfilename.Data());
 			out.close();
 		}
 		
+	}
+	
+	
+	filenamein = TString::Format("%s/MeanJetMassFinal.root", filepathin.Data());
+	TFile* fmean = new TFile(filenamein);
+	
+	/// To be set -----------------------------------------------------
+	
+	TString hMMpPbname  = "hMeanCentral", hMMSyspPbname  = "hMeanSystTot";
+	labelpPb = "MeanMasspPb";
+	TString hMMPbPbname = "hMeanjmassPbPb", hMMSysPbPbname = "grUnfMeanSyst";
+	labelPbPb = "MeanMassPbPb";
+	/// end settings ---------------------------------------------------
+	
+	Int_t nsys = 2;
+	TString hmname[nsys] = {hMMpPbname, hMMPbPbname};
+	TString hmSysn[nsys] = {hMMSyspPbname, hMMSysPbPbname};
+	TString lablsm[nsys] = {labelpPb, labelPbPb};
+	
+	TString meanmassVar = "MEANLIGHT-JET-MASS";
+	TString meanmassUni = massUni;
+	
+	for(Int_t is = 0; is < nsys; is++){
+		
+		TString curfilename = TString::Format("%s_%s.txt", filenameout.Data(), lablsm[is].Data());
+		std::ofstream out(curfilename);
+			
+		out << ptVar << "\t" << meanmassVar << "\t"<< errorStat[is] << "\t" << errorSyst[is] << endl;
+			
+		out << ptUni <<"\t"<< meanmassUni << "\t"<< meanmassUni << "\t" << meanmassUni << endl;
+			
+		TString iptname = hmname[is];
+		TString iptsysname = hmSysn[is];
+			
+		TH1F *h = (TH1F*)fmean->Get(iptname);
+			
+		TH1F *hSys = 0x0;
+		if(!iptsysname.Contains("gr")) hSys = (TH1F*)fmean->Get(iptsysname);
+		TGraphErrors *gSys = 0x0;
+		
+		if(!hSys) gSys = (TGraphErrors*)fmean->Get(iptsysname);
+		
+		if(!h || (!hSys && !gSys)){
+			Printf("Histogram not found, names %s, %s", iptname.Data(), iptsysname.Data());
+			fmean->ls();
+			continue;
+		}
+		
+		for(Int_t ipt = 0; ipt < h->GetNbinsX(); ipt++){
+			
+			Double_t x, y, erry, syst;
+			x    = h->GetBinCenter(ipt+1);
+			y    = h->GetBinContent(ipt+1);
+			erry = h->GetBinError(ipt+1);
+			if(hSys) {
+				syst = hSys->GetBinError(ipt+1);
+			} else syst = gSys->GetErrorY(ipt+1);
+			
+			if(y == 0 || erry == 0) break; // value set to zero -> meaningless (it doesn't continue)
+			
+			out << x << "\t" << y << "\t" << erry << "\t" << syst << endl;
+			double nextx = h->GetBinCenter(ipt+2);
+			
+			if((ipt < h->GetNbinsX()-2) && nextx < x ) break; //next x value > current x value -> meaningless
+			
+		}
+		
+		Printf("Written file %s", curfilename.Data());
+		out.close();
 	}
 }
 

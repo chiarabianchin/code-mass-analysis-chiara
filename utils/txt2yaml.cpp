@@ -20,7 +20,7 @@ int main(int argc, char* argv[])
     }
     
     else{
-        cout << "argc  = "<<argc << "argv[0]" << argv[0]<<endl;
+        cout << "argc  = "<<argc << " argv[0] = " << argv[0]<<endl;
         int a;
         for(a=0; a<(int) (argc-1)/2; a++){
     
@@ -31,7 +31,7 @@ int main(int argc, char* argv[])
             ifstream dummy(argv[2*a+1]);
 
             int n=0;
-cout<<"reading"<<endl;
+            cout<<"reading"<<endl;
             while(!dummy.eof()){
                 getline(dummy, line);
                 n=n+1;
@@ -39,8 +39,11 @@ cout<<"reading"<<endl;
             n=n-3;
 
             dummy.close();
-cout<<"done, n = "<<n << endl;
-cout << "read "<< argv[2*a+1]<< " translate to "<<argv[2*a+2]<< endl;
+
+            cout<<"done, n = "<<n << endl;
+
+            cout << "read "<< argv[2*a+1]<< " translate to "<<argv[2*a+2]<< endl;
+            
             ifstream data(argv[2*a+1]);
             ofstream yaml(argv[2*a+2]);
 
@@ -50,14 +53,15 @@ cout << "read "<< argv[2*a+1]<< " translate to "<<argv[2*a+2]<< endl;
             double x[n], y[n], e[n], s[n];
 
             int i=0;
-cout<<"2 reading"<<endl;
+            cout<<"2 reading"<<endl;
             while(!data.eof()){
             //for(int i = 2; i < n; i++){
                 data >> x[i] >> y[i] >> e[i] >> s[i];
                 //cout << i << x[i] << y[i] << e[i];
                 i=i+1;
             }
-cout<<"done"<<endl;
+            cout<<"done"<<endl;
+            
             yaml << "name: '" << argv[2*a+2] << "'" << "\n";
             yaml << "independent_variables:" << "\n";
             yaml << " - header: {name: " << ind_var << ", units: " << ind_var_unit << "}" << "\n";
@@ -66,7 +70,7 @@ cout<<"done"<<endl;
             for(i=0; i<n; i++){
                 yaml << "    - value : " << x[i] << "\n";
             }
-         cout<< "here"<<endl;       
+            
             yaml << "dependent_variables:" << "\n";
             yaml << " - header: {name: " << dep_var << ", units: " << dep_var_unit << "}" << "\n";
             yaml << "   qualifiers:" << "\n";
