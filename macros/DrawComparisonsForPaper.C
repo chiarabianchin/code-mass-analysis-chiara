@@ -1,5 +1,7 @@
 #ifndef DrawComparisonsForPaper_C
 #define DrawComparisonsForPaper_C
+
+#include <fstream>
 #include "/data/macros/LoadALICEFigures.C"
 #include "/data/Work/code-mass-analysis-chiara/utils/CommonTools.C"
 #include "/data/Work/code-mass-analysis-chiara/unfold/SystematicComparisonsUnf.C"
@@ -3053,5 +3055,91 @@ void RatioWithReducedSyst(Int_t* rejectPbPb, Int_t* rejectpPb, TString name){
 	SaveCv(cMassRatio);
 }
 
+void WriteHEPDataTable(TString filenamein, TString filenameout){
+	
+	TFile* fres = new TFile(filenamein);
+	
+	if(!fres){
+		Printf("file %s not found", filenamein.Data());
+		return;
+	}
+	
+	/// To be set -----------------------------------------------------
+	
+	TString hMpPbname  = "hUnfM_Itr3_PtMax", hMSyspPbname  = "hSystTot_PtMax", labelpPb = "MasspPb";
+	TString hMPbPbname = "hUnfMass_PtBin", hMSysPbPbname = "hUnfMassSyst_PtBin", labelPbPb = "MassPbPb";
+	TString hRationame = "hRatioPbPbOpPb_Pt", hRatioSysname = "hRatioPbPbOpPbSys_Pt", labelRatio = "RatioPbPbpPb";
+	
+	TString massVar = "LIGHT-JET-MASS", ptVar = "PT", ratioVar = "RATIO", yieldVar = "N";
+	TString errorStat = "Error", errorSyst = "SYSE";
+	
+	TString massUni = "GEVC2", ptUni = "GEVC";
+	TString yieldUni = "C2GEV", ratioUni = "";
+	
+	const Int_t nsets = 3;
+	TString hname[nsets] = {hMpPbname, hMPbPbname, hRationame};
+	TString hSysn[nsets] = {hMSyspPbname, hMSysPbPbname, hRatioSysname};
+	TString labls[nsets] = {labelpPb, labelPbPb, labelRatio};
+	
+	Bool_t useint[nsets] = {kFALSE, kTRUE, kFALSE};
+	
+	Int_t  off[nsets]    = {0, 2, 0};
+	
+	TString independentVar[nsets] = {massVar, massVar, massVar};
+	TString dependentVar[nsets]   = {yieldVar, yieldVar, ratioVar};
+	TString independentUni[nsets] = {massUni, massUni, massUni};
+	TString dependentUni[nsets]   = {yieldUni, yieldUni, ratioUni};
+	
+	/// Setting done  -------------------------------------------------
+	
+	for(Int_t ipt = 0; ipt < nptbins; ipt++){
+		
+		for(Int_t is = 0; is < nsets; is++){
+			
+			TString curfilename = TString::Format("%s_%s_Pt%.0f_%.0f.txt", filenameout.Data(), labls[is].Data(), ptlims[ipt], ptlims[ipt+1]);
+			std::ofstream out(curfilename);
+			
+			out << independentVar[is] << "\t" << dependentVar[is] << "\t"<< errorStat[is] << "\t" << errorSyst[is] << endl;
+			
+			out << independentUni[is] <<"\t"<< dependentUni[is] << "\t"<< dependentUni[is] << "\t" << dependentUni[is] << endl;
+			
+			
+			
+			TString iptname = TString::Format("%s%.0f_%.0f", hname[is].Data(), ptlims[ipt], ptlims[ipt+1]);
+			TString iptsysname = TString::Format("%s%.0f_%.0f", hSysn[is].Data(), ptlims[ipt], ptlims[ipt+1]);
+			
+			if(useint[is]) {
+				
+				iptname = TString::Format("%s%d", hname[is].Data(), ipt+off[is]);
+				iptsysname = TString::Format("%s%d", hSysn[is].Data(), ipt+off[is]);
+			}
+			
+			
+			TH1F *h = (TH1F*)fres->Get(iptname);
+			
+			TH1F *hSys = (TH1F*)fres->Get(iptsysname);
+			if(!h || !hSys){
+				Printf("Histogram not found, names %s, %s", iptname.Data(), iptsysname.Data());
+				fres->ls();
+				continue;
+			}
+			for(Int_t iM = 0; iM < h->GetNbinsX(); iM++){
+				
+				Double_t x, y, erry, syst;
+				x    = h->GetBinCenter(iM+1);
+				y    = h->GetBinContent(iM+1);
+				erry = h->GetBinError(iM+1);
+				syst = hSys->GetBinError(iM+1);
+				
+				out << x << "\t" << y << "\t" << erry << "\t" << syst << endl;
+			}
+			//out << endl;
+			out << endl;
+			Printf("Written file %s", curfilename.Data());
+			out.close();
+		}
+		
+	}
+}
 
 #endif
