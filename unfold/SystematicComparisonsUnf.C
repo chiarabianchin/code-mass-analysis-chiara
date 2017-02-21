@@ -15,6 +15,7 @@ const Int_t nptbins = 3;//4;
 Double_t ptlims[nptbins+1] = {60., 80., 100., 120};//40., 
 Double_t maxRangeMass[nptbins] = {26., 26., 26.};//20., 
 Double_t maxRangeMassFinal[nptbins] = {18., 22., 24.};//20., 
+Double_t maxRangeMassPbPb[nptbins]  = {22., 24., 26.};
 
 TH1D** CompareResults(const Int_t ninputs, TString files[], TString hnamebase[], TString legs[], Int_t offset[], Bool_t changeColor = kFALSE, Bool_t writeRatios = kFALSE, Bool_t noUniform = kFALSE, Int_t base = 1, TString name = "setit", Bool_t logscale = kFALSE);
 TH1D* SystematicFromRatio(TH1D* hRatio, TString systname);

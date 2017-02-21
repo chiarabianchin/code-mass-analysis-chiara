@@ -317,7 +317,7 @@ TList* GetpPbResults(Bool_t kinecorr){
 		hMassSy->SetFillStyle(hSytmp->GetFillStyle());
 		hMassSy->SetLineWidth(hSytmp->GetLineWidth());
 		hMassSy->SetLineColor(hSytmp->GetLineColor());
-		//hMassSy->SetMarkerSize(2);
+		hMassSy->SetMarkerSize(2);
 		//hMassSy->GetYaxis()->SetTitleOffset(1.7);
 		//hMassSy->GetXaxis()->SetRangeUser(0., maxRangeMassFinal[ih]);
 		
@@ -791,7 +791,7 @@ void CalculateSysRatio(TH1D* hRatioPbPbOpPbSysC, TH1D* hRDivpPbC){
 //________________________________________________________________________
 
 // mains
-void RatiopPbPbPb(Bool_t useline = kTRUE, Bool_t stylezero = kTRUE, Bool_t drawRaghav = kTRUE, Bool_t pPbpaperprop = kFALSE, Bool_t corrkine = kFALSE, Bool_t show1134 = kFALSE, Bool_t samexrange = kFALSE){
+void RatiopPbPbPb(Bool_t useline = kTRUE, Bool_t stylezero = kTRUE, Bool_t drawRaghav = kTRUE, Bool_t pPbpaperprop = kFALSE, Bool_t corrkine = kFALSE, Bool_t show1134 = kFALSE, Bool_t samexrange = kTRUE){
 	TString suff = "";
 	if(!corrkine) suff = "NoKineCor";
 	//TGaxis::SetMaxDigits(2);
@@ -802,13 +802,13 @@ void RatiopPbPbPb(Bool_t useline = kTRUE, Bool_t stylezero = kTRUE, Bool_t drawR
 		
 		gStyle->SetLabelSize(0.06, "X");
 		gStyle->SetTitleOffset(1.12, "X");
-		gStyle->SetTitleSize(0.055, "X");
+		gStyle->SetTitleSize(0.06, "X");
 		
 		gStyle->SetNdivisions(705, "X");
 		
 		gStyle->SetLabelSize(0.06, "Y");
 		gStyle->SetTitleOffset(1.34, "Y");
-		gStyle->SetTitleSize(0.048, "Y");
+		gStyle->SetTitleSize(0.06, "Y");
 		
 		gStyle->SetNdivisions(1004, "Y");
 		
@@ -816,8 +816,8 @@ void RatiopPbPbPb(Bool_t useline = kTRUE, Bool_t stylezero = kTRUE, Bool_t drawR
 		
 	}
 	
-	gStyle->SetPadBottomMargin(.13);
-	gStyle->SetPadLeftMargin(.16);
+	gStyle->SetPadBottomMargin(.15); //0.13
+	gStyle->SetPadLeftMargin(.2); //0.16
 	gStyle->SetPadRightMargin(.06);
 	
 	TLatex latext;
@@ -1015,11 +1015,7 @@ void RatiopPbPbPb(Bool_t useline = kTRUE, Bool_t stylezero = kTRUE, Bool_t drawR
 	
 	Int_t n = 2;
 	
-	Int_t nb = (Int_t)maxM/2.;
-	TH1F *hdummy = GetTransparentHistogram(nb, 0, maxM, 0.25);
-	Printf("Created dummy h %p", hdummy);
-	TH1F *hrummy = GetTransparentHistogram(nb, 0, maxM, 4.);
-	Printf("Created dummy ratio %p", hrummy);
+	
 	//TPaveText **pvpt = new TPaveText*[nhM];
 	
 	TFile *fOutput = new TFile("FinalResults.root", "recreate");
@@ -1034,6 +1030,12 @@ void RatiopPbPbPb(Bool_t useline = kTRUE, Bool_t stylezero = kTRUE, Bool_t drawR
 		//pvpt[ih]->SetFillStyle(0);
 		//pvpt[ih]->SetBorderSize(0);
 		//pvpt[ih]->AddText(TString::Format("%.0f < #it{p}_{T, ch jet} < %.0f GeV/#it{c}", ptlims[ih], ptlims[ih+1]));
+		
+		Int_t nb = (Int_t)maxRangeMass[ih]/2.+1;
+		TH1F *hdummy = GetTransparentHistogram(nb, -0.4, maxRangeMass[ih], 0.25);
+		Printf("Created dummy h %p", hdummy);
+		TH1F *hrummy = GetTransparentHistogram(nb, -0.4, maxRangeMassFinal[ih], 4.);
+		Printf("Created dummy ratio %p", hrummy);
 		
 		//mass
 		TH1D* hMpPb     = (TH1D*)listpPb ->At(n*ih);
@@ -1083,7 +1085,7 @@ void RatiopPbPbPb(Bool_t useline = kTRUE, Bool_t stylezero = kTRUE, Bool_t drawR
 		if(ih == nhM-1) ismostright = kTRUE;
 		
 		//Draw comparison pPb, PbPb
-		
+		hSypPb ->GetXaxis()->SetRangeUser(0, maxM);
 		hSypPb ->GetYaxis()->SetRangeUser(0., 0.25);
 		
 		cMass->cd();
@@ -1095,7 +1097,9 @@ void RatiopPbPbPb(Bool_t useline = kTRUE, Bool_t stylezero = kTRUE, Bool_t drawR
 		hSyPbPb->GetYaxis()->SetRangeUser(0., 0.25);
 		hSyPbPb->GetXaxis()->SetRangeUser(0., maxM);
 		
-		hSypPb->SetMarkerStyle(hMpPb->GetMarkerStyle());
+		hdummy->SetTitle(TString::Format("%s;%s;%s", hSyPbPb  ->GetTitle(), hSyPbPb->GetXaxis()->GetTitle(), hSyPbPb->GetYaxis()->GetTitle()));
+		hdummy->GetXaxis()->SetRangeUser(hdummy->GetXaxis()->GetBinLowEdge(1), maxRangeMassPbPb[ih]);
+		
 		if(samexrange) {
 			hdummy->DrawClone();
 			hSyPbPb->Draw("E2sames");
@@ -1118,11 +1122,11 @@ void RatiopPbPbPb(Bool_t useline = kTRUE, Bool_t stylezero = kTRUE, Bool_t drawR
 		if(ih == nhM-1){
 			legMass->AddEntry(hSyPbPb , "0-10% Pb#font[122]{-}Pb #sqrt{#it{s}_{NN}} = 2.76 TeV");
 			//legMass->AddEntry(hSyPbPb, "Systematic Pb#font[122]{-}Pb" , "F");
-			legMass->AddEntry(hSypPb ,  "pPb #sqrt{#it{s}_{NN}} = 5.02 TeV");
+			legMass->AddEntry(hSypPb ,  "pPb #sqrt{#it{s}_{NN}} = 5.02 TeV", "FP");
 			//legMass->AddEntry(hSypPb,  "Systematic p#font[122]{-}Pb" , "F");
 			if(pPbpaperprop){
 				legMass->AddEntry(hMpPbM , "Mass p#font[122]{-}Pb paper prop", "PL");
-				legMass->AddEntry(hSypPbM,  "Sys p#font[122]{-}Pb paper prop" , "F");
+				legMass->AddEntry(hSypPbM,  "Sys p#font[122]{-}Pb paper prop" , "FP");
 			}
 			legMass->Draw();
 		}
@@ -1171,9 +1175,9 @@ void RatiopPbPbPb(Bool_t useline = kTRUE, Bool_t stylezero = kTRUE, Bool_t drawR
 		
 		gPad->SetTicks(1,1);
 		
-		
+		hdummy->GetXaxis()->SetRangeUser(hdummy->GetXaxis()->GetBinLowEdge(1), maxRangeMassFinal[ih]);
 		if(samexrange) {
-			hdummy->SetTitle(TString::Format("%s;%s;%s", hSyPbPb  ->GetTitle(), hSyPbPb->GetXaxis()->GetTitle(), hSyPbPb->GetYaxis()->GetTitle()));
+			
 			hdummy->DrawClone();
 			hSypPb ->Draw("E2sames");
 		} else hSypPb ->Draw("E2");
@@ -1188,7 +1192,7 @@ void RatiopPbPbPb(Bool_t useline = kTRUE, Bool_t stylezero = kTRUE, Bool_t drawR
 			DrawLogo(0, 12, 0.18, "", 42, "");
 		}
 		if(ih == nhM-1){
-			legMasspPb->AddEntry(hSypPb, "p#font[122]{-}Pb #sqrt{s_{NN}} = 5.02 TeV");
+			legMasspPb->AddEntry(hSypPb, "p#font[122]{-}Pb #sqrt{s_{NN}} = 5.02 TeV", "FP");
 			//legMasspPb->AddEntry(hSypPb, "Systematic p#font[122]{-}Pb", "F");
 			if(show1134) legMasspPb->AddEntry(hMPy502, "PYTHIA Perugia 2011", optlegsim); //#sqrt{s_{NN}} = 5.02 TeV
 			legMasspPb->AddEntry(hMPy502M, "PYTHIA Perugia 2011", optlegsim); //  #sqrt{s_{NN}} = 5.02 TeV // paper prop
@@ -1206,6 +1210,9 @@ void RatiopPbPbPb(Bool_t useline = kTRUE, Bool_t stylezero = kTRUE, Bool_t drawR
 		cMassPbPbOnly->cd();
 		CreatePadInCanvas("ppadMassPbPbOnly", ih, minpadih, maxpadih, ismostright);
 		gPad->SetTicks(1,1);
+		
+		hdummy->GetXaxis()->SetRangeUser(hdummy->GetXaxis()->GetBinLowEdge(1), maxRangeMassPbPb[ih]);
+		
 		if(samexrange) {
 			hdummy->DrawClone();
 		
@@ -1222,8 +1229,9 @@ void RatiopPbPbPb(Bool_t useline = kTRUE, Bool_t stylezero = kTRUE, Bool_t drawR
 		cMassPbPbPy->cd();
 		TPad* ppadMassPbPbPy = CreatePadInCanvas("ppadMassPbPbPy", ih, minpadih, maxpadih, ismostright);
 		gPad->SetTicks(1,1);
+		
 		if(samexrange) {
-			
+			hdummy->GetXaxis()->SetRangeUser(hdummy->GetXaxis()->GetBinLowEdge(1), maxRangeMassPbPb[ih]);
 			hdummy->DrawClone();
 			hSyPbPb  ->Draw("E2sames");
 		} else hSyPbPb  ->Draw("E2");
@@ -1245,10 +1253,12 @@ void RatiopPbPbPb(Bool_t useline = kTRUE, Bool_t stylezero = kTRUE, Bool_t drawR
 		cMassPbPb->cd();
 		TPad* padMassPbPb = CreatePadInCanvas("ppadMassPbPb", ih, minpadih, maxpadih, ismostright);
 		gPad->SetTicks(1,1);
-		if(samexrange) {
-		hdummy->DrawClone();
 		
-		hSyPbPb  ->Draw("E2sames");
+		if(samexrange) {
+			hdummy->GetXaxis()->SetRangeUser(hdummy->GetXaxis()->GetBinLowEdge(1), maxRangeMassPbPb[ih]);
+			hdummy->DrawClone();
+		
+			hSyPbPb  ->Draw("E2sames");
 		} else hSyPbPb  ->Draw("E2");
 		
 		hMPbPb   ->Draw("sames");
@@ -1344,8 +1354,8 @@ void RatiopPbPbPb(Bool_t useline = kTRUE, Bool_t stylezero = kTRUE, Bool_t drawR
 		hRatioPbPbOpPbSys->SetName(TString::Format("hRatioPbPbOpPbSys_Pt%.0f_%.0f", ptlims[ih],ptlims[ih+1]));
 		//hRatioPbPbOpPbSys->GetYaxis()->SetTitle("#Rgothic_{#sqrt{#it{s}}}");
 		hRatioPbPbOpPbSys->GetYaxis()->SetTitle("Ratio_{#sqrt{#it{s}}}");
-		hRatioPbPbOpPbSys->GetYaxis()->SetTitleOffset(1.15);
-		//hRatioPbPbOpPbSys->GetYaxis()->SetTitleOffset(1.7);
+		hRatioPbPbOpPbSys->GetYaxis()->SetTitleOffset(1.05);
+		hRatioPbPbOpPbSys->GetYaxis()->SetTitleSize(0.06);
 		hRatioPbPbOpPbSys->Divide(hRDivpPb);
 		hRatioPbPbOpPbSys->SetFillStyle(1001);
 		hRatioPbPbOpPbSys->SetFillColor(kMagenta-10);
@@ -1451,6 +1461,7 @@ void RatiopPbPbPb(Bool_t useline = kTRUE, Bool_t stylezero = kTRUE, Bool_t drawR
 			hRatioPbPbOpPbSys->GetXaxis()->SetRangeUser(0., maxRangeMassFinal[ih]);
 			if(samexrange) {
 				hrummy->SetTitle(TString::Format("%s;%s;%s", hRatioPbPbOpPbSys  ->GetTitle(), hRatioPbPbOpPbSys->GetXaxis()->GetTitle(), hRatioPbPbOpPbSys->GetYaxis()->GetTitle()));
+				//hrummy->GetXaxis()->SetRangeUser(hrummy->GetXaxis()->GetBinLowEdge(1), maxRangeMassFinal[ih]);
 				hrummy->DrawClone();
 				hRatioPbPbOpPbSys->Draw("E2sames");
 			} else hRatioPbPbOpPbSys->Draw("E2");
